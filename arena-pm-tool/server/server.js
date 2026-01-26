@@ -169,6 +169,27 @@ app.get('/api/health', async (req, res) => {
     serverless: !!process.env.VERCEL
   };
 
+  // Check critical environment variables (always)
+  const requiredVars = {
+    JWT_SECRET: !!process.env.JWT_SECRET,
+    DATABASE_URL: !!process.env.DATABASE_URL,
+    ALLOWED_ORIGINS: !!process.env.ALLOWED_ORIGINS
+  };
+
+  const missingVars = Object.entries(requiredVars)
+    .filter(([, isSet]) => !isSet)
+    .map(([name]) => name);
+
+  health.config = {
+    ...requiredVars,
+    missing: missingVars.length > 0 ? missingVars : null
+  };
+
+  if (missingVars.length > 0) {
+    health.status = 'MISCONFIGURED';
+    health.message = `Missing environment variables: ${missingVars.join(', ')}`;
+  }
+
   // Optional: Check database connectivity (add ?db=true to URL)
   if (req.query.db === 'true') {
     try {
@@ -186,13 +207,6 @@ app.get('/api/health', async (req, res) => {
       health.status = 'DEGRADED';
     }
   }
-
-  // Check if critical env vars are set (without exposing values)
-  health.config = {
-    database_url: !!process.env.DATABASE_URL,
-    jwt_secret: !!process.env.JWT_SECRET,
-    allowed_origins: !!process.env.ALLOWED_ORIGINS
-  };
 
   const statusCode = health.status === 'OK' ? 200 : 503;
   res.status(statusCode).json(health);
