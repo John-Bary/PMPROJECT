@@ -6,7 +6,10 @@
 
 # Database backups (contain sensitive data)
 backups/
-*.sql
+*.backup.sql
+
+# Keep schema files
+!config/schema.sql
 
 # Dependencies
 node_modules/

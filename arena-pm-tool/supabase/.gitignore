@@ -1,0 +1,6 @@
+# Supabase local development
+.branches
+.temp
+
+# Generated types (optional - uncomment if you want to track these)
+# ../client/src/types/database.types.ts

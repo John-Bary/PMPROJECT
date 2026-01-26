@@ -44,15 +44,19 @@ arena-pm-tool/
 │   └── package.json
 │
 ├── server/                 # Node.js backend
-│   ├── config/            # Database config
+│   ├── config/            # Database config & schema
 │   ├── controllers/       # Route controllers
 │   ├── middleware/        # Custom middleware
-│   ├── models/            # Database models
 │   ├── routes/            # API routes
-│   ├── utils/             # Helper functions
+│   ├── scripts/           # Database scripts
 │   ├── server.js          # Entry point
 │   └── package.json
 │
+├── supabase/              # Supabase migrations
+│   ├── migrations/        # SQL migration files
+│   └── config.toml        # Supabase CLI config
+│
+├── package.json           # Root package with db scripts
 └── README.md
 ```
 
@@ -85,7 +89,7 @@ npm install
 
 4. Set up the database:
    - Create a PostgreSQL database named `arena_pm_tool`
-   - Run migrations (to be added in next steps)
+   - Run migrations (see [Database Migrations](#database-migrations) below)
 
 ### Running the Application
 
@@ -103,6 +107,134 @@ npm start
 ```
 React app will run on http://localhost:3000
 
+## Database Migrations
+
+This project uses [Supabase CLI](https://supabase.com/docs/guides/cli) for database migrations, providing a robust workflow for schema changes.
+
+### Prerequisites
+
+Install the Supabase CLI and project dependencies:
+
+```bash
+# Install root dependencies (includes Supabase CLI)
+npm install
+
+# Or install Supabase CLI globally
+npm install -g supabase
+```
+
+### Migration Commands
+
+Run these commands from the project root (`arena-pm-tool/`):
+
+| Command | Description |
+|---------|-------------|
+| `npm run db:diff -- <name>` | Generate a new migration by diffing local vs remote schema |
+| `npm run db:push` | Push all pending migrations to the remote database |
+| `npm run db:pull` | Pull remote schema changes into local migrations |
+| `npm run db:migrate` | Apply pending migrations locally |
+| `npm run db:status` | List all migrations and their status |
+| `npm run db:migrate:new -- <name>` | Create a new empty migration file |
+
+From the server directory (`arena-pm-tool/server/`):
+
+| Command | Description |
+|---------|-------------|
+| `npm run db:init` | Initialize database with full schema |
+| `npm run db:reset` | Reset database (destructive) |
+| `npm run db:backup` | Create a database backup |
+| `npm run db:restore` | Restore from backup |
+
+### Setting Up Supabase
+
+#### Option 1: Using Supabase Cloud
+
+1. Create a project at [supabase.com](https://supabase.com)
+
+2. Link your local project:
+   ```bash
+   npx supabase link --project-ref <your-project-ref>
+   ```
+
+3. Push the initial migration:
+   ```bash
+   npm run db:push
+   ```
+
+4. Update your `.env` with Supabase credentials:
+   ```
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   ```
+
+#### Option 2: Local Development with Supabase
+
+1. Start local Supabase:
+   ```bash
+   npm run supabase:start
+   ```
+
+2. Apply migrations:
+   ```bash
+   npm run db:migrate
+   ```
+
+3. Check status:
+   ```bash
+   npm run supabase:status
+   ```
+
+### Creating New Migrations
+
+When making schema changes:
+
+1. **Auto-generate from changes** (recommended):
+   ```bash
+   # Make changes to your local database
+   # Then generate a migration capturing those changes
+   npm run db:diff -- add_new_feature
+   ```
+
+2. **Create empty migration** (manual SQL):
+   ```bash
+   npm run db:migrate:new -- add_new_feature
+   # Edit the file in supabase/migrations/
+   ```
+
+3. **Push to remote**:
+   ```bash
+   npm run db:push
+   ```
+
+### Migration File Structure
+
+Migrations are stored in `supabase/migrations/` with timestamped filenames:
+
+```
+supabase/migrations/
+├── 20240101000000_initial_schema.sql    # Initial tables
+└── 20240215120000_add_new_feature.sql   # Future migrations
+```
+
+### TypeScript Types Generation
+
+Generate TypeScript types from your database schema:
+
+```bash
+npm run supabase:gen-types
+```
+
+This creates `client/src/types/database.types.ts` with full type definitions.
+
+### Best Practices
+
+1. **Never edit applied migrations** - Create new migrations for changes
+2. **Test migrations locally** before pushing to production
+3. **Use descriptive names** - `add_user_preferences` not `update_1`
+4. **Include rollback logic** when possible (use `DROP IF EXISTS`)
+5. **Review generated diffs** before committing
+
 ## Development Progress
 
 - [x] Step 1: Project initialization
@@ -110,6 +242,7 @@ React app will run on http://localhost:3000
 - [x] Step 3: Authentication
 - [x] Step 4: Task management
 - [x] Step 5: Categories & UI
+- [x] Step 6: Supabase migrations setup
 
 ## License
 

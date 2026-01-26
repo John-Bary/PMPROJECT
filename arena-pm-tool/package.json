@@ -1,0 +1,33 @@
+{
+  "name": "arena-pm-tool",
+  "version": "1.0.0",
+  "description": "Arena PM Tool - Full-stack project management application",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:client": "npm run start --prefix client",
+    "build": "npm run build --prefix client",
+    "start": "npm run start --prefix server",
+    "db:init": "npm run db:init --prefix server",
+    "db:reset": "npm run db:reset --prefix server",
+    "db:diff": "supabase db diff --use-migra -f",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:migrate": "supabase migration up",
+    "db:migrate:new": "supabase migration new",
+    "db:status": "supabase migration list",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:link": "supabase link",
+    "supabase:gen-types": "supabase gen types typescript --local > ./client/src/types/database.types.ts"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "supabase": "^1.200.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
