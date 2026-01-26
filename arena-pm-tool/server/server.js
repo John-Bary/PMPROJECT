@@ -129,13 +129,43 @@ app.use(cookieParser());
 // Serve static files for uploads (avatars, etc.)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Basic test route
-app.get('/api/health', (req, res) => {
-  res.json({
+// Health check route with optional database verification
+app.get('/api/health', async (req, res) => {
+  const health = {
     status: 'OK',
     message: 'Arena PM Tool API is running',
-    timestamp: new Date().toISOString()
-  });
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    serverless: !!process.env.VERCEL
+  };
+
+  // Optional: Check database connectivity (add ?db=true to URL)
+  if (req.query.db === 'true') {
+    try {
+      const result = await pool.query('SELECT 1 as connected');
+      health.database = {
+        status: 'connected',
+        // Don't expose connection details, just confirm it works
+        pooler: process.env.DATABASE_URL?.includes('pooler') ? 'yes' : 'no'
+      };
+    } catch (error) {
+      health.database = {
+        status: 'error',
+        message: error.message.replace(/password=\S+/gi, 'password=***')
+      };
+      health.status = 'DEGRADED';
+    }
+  }
+
+  // Check if critical env vars are set (without exposing values)
+  health.config = {
+    database_url: !!process.env.DATABASE_URL,
+    jwt_secret: !!process.env.JWT_SECRET,
+    allowed_origins: !!process.env.ALLOWED_ORIGINS
+  };
+
+  const statusCode = health.status === 'OK' ? 200 : 503;
+  res.status(statusCode).json(health);
 });
 
 // Database test route
