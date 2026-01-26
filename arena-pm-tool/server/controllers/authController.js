@@ -5,11 +5,21 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/database');
 
+// Validate JWT_SECRET is configured
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.trim() === '') {
+    throw new Error('JWT_SECRET environment variable is not configured. Please set it in your environment variables.');
+  }
+  return secret;
+};
+
 // Generate JWT token
 const generateToken = (userId, email, role) => {
+  const secret = getJwtSecret();
   return jwt.sign(
     { userId, email, role },
-    process.env.JWT_SECRET,
+    secret,
     { expiresIn: '7d' } // Token expires in 7 days
   );
 };
@@ -109,10 +119,29 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+
+    // Check for specific error types
+    if (error.message.includes('JWT_SECRET')) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Server configuration error. Please contact the administrator.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
+    // Database connection errors
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
     res.status(500).json({
       status: 'error',
-      message: 'Error registering user',
-      error: error.message
+      message: 'Error registering user. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };
@@ -183,10 +212,29 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
+
+    // Check for specific error types
+    if (error.message.includes('JWT_SECRET')) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'Server configuration error. Please contact the administrator.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
+    // Database connection errors
+    if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+      return res.status(503).json({
+        status: 'error',
+        message: 'Database connection error. Please try again later.',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+
     res.status(500).json({
       status: 'error',
-      message: 'Error logging in',
-      error: error.message
+      message: 'Error logging in. Please try again.',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 };

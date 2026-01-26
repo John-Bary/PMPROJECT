@@ -22,10 +22,10 @@ const apiLimiter = rateLimit({
 });
 
 // Stricter rate limiter for authentication endpoints
-// 5 attempts per 15 minutes per IP (prevents brute-force)
+// 10 attempts per 15 minutes per IP (prevents brute-force while allowing retries)
 const authLimiter = rateLimit({
   windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 5,
+  max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS) || 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -33,6 +33,8 @@ const authLimiter = rateLimit({
     message: 'Too many authentication attempts. Please try again in 15 minutes.',
     retryAfter: Math.ceil((parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000)
   },
+  // Only count failed authentication attempts (wrong password, etc.)
+  // Successful logins don't count against the limit
   skipSuccessfulRequests: true
 });
 

@@ -21,6 +21,36 @@ const reminderRoutes = require('./routes/reminders');
 // Load environment variables
 dotenv.config();
 
+// Validate critical environment variables
+const validateEnvironment = () => {
+  const requiredVars = ['JWT_SECRET'];
+  const missing = requiredVars.filter(varName => !process.env[varName]);
+
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing.join(', '));
+    console.error('   Please set these variables in your .env file or environment.');
+
+    // In production, this is a critical error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('   Server cannot start without required configuration.');
+      // Don't exit in serverless environment, but log the error
+      if (!process.env.VERCEL) {
+        process.exit(1);
+      }
+    }
+  }
+
+  // Warn about database configuration
+  const hasDbUrl = !!process.env.DATABASE_URL;
+  const hasDbConfig = !!(process.env.DB_HOST && process.env.DB_NAME && process.env.DB_USER);
+
+  if (!hasDbUrl && !hasDbConfig) {
+    console.warn('⚠️  No database configuration found. Set DATABASE_URL or DB_HOST/DB_NAME/DB_USER/DB_PASSWORD.');
+  }
+};
+
+validateEnvironment();
+
 // Initialize Express app
 const app = express();
 
