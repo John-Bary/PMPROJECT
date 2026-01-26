@@ -43,7 +43,10 @@ pool.on('connect', () => {
 
 pool.on('error', (err) => {
   console.error('❌ Unexpected database error:', err);
-  process.exit(-1);
+  // Don't exit in serverless environment - let the request fail gracefully
+  if (!isServerless) {
+    process.exit(-1);
+  }
 });
 
 // Query helper function
