@@ -69,38 +69,52 @@ app.use(helmet(helmetConfig));
 const getAllowedOrigins = () => {
   const envOrigins = process.env.ALLOWED_ORIGINS;
 
-  if (process.env.NODE_ENV === 'production' && envOrigins) {
-    return envOrigins.split(',').map(origin => origin.trim());
+  // Always include the client URL
+  const origins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://client-gray-chi.vercel.app'
+  ];
+
+  if (envOrigins) {
+    const additionalOrigins = envOrigins.split(',').map(origin => origin.trim());
+    additionalOrigins.forEach(origin => {
+      if (!origins.includes(origin)) {
+        origins.push(origin);
+      }
+    });
   }
 
-  // Development defaults
-  return [
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ];
+  console.log('CORS allowed origins:', origins);
+  return origins;
 };
 
 const allowedOrigins = getAllowedOrigins();
 
-// Middleware
-app.use(cors({
+// CORS configuration
+const corsOptions = {
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) {
-      if (process.env.NODE_ENV === 'production') {
-        return callback(null, false);
-      }
       return callback(null, true);
     }
+    // Check if origin is allowed
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
-    console.warn(`CORS blocked request from origin: ${origin}`);
-    return callback(new Error('Not allowed by CORS'));
+    // Log denied origins for debugging
+    console.warn(`CORS request from origin: ${origin}, allowed: ${allowedOrigins.join(', ')}`);
+    // Still allow the request but without CORS headers (browser will block)
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
 
 // Rate limiting for API routes
 app.use('/api', apiLimiter);
