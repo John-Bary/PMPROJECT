@@ -6,10 +6,11 @@ This guide explains how to deploy the Arena PM Tool monorepo to Vercel with the 
 
 ```
 arena-pm-tool/
+├── api/              # Serverless function entry point
+│   └── index.js      # Wraps Express app for Vercel
 ├── client/           # React (CRA) frontend → Static files
-├── server/           # Express backend → Serverless function
-│   └── api/
-│       └── index.js  # Serverless entry point
+├── server/           # Express backend (business logic)
+│   └── server.js     # Express app exported for serverless
 └── vercel.json       # Vercel configuration
 ```
 
@@ -152,6 +153,8 @@ npm start             # Runs on http://localhost:3000
 ```
 arena-pm-tool/
 ├── vercel.json              # Vercel deployment configuration
+├── api/
+│   └── index.js             # Serverless function entry point (imports server/server.js)
 ├── client/
 │   ├── package.json         # CRA dependencies and scripts
 │   ├── src/
@@ -161,8 +164,6 @@ arena-pm-tool/
 └── server/
     ├── package.json         # Express dependencies
     ├── server.js            # Express app (exports for serverless)
-    ├── api/
-    │   └── index.js         # Serverless function entry point
     ├── config/
     │   └── database.js      # Database connection (serverless-aware)
     └── routes/              # API route handlers
