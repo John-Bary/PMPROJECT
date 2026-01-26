@@ -235,6 +235,58 @@ This creates `client/src/types/database.types.ts` with full type definitions.
 4. **Include rollback logic** when possible (use `DROP IF EXISTS`)
 5. **Review generated diffs** before committing
 
+## Deploying to Vercel
+
+This is a monorepo with separate frontend and backend. Deploy them as **two separate Vercel projects**.
+
+### Step 1: Deploy the Server (API)
+
+1. Create a new Vercel project
+2. Set the **Root Directory** to `arena-pm-tool/server`
+3. Vercel will auto-detect the Node.js configuration from `vercel.json`
+4. Add these **Environment Variables**:
+
+   | Variable | Value |
+   |----------|-------|
+   | `DATABASE_URL` | Your PostgreSQL connection string (or use Supabase) |
+   | `JWT_SECRET` | A strong random secret |
+   | `ALLOWED_ORIGINS` | Your client's Vercel URL (after deploying client) |
+   | `CRON_SECRET` | A random string for cron job verification |
+   | `NODE_ENV` | `production` |
+   | `TRUST_PROXY` | `true` |
+
+5. Deploy and note the URL (e.g., `https://arena-pm-api.vercel.app`)
+
+### Step 2: Deploy the Client (Frontend)
+
+1. Create another Vercel project
+2. Set the **Root Directory** to `arena-pm-tool/client`
+3. Vercel will auto-detect Create React App
+4. Add these **Environment Variables**:
+
+   | Variable | Value |
+   |----------|-------|
+   | `REACT_APP_API_URL` | `https://your-server-url.vercel.app/api` |
+
+5. Deploy
+
+### Step 3: Update CORS
+
+After both are deployed:
+1. Go to your **server** project settings
+2. Update `ALLOWED_ORIGINS` to include your client URL (e.g., `https://arena-pm-client.vercel.app`)
+3. Redeploy the server
+
+### Database Options
+
+- **Supabase** (recommended): Free tier available, use `DATABASE_URL` from Supabase dashboard
+- **Vercel Postgres**: Available in Vercel dashboard
+- **Other PostgreSQL**: Any PostgreSQL provider (Railway, Neon, etc.)
+
+### Cron Jobs
+
+The server includes a Vercel Cron job for daily email reminders (9 AM UTC). This is configured in `server/vercel.json`. Ensure `CRON_SECRET` is set for security.
+
 ## Development Progress
 
 - [x] Step 1: Project initialization

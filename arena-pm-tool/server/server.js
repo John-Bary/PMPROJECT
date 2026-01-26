@@ -69,20 +69,23 @@ app.use(helmet(helmetConfig));
 const getAllowedOrigins = () => {
   const envOrigins = process.env.ALLOWED_ORIGINS;
 
-  // Always include the client URL
-  const origins = [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'https://client-gray-chi.vercel.app'
-  ];
+  // Development origins (only used locally)
+  const origins = process.env.NODE_ENV === 'production'
+    ? []
+    : ['http://localhost:3000', 'http://localhost:3001'];
 
+  // Add origins from environment variable (required for production)
   if (envOrigins) {
-    const additionalOrigins = envOrigins.split(',').map(origin => origin.trim());
+    const additionalOrigins = envOrigins.split(',').map(origin => origin.trim()).filter(Boolean);
     additionalOrigins.forEach(origin => {
       if (!origins.includes(origin)) {
         origins.push(origin);
       }
     });
+  }
+
+  if (process.env.NODE_ENV === 'production' && origins.length === 0) {
+    console.warn('WARNING: No ALLOWED_ORIGINS configured for production!');
   }
 
   console.log('CORS allowed origins:', origins);
