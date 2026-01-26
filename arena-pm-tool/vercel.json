@@ -25,5 +25,11 @@
       "src": "/(.*)",
       "dest": "/client/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/reminders/trigger",
+      "schedule": "0 9 * * *"
+    }
   ]
 }
