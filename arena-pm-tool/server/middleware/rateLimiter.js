@@ -17,7 +17,7 @@ const apiLimiter = rateLimit({
   },
   skip: (req) => {
     // Skip rate limiting for health check endpoint
-    return req.path === '/api/health';
+    return req.path === '/health';
   }
 });
 

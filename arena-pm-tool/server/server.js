@@ -150,7 +150,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Rate limiting for API routes
-app.use('/api', apiLimiter);
+app.use('/', apiLimiter);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -160,7 +160,7 @@ app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Health check route with optional database verification
-app.get('/api/health', async (req, res) => {
+app.get('/health', async (req, res) => {
   const health = {
     status: 'OK',
     message: 'Arena PM Tool API is running',
@@ -213,7 +213,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Database test route
-app.get('/api/db-test', async (req, res) => {
+app.get('/db-test', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW() as current_time, version() as postgres_version');
     res.json({
@@ -231,13 +231,13 @@ app.get('/api/db-test', async (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/me', meRoutes);
-app.use('/api/holidays', holidayRoutes);
-app.use('/api/reminders', reminderRoutes);
+app.use('/auth', authRoutes);
+app.use('/tasks', taskRoutes);
+app.use('/categories', categoryRoutes);
+app.use('/comments', commentRoutes);
+app.use('/me', meRoutes);
+app.use('/holidays', holidayRoutes);
+app.use('/reminders', reminderRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {
