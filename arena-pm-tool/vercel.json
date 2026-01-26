@@ -4,15 +4,11 @@
   "outputDirectory": "client/build",
   "installCommand": "npm install && cd client && npm install && cd ../server && npm install",
   "functions": {
-    "api/index.js": {
+    "api/[[...path]].js": {
       "includeFiles": "server/**"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api"
-    },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
