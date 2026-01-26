@@ -1,7 +1,8 @@
 // API Configuration and Axios Instance
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
+// Use relative /api path in production (same domain on Vercel), absolute URL for local dev
+const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 const RETRYABLE_STATUSES = [429, 500, 502, 503, 504];
 const MAX_RETRY_ATTEMPTS = 2;
 const RETRY_DELAY_MS = 300;
