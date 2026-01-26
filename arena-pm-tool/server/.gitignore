@@ -1,0 +1,26 @@
+# Environment variables
+.env
+.env.production
+.env.local
+
+# Database backups (contain sensitive data)
+backups/
+*.sql
+
+# Dependencies
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
