@@ -25,9 +25,14 @@ secrets/
 *.swo
 
 # Database dumps
-*.sql
 *.dump
 backups/
+*.backup.sql
+
+# Allow Supabase migrations and schema files
+!**/supabase/migrations/*.sql
+!**/supabase/seed.sql
+!**/server/config/schema.sql
 
 # Dependencies
 node_modules/
