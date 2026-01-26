@@ -1,7 +1,7 @@
 // Holiday Controller
 // Proxies requests to Abstract API with caching for Lithuanian holidays
 
-const ABSTRACT_API_KEY = 'df46195a78e24f6fae1b75815d443eb3';
+const ABSTRACT_API_KEY = process.env.ABSTRACT_API_KEY;
 const ABSTRACT_API_URL = 'https://holidays.abstractapi.com/v1/';
 const COUNTRY_CODE = 'LT';
 
@@ -25,6 +25,14 @@ const normalizeDate = (holiday) => {
  */
 const getHolidays = async (req, res) => {
   try {
+    // Validate API key is configured
+    if (!ABSTRACT_API_KEY) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'ABSTRACT_API_KEY environment variable not configured'
+      });
+    }
+
     const { year } = req.query;
 
     // Validate year parameter

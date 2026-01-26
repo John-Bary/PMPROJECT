@@ -94,7 +94,7 @@ npm install
 cd server
 npm run dev
 ```
-Server will run on http://localhost:5000
+Server will run on http://localhost:5001
 
 **Frontend:**
 ```bash
@@ -106,9 +106,10 @@ React app will run on http://localhost:3000
 ## Development Progress
 
 - [x] Step 1: Project initialization
-- [ ] Step 2: Database schema
-- [ ] Step 3: Authentication
-- [ ] ... (more steps to follow)
+- [x] Step 2: Database schema
+- [x] Step 3: Authentication
+- [x] Step 4: Task management
+- [x] Step 5: Categories & UI
 
 ## License
 

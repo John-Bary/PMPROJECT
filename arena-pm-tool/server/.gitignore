@@ -2,6 +2,7 @@
 .env
 .env.production
 .env.local
+.env.backup
 
 # Database backups (contain sensitive data)
 backups/
