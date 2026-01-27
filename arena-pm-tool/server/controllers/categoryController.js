@@ -6,17 +6,32 @@ const { query } = require('../config/database');
 // Get all categories
 const getAllCategories = async (req, res) => {
   try {
-    const result = await query(`
+    const { workspace_id } = req.query;
+
+    let queryText = `
       SELECT
-        c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at,
+        c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at, c.workspace_id,
         u.name as created_by_name,
         COUNT(t.id) as task_count
       FROM categories c
       LEFT JOIN users u ON c.created_by = u.id
       LEFT JOIN tasks t ON c.id = t.category_id
+    `;
+
+    const params = [];
+
+    // Filter by workspace_id if provided
+    if (workspace_id) {
+      queryText += ` WHERE c.workspace_id = $1`;
+      params.push(workspace_id);
+    }
+
+    queryText += `
       GROUP BY c.id, u.name
       ORDER BY c.position ASC
-    `);
+    `;
+
+    const result = await query(queryText, params);
 
     res.json({
       status: 'success',
@@ -26,6 +41,7 @@ const getAllCategories = async (req, res) => {
           name: cat.name,
           color: cat.color,
           position: cat.position,
+          workspaceId: cat.workspace_id,
           taskCount: parseInt(cat.task_count),
           createdBy: cat.created_by,
           createdByName: cat.created_by_name,
@@ -95,7 +111,7 @@ const getCategoryById = async (req, res) => {
 // Create new category
 const createCategory = async (req, res) => {
   try {
-    const { name, color = '#3B82F6' } = req.body;
+    const { name, color = '#3B82F6', workspace_id } = req.body;
 
     // Validate required fields
     if (!name) {
@@ -113,11 +129,16 @@ const createCategory = async (req, res) => {
       });
     }
 
-    // Check if category name already exists
-    const existingCategory = await query(
-      'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)',
-      [name]
-    );
+    // Check if category name already exists within the same workspace
+    let existingCategoryQuery = 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)';
+    const existingCategoryParams = [name];
+
+    if (workspace_id) {
+      existingCategoryQuery += ' AND workspace_id = $2';
+      existingCategoryParams.push(workspace_id);
+    }
+
+    const existingCategory = await query(existingCategoryQuery, existingCategoryParams);
 
     if (existingCategory.rows.length > 0) {
       return res.status(400).json({
@@ -126,17 +147,23 @@ const createCategory = async (req, res) => {
       });
     }
 
-    // Get the next position
-    const posResult = await query(
-      'SELECT COALESCE(MAX(position), -1) + 1 as next_position FROM categories'
-    );
+    // Get the next position (within workspace if specified)
+    let posQuery = 'SELECT COALESCE(MAX(position), -1) + 1 as next_position FROM categories';
+    const posParams = [];
+
+    if (workspace_id) {
+      posQuery += ' WHERE workspace_id = $1';
+      posParams.push(workspace_id);
+    }
+
+    const posResult = await query(posQuery, posParams);
     const position = posResult.rows[0].next_position;
 
     const result = await query(`
-      INSERT INTO categories (name, color, position, created_by)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO categories (name, color, position, created_by, workspace_id)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
-    `, [name, color, position, req.user.id]);
+    `, [name, color, position, req.user.id, workspace_id || null]);
 
     const newCategory = result.rows[0];
 
@@ -149,6 +176,7 @@ const createCategory = async (req, res) => {
           name: newCategory.name,
           color: newCategory.color,
           position: newCategory.position,
+          workspaceId: newCategory.workspace_id,
           createdBy: newCategory.created_by,
           createdAt: newCategory.created_at,
           updatedAt: newCategory.updated_at
