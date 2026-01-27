@@ -656,5 +656,244 @@ describe('Task Controller', () => {
         }
       });
     });
+
+    it('should return subtasks with dueDate, priority, and assignees', async () => {
+      req.params = { id: '1' };
+      const subtasks = [
+        {
+          id: 2, title: 'Subtask with fields', description: 'A subtask', category_id: 1,
+          category_name: 'Category', category_color: '#fff', priority: 'high',
+          status: 'in_progress', due_date: '2024-02-15', completed_at: null, position: 0,
+          parent_task_id: 1, created_by: 1, created_by_name: 'Test',
+          created_at: new Date(), updated_at: new Date(),
+          assignees: [{ id: 1, name: 'User 1', email: 'user1@test.com' }]
+        }
+      ];
+      query.mockResolvedValue({ rows: subtasks });
+
+      await getSubtasks(req, res);
+
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'success',
+        data: {
+          subtasks: expect.arrayContaining([
+            expect.objectContaining({
+              id: 2,
+              parentTaskId: 1,
+              priority: 'high',
+              dueDate: '2024-02-15',
+              assignees: expect.arrayContaining([
+                expect.objectContaining({ id: 1, name: 'User 1' })
+              ])
+            })
+          ]),
+          count: 1
+        }
+      });
+    });
+  });
+
+  describe('createTask (subtask)', () => {
+    it('should create subtask with parent_task_id', async () => {
+      req.body = {
+        title: 'New Subtask',
+        parent_task_id: 1,
+        category_id: 1
+      };
+      query.mockResolvedValueOnce({ rows: [{ next_position: 0 }] }); // Position query
+      query.mockResolvedValueOnce({ rows: [{ id: 2 }] }); // Insert
+      query.mockResolvedValueOnce({ rows: [{
+        id: 2, title: 'New Subtask', description: null, category_id: 1,
+        category_name: 'Category', category_color: '#fff', priority: 'medium',
+        status: 'todo', due_date: null, completed_at: null, position: 0,
+        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
+        created_by: 1, created_by_name: 'Test', created_at: new Date(),
+        updated_at: new Date(), assignees: []
+      }] }); // Full task query
+
+      await createTask(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO tasks'),
+        expect.arrayContaining([1]) // parent_task_id
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              parentTaskId: 1
+            })
+          })
+        })
+      );
+    });
+
+    it('should create subtask with dueDate, priority, and assignees', async () => {
+      req.body = {
+        title: 'Subtask with fields',
+        parent_task_id: 1,
+        category_id: 1,
+        priority: 'high',
+        due_date: '2024-02-15',
+        assignee_ids: [1, 2]
+      };
+      query.mockResolvedValueOnce({ rows: [{ next_position: 0 }] }); // Position query
+      query.mockResolvedValueOnce({ rows: [{ id: 2 }] }); // Insert task
+      query.mockResolvedValueOnce({ rows: [] }); // Insert assignees
+      query.mockResolvedValueOnce({ rows: [{
+        id: 2, title: 'Subtask with fields', description: null, category_id: 1,
+        category_name: 'Category', category_color: '#fff', priority: 'high',
+        status: 'todo', due_date: '2024-02-15', completed_at: null, position: 0,
+        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
+        created_by: 1, created_by_name: 'Test', created_at: new Date(),
+        updated_at: new Date(),
+        assignees: [
+          { id: 1, name: 'User 1', email: 'user1@test.com' },
+          { id: 2, name: 'User 2', email: 'user2@test.com' }
+        ]
+      }] }); // Full task query
+
+      await createTask(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              parentTaskId: 1,
+              priority: 'high',
+              dueDate: '2024-02-15',
+              assignees: expect.arrayContaining([
+                expect.objectContaining({ id: 1 }),
+                expect.objectContaining({ id: 2 })
+              ])
+            })
+          })
+        })
+      );
+    });
+  });
+
+  describe('updateTask (subtask)', () => {
+    it('should update subtask priority', async () => {
+      req.params = { id: '2' };
+      req.body = { priority: 'urgent' };
+      const existingSubtask = {
+        id: 2, title: 'Existing Subtask', status: 'todo',
+        completed_at: null, category_id: 1, position: 0,
+        parent_task_id: 1
+      };
+      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // Update
+      query.mockResolvedValueOnce({ rows: [{
+        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
+        category_name: 'Category', category_color: '#fff', priority: 'urgent',
+        status: 'todo', due_date: null, completed_at: null, position: 0,
+        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
+        created_by: 1, created_by_name: 'Test', created_at: new Date(),
+        updated_at: new Date(), assignees: []
+      }] }); // Full task
+
+      await updateTask(req, res);
+
+      expect(query).toHaveBeenNthCalledWith(2,
+        expect.stringContaining('priority = $1'),
+        expect.arrayContaining(['urgent'])
+      );
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              priority: 'urgent',
+              parentTaskId: 1
+            })
+          })
+        })
+      );
+    });
+
+    it('should update subtask due date', async () => {
+      req.params = { id: '2' };
+      req.body = { due_date: '2024-03-01' };
+      const existingSubtask = {
+        id: 2, title: 'Existing Subtask', status: 'todo',
+        completed_at: null, category_id: 1, position: 0,
+        parent_task_id: 1
+      };
+      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // Update
+      query.mockResolvedValueOnce({ rows: [{
+        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
+        category_name: 'Category', category_color: '#fff', priority: 'medium',
+        status: 'todo', due_date: '2024-03-01', completed_at: null, position: 0,
+        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
+        created_by: 1, created_by_name: 'Test', created_at: new Date(),
+        updated_at: new Date(), assignees: []
+      }] }); // Full task
+
+      await updateTask(req, res);
+
+      expect(query).toHaveBeenNthCalledWith(2,
+        expect.stringContaining('due_date = $1'),
+        expect.arrayContaining(['2024-03-01'])
+      );
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              dueDate: '2024-03-01',
+              parentTaskId: 1
+            })
+          })
+        })
+      );
+    });
+
+    it('should update subtask assignees', async () => {
+      req.params = { id: '2' };
+      req.body = { assignee_ids: [3, 4] };
+      const existingSubtask = {
+        id: 2, title: 'Existing Subtask', status: 'todo',
+        completed_at: null, category_id: 1, position: 0,
+        parent_task_id: 1
+      };
+      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] }); // Get current assignees
+      query.mockResolvedValueOnce({ rows: [] }); // Delete old assignments
+      query.mockResolvedValueOnce({ rows: [] }); // Insert new assignments
+      query.mockResolvedValueOnce({ rows: [{
+        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
+        category_name: 'Category', category_color: '#fff', priority: 'medium',
+        status: 'todo', due_date: null, completed_at: null, position: 0,
+        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
+        created_by: 1, created_by_name: 'Test', created_at: new Date(),
+        updated_at: new Date(),
+        assignees: [
+          { id: 3, name: 'User 3', email: 'user3@test.com' },
+          { id: 4, name: 'User 4', email: 'user4@test.com' }
+        ]
+      }] }); // Full task
+
+      await updateTask(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('INSERT INTO task_assignments'),
+        ['2', 3, 4]
+      );
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              parentTaskId: 1,
+              assignees: expect.arrayContaining([
+                expect.objectContaining({ id: 3 }),
+                expect.objectContaining({ id: 4 })
+              ])
+            })
+          })
+        })
+      );
+    });
   });
 });

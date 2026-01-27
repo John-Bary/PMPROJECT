@@ -90,7 +90,8 @@ const TaskModal = ({
       newErrors.title = 'Task title is required';
     }
 
-    if (!formData.categoryId) {
+    // Category is required for main tasks only (subtasks inherit from parent)
+    if (!isSubtask && !formData.categoryId) {
       newErrors.categoryId = 'Category is required';
     }
 
