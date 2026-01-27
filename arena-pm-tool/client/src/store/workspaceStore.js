@@ -302,7 +302,7 @@ const useWorkspaceStore = create((set, get) => ({
   inviteUser: async (email, role = 'member') => {
     if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
 
-    const { currentWorkspaceId } = get();
+    const { currentWorkspaceId, currentWorkspace } = get();
     if (!currentWorkspaceId) {
       return { success: false, error: 'No workspace selected' };
     }
@@ -326,6 +326,41 @@ const useWorkspaceStore = create((set, get) => ({
       set((state) => ({
         invitations: [...state.invitations, invitation],
       }));
+
+      // Send invitation email via Edge Function
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      if (supabaseUrl && invitation.token) {
+        try {
+          const response = await fetch(`${supabaseUrl}/functions/v1/send-invite`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify({
+              email,
+              token: invitation.token,
+              workspaceName: currentWorkspace?.name || 'Workspace',
+              inviterName: user.email || 'A team member',
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.warn('Failed to send invitation email:', errorData);
+            // Don't fail the invitation creation, just warn about email
+            toast.success(`Invitation created for ${email} (email may not have been sent)`);
+            return { success: true, invitation, emailSent: false };
+          }
+
+          toast.success(`Invitation sent to ${email}`);
+          return { success: true, invitation, emailSent: true };
+        } catch (emailError) {
+          console.warn('Error sending invitation email:', emailError);
+          toast.success(`Invitation created for ${email} (email may not have been sent)`);
+          return { success: true, invitation, emailSent: false };
+        }
+      }
 
       toast.success(`Invitation sent to ${email}`);
       return { success: true, invitation };
