@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
+import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -49,38 +50,40 @@ function App() {
       />
 
       <ErrorBoundary>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <WorkspaceProvider>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected Routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* User Area Routes */}
-          <Route
-            path="/user/*"
-            element={
-              <ProtectedRoute>
-                <UserArea />
-              </ProtectedRoute>
-            }
-          />
+            {/* User Area Routes */}
+            <Route
+              path="/user/*"
+              element={
+                <ProtectedRoute>
+                  <UserArea />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Default Route */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Default Route */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* Error Routes */}
-          <Route path="/error" element={<ErrorPage statusCode={500} />} />
-          <Route path="*" element={<ErrorPage statusCode={404} />} />
-        </Routes>
+            {/* Error Routes */}
+            <Route path="/error" element={<ErrorPage statusCode={500} />} />
+            <Route path="*" element={<ErrorPage statusCode={404} />} />
+          </Routes>
+        </WorkspaceProvider>
       </ErrorBoundary>
     </Router>
   );

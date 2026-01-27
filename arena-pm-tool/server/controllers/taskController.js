@@ -26,7 +26,8 @@ const getAllTasks = async (req, res) => {
       assignee_ids, // Changed from assignee_id to support multiple
       status,
       priority,
-      search
+      search,
+      workspace_id
     } = req.query;
 
     // Build dynamic query with JSON aggregation for assignees
@@ -34,7 +35,7 @@ const getAllTasks = async (req, res) => {
       SELECT
         t.id, t.title, t.description, t.category_id,
         t.priority, t.status, t.due_date, t.completed_at, t.position,
-        t.parent_task_id,
+        t.parent_task_id, t.workspace_id,
         t.created_by, t.created_at, t.updated_at,
         c.name as category_name, c.color as category_color,
         creator.name as created_by_name,
@@ -55,6 +56,13 @@ const getAllTasks = async (req, res) => {
 
     const params = [];
     let paramCount = 1;
+
+    // Filter by workspace_id (required for multi-workspace support)
+    if (workspace_id) {
+      queryText += ` AND t.workspace_id = $${paramCount}`;
+      params.push(workspace_id);
+      paramCount++;
+    }
 
     // Add filters
     if (category_id) {
@@ -117,6 +125,7 @@ const getAllTasks = async (req, res) => {
           completedAt: task.completed_at,
           position: task.position,
           parentTaskId: task.parent_task_id,
+          workspaceId: task.workspace_id,
           subtaskCount: parseInt(task.subtask_count || 0),
           completedSubtaskCount: parseInt(task.completed_subtask_count || 0),
           createdBy: task.created_by,
@@ -221,7 +230,8 @@ const createTask = async (req, res) => {
       priority = 'medium',
       status = 'todo',
       due_date,
-      parent_task_id
+      parent_task_id,
+      workspace_id
     } = req.body;
 
     // Validate required fields
@@ -272,9 +282,9 @@ const createTask = async (req, res) => {
     const result = await query(`
       INSERT INTO tasks (
         title, description, category_id,
-        priority, status, due_date, completed_at, position, parent_task_id, created_by
+        priority, status, due_date, completed_at, position, parent_task_id, created_by, workspace_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *
     `, [
       title,
@@ -286,7 +296,8 @@ const createTask = async (req, res) => {
       completed_at,
       position,
       parent_task_id || null,
-      req.user.id
+      req.user.id,
+      workspace_id || null
     ]);
 
     const newTaskId = result.rows[0].id;
@@ -306,7 +317,7 @@ const createTask = async (req, res) => {
       SELECT
         t.id, t.title, t.description, t.category_id,
         t.priority, t.status, t.due_date, t.completed_at, t.position,
-        t.parent_task_id,
+        t.parent_task_id, t.workspace_id,
         t.created_by, t.created_at, t.updated_at,
         c.name as category_name, c.color as category_color,
         creator.name as created_by_name,
@@ -373,6 +384,7 @@ const createTask = async (req, res) => {
           completedAt: newTask.completed_at,
           position: newTask.position,
           parentTaskId: newTask.parent_task_id,
+          workspaceId: newTask.workspace_id,
           subtaskCount: parseInt(newTask.subtask_count || 0),
           completedSubtaskCount: parseInt(newTask.completed_subtask_count || 0),
           createdBy: newTask.created_by,

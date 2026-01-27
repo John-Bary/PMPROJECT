@@ -2,6 +2,10 @@
 import { create } from 'zustand';
 import { categoriesAPI } from '../utils/api';
 import toast from 'react-hot-toast';
+import useWorkspaceStore from './workspaceStore';
+
+// Helper to get current workspace ID
+const getWorkspaceId = () => useWorkspaceStore.getState().currentWorkspaceId;
 
 const useCategoryStore = create((set, get) => ({
   categories: [],
@@ -10,11 +14,15 @@ const useCategoryStore = create((set, get) => ({
   isMutating: false,
   error: null,
 
-  // Fetch all categories
+  // Fetch all categories (filtered by workspace_id)
   fetchCategories: async () => {
+    const workspaceId = getWorkspaceId();
+
     set({ isLoading: true, isFetching: true, error: null });
     try {
-      const response = await categoriesAPI.getAll();
+      // Include workspace_id in query params
+      const params = workspaceId ? { workspace_id: workspaceId } : {};
+      const response = await categoriesAPI.getAll(params);
       set({
         categories: response.data.data.categories,
         isLoading: false,
@@ -31,11 +39,22 @@ const useCategoryStore = create((set, get) => ({
     }
   },
 
-  // Create category
+  // Create category (with workspace_id)
   createCategory: async (categoryData) => {
+    const workspaceId = getWorkspaceId();
+
+    if (!workspaceId) {
+      toast.error('No workspace selected');
+      return { success: false, error: 'No workspace selected' };
+    }
+
     set({ isMutating: true });
     try {
-      const response = await categoriesAPI.create(categoryData);
+      // Include workspace_id in category data
+      const response = await categoriesAPI.create({
+        ...categoryData,
+        workspace_id: workspaceId,
+      });
       const newCategory = response.data.data.category;
       const categoryName = newCategory?.name || 'Category';
 
@@ -129,6 +148,14 @@ const useCategoryStore = create((set, get) => ({
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
+  },
+
+  // Clear categories (used when switching workspaces)
+  clearCategories: () => {
+    set({
+      categories: [],
+      error: null,
+    });
   },
 }));
 

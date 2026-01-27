@@ -2,6 +2,10 @@
 import { create } from 'zustand';
 import { tasksAPI } from '../utils/api';
 import toast from 'react-hot-toast';
+import useWorkspaceStore from './workspaceStore';
+
+// Helper to get current workspace ID
+const getWorkspaceId = () => useWorkspaceStore.getState().currentWorkspaceId;
 
 const useTaskStore = create((set, get) => ({
   tasks: [],
@@ -17,16 +21,22 @@ const useTaskStore = create((set, get) => ({
     search: '',
   },
 
-  // Fetch all tasks
+  // Fetch all tasks (filtered by workspace_id)
   fetchTasks: async (filters = {}, options = { showLoading: true }) => {
     const showLoading = options?.showLoading !== false;
+    const workspaceId = getWorkspaceId();
 
     if (showLoading) {
       set({ isLoading: true, isFetching: true, error: null });
     }
 
     try {
-      const response = await tasksAPI.getAll(filters);
+      // Include workspace_id in filters
+      const filtersWithWorkspace = {
+        ...filters,
+        ...(workspaceId ? { workspace_id: workspaceId } : {}),
+      };
+      const response = await tasksAPI.getAll(filtersWithWorkspace);
       set({
         tasks: response.data.data.tasks,
         ...(showLoading ? { isLoading: false, isFetching: false } : {}),
@@ -41,11 +51,22 @@ const useTaskStore = create((set, get) => ({
     }
   },
 
-  // Create task
+  // Create task (with workspace_id)
   createTask: async (taskData) => {
+    const workspaceId = getWorkspaceId();
+
+    if (!workspaceId) {
+      toast.error('No workspace selected');
+      return { success: false, error: 'No workspace selected' };
+    }
+
     set({ isMutating: true });
     try {
-      const response = await tasksAPI.create(taskData);
+      // Include workspace_id in task data
+      const response = await tasksAPI.create({
+        ...taskData,
+        workspace_id: workspaceId,
+      });
       const newTask = response.data.data.task;
       const taskTitle = newTask?.title || 'Task';
 
@@ -195,6 +216,14 @@ const useTaskStore = create((set, get) => ({
         priority: null,
         search: '',
       },
+    });
+  },
+
+  // Clear tasks (used when switching workspaces)
+  clearTasks: () => {
+    set({
+      tasks: [],
+      error: null,
     });
   },
 }));

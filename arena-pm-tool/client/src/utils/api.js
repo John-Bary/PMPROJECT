@@ -105,7 +105,16 @@ export const tasksAPI = {
 
 // Categories API
 export const categoriesAPI = {
-  getAll: () => safeApiCall(() => api.get('/categories')),
+  getAll: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+    const queryString = queryParams.toString();
+    return safeApiCall(() => api.get(`/categories${queryString ? `?${queryString}` : ''}`));
+  },
   getById: (id) => safeApiCall(() => api.get(`/categories/${id}`)),
   create: (categoryData) => safeApiCall(() => api.post('/categories', categoryData)),
   update: (id, categoryData) => safeApiCall(() => api.put(`/categories/${id}`, categoryData)),
