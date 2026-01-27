@@ -175,6 +175,37 @@ const sendMultipleTasksReminder = async ({ to, userName, tasks }) => {
   return sendEmail({ to, subject, html });
 };
 
+// Send task assignment notification email
+const sendTaskAssignmentNotification = async ({
+  to,
+  userName,
+  taskId,
+  taskTitle,
+  taskDescription,
+  assignedByName,
+  dueDate,
+  priority
+}) => {
+  const subject = `New Task Assigned: "${taskTitle}"`;
+
+  // Build task URL - uses CLIENT_URL env variable or defaults to localhost
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  const taskUrl = `${clientUrl}/tasks?taskId=${taskId}`;
+
+  const html = renderTemplate('taskAssignment.html', {
+    userName: userName || 'there',
+    taskTitle,
+    taskDescription,
+    assignedByName: assignedByName || 'A team member',
+    dueDate: formatDate(dueDate),
+    priority: priority || 'medium',
+    priorityColor: getPriorityColor(priority),
+    taskUrl
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
 // Helper function to get priority color
 const getPriorityColor = (priority) => {
   const colors = {
@@ -202,5 +233,6 @@ module.exports = {
   verifyConnection,
   sendEmail,
   sendTaskReminder,
-  sendMultipleTasksReminder
+  sendMultipleTasksReminder,
+  sendTaskAssignmentNotification
 };

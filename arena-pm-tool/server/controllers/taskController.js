@@ -2,6 +2,7 @@
 // Handles all task-related operations
 
 const { query } = require('../config/database');
+const { sendTaskAssignmentNotification } = require('../utils/emailService');
 
 // Helper function to format date for client - just return YYYY-MM-DD string
 const formatDueDateForClient = (dbDate) => {
@@ -326,6 +327,34 @@ const createTask = async (req, res) => {
 
     const newTask = fullTaskResult.rows[0];
 
+    // Send email notifications to assignees (async, don't block response)
+    if (assigneeArray.length > 0 && newTask.assignees && newTask.assignees.length > 0) {
+      // Get assignees with their notification preferences
+      const assigneesWithPrefs = await query(`
+        SELECT u.id, u.email, u.name, u.email_notifications_enabled
+        FROM users u
+        WHERE u.id = ANY($1::int[])
+      `, [assigneeArray]);
+
+      // Send notifications to each assignee who has notifications enabled
+      assigneesWithPrefs.rows.forEach(assignee => {
+        if (assignee.email_notifications_enabled !== false) {
+          sendTaskAssignmentNotification({
+            to: assignee.email,
+            userName: assignee.name,
+            taskId: newTask.id,
+            taskTitle: newTask.title,
+            taskDescription: newTask.description,
+            assignedByName: newTask.created_by_name,
+            dueDate: newTask.due_date,
+            priority: newTask.priority
+          }).catch(err => {
+            console.error(`Failed to send assignment notification to ${assignee.email}:`, err.message);
+          });
+        }
+      });
+    }
+
     res.status(201).json({
       status: 'success',
       message: 'Task created successfully',
@@ -470,7 +499,15 @@ const updateTask = async (req, res) => {
     }
 
     // Handle assignee updates via task_assignments table
+    let newlyAddedAssigneeIds = [];
     if (assignee_ids !== undefined) {
+      // Get current assignees before clearing
+      const currentAssigneesResult = await query(
+        'SELECT user_id FROM task_assignments WHERE task_id = $1',
+        [id]
+      );
+      const currentAssigneeIds = currentAssigneesResult.rows.map(row => row.user_id);
+
       // Clear existing assignments
       await query('DELETE FROM task_assignments WHERE task_id = $1', [id]);
 
@@ -481,6 +518,11 @@ const updateTask = async (req, res) => {
         await query(
           `INSERT INTO task_assignments (task_id, user_id) VALUES ${assigneeValues}`,
           [id, ...assigneeArray]
+        );
+
+        // Find newly added assignees (not in previous list)
+        newlyAddedAssigneeIds = assigneeArray.filter(
+          newId => !currentAssigneeIds.includes(newId)
         );
       }
     }
@@ -518,6 +560,38 @@ const updateTask = async (req, res) => {
     `, [id]);
 
     const updatedTask = fullTaskResult.rows[0];
+
+    // Send email notifications to newly added assignees
+    if (newlyAddedAssigneeIds.length > 0) {
+      // Get the name of the user making the update
+      const updaterResult = await query('SELECT name FROM users WHERE id = $1', [req.user.id]);
+      const updaterName = updaterResult.rows[0]?.name || 'A team member';
+
+      // Get assignees with their notification preferences
+      const newAssigneesWithPrefs = await query(`
+        SELECT u.id, u.email, u.name, u.email_notifications_enabled
+        FROM users u
+        WHERE u.id = ANY($1::int[])
+      `, [newlyAddedAssigneeIds]);
+
+      // Send notifications to each newly added assignee who has notifications enabled
+      newAssigneesWithPrefs.rows.forEach(assignee => {
+        if (assignee.email_notifications_enabled !== false) {
+          sendTaskAssignmentNotification({
+            to: assignee.email,
+            userName: assignee.name,
+            taskId: updatedTask.id,
+            taskTitle: updatedTask.title,
+            taskDescription: updatedTask.description,
+            assignedByName: updaterName,
+            dueDate: updatedTask.due_date,
+            priority: updatedTask.priority
+          }).catch(err => {
+            console.error(`Failed to send assignment notification to ${assignee.email}:`, err.message);
+          });
+        }
+      });
+    }
 
     res.json({
       status: 'success',
