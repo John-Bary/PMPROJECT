@@ -168,13 +168,6 @@ function Register() {
             </button>
           </form>
 
-          {/* Note about user limit */}
-          <div className="mt-6 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <p className="text-xs text-yellow-800">
-              <strong>Note:</strong> This demo app supports a maximum of 5 team members.
-            </p>
-          </div>
-
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
