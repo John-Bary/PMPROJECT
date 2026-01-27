@@ -8,7 +8,7 @@
 --
 -- TABLE           | SELECT          | INSERT         | UPDATE          | DELETE
 -- ----------------|-----------------|----------------|-----------------|----------------
--- users           | Authenticated   | Service only   | Own profile     | Admin only
+-- users           | Authenticated   | Public         | Own profile     | Admin only
 -- categories      | Authenticated   | Authenticated  | Creator/Admin   | Creator/Admin
 -- tasks           | Authenticated   | Authenticated  | Creator/Assignee| Creator/Admin
 -- task_assignments| Authenticated   | Task creator   | N/A             | Task creator
@@ -117,7 +117,7 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 -- ============================================================================
 -- Access Pattern:
 --   SELECT: All authenticated users (team collaboration - need to see assignees)
---   INSERT: Service role only (registration handled by backend)
+--   INSERT: Public (registration - protected by rate limiting and validation)
 --   UPDATE: Own profile only
 --   DELETE: Admin only (or disallowed)
 
@@ -137,8 +137,15 @@ CREATE POLICY "users_delete_admin"
     ON users FOR DELETE
     USING (is_current_user_admin());
 
--- Note: INSERT is intentionally not allowed via RLS
--- User creation should go through the service role (backend registration)
+-- Policy: Allow public registration (unauthenticated INSERT)
+-- This is required because the backend uses regular PostgreSQL connections,
+-- not the Supabase service role. Registration is protected by:
+-- 1. Password hashing in the application layer
+-- 2. Rate limiting on the /api/auth/register endpoint
+-- 3. Input validation in authController.js
+CREATE POLICY "users_insert_registration"
+    ON users FOR INSERT
+    WITH CHECK (true);
 
 -- ============================================================================
 -- CATEGORIES TABLE POLICIES
