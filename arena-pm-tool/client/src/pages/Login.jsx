@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import { ButtonSpinner } from '../components/Loader';
 
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login, isLoading } = useAuthStore();
+
+  // Get return URL from query params (for invitation flow, etc.)
+  const returnUrl = searchParams.get('returnUrl');
 
   const [formData, setFormData] = useState({
     email: '',
@@ -23,7 +27,9 @@ function Login() {
     e.preventDefault();
     const result = await login(formData);
     if (result.success) {
-      navigate('/dashboard');
+      // Redirect to return URL if provided, otherwise dashboard
+      const redirectTo = returnUrl || '/dashboard';
+      navigate(redirectTo, { replace: true });
     }
   };
 

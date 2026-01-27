@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import UserArea from './pages/UserArea/UserArea';
+import AcceptInvite from './pages/AcceptInvite';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -55,6 +56,9 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            {/* Invitation Accept Route (handles its own auth) */}
+            <Route path="/accept-invite" element={<AcceptInvite />} />
 
             {/* Protected Routes */}
             <Route
