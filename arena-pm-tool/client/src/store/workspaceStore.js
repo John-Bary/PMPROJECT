@@ -470,13 +470,13 @@ const useWorkspaceStore = create((set, get) => ({
   },
 
   // Check if user is admin of current workspace
-  isCurrentUserAdmin: () => {
-    const { currentWorkspace } = get();
-    if (!currentWorkspace) return false;
+  isCurrentUserAdmin: (userId) => {
+    const { currentWorkspace, members } = get();
+    if (!currentWorkspace || !userId) return false;
 
-    // Check if user is owner or has admin role in members
-    const member = get().members.find(m => m.role === 'admin');
-    return !!member;
+    // Find the current user in members and check their role
+    const currentMember = members.find(m => m.user_id === userId);
+    return currentMember?.role === 'admin';
   },
 
   // Clear workspace state (on logout)

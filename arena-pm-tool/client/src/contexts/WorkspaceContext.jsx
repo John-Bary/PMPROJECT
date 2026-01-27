@@ -39,7 +39,7 @@ export function WorkspaceProvider({ children }) {
     clear,
   } = useWorkspaceStore();
 
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
 
   // Get store actions for clearing/refetching data
   const { clearTasks, fetchTasks } = useTaskStore();
@@ -82,6 +82,12 @@ export function WorkspaceProvider({ children }) {
     return result;
   }, [switchWorkspace]);
 
+  // Memoized admin check that uses current user's ID
+  // Re-creates when members change so components get updated admin status
+  const checkIsCurrentUserAdmin = useCallback(() => {
+    return isCurrentUserAdmin(user?.id);
+  }, [isCurrentUserAdmin, user?.id, members]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Context value
   const value = {
     // State
@@ -93,6 +99,7 @@ export function WorkspaceProvider({ children }) {
     isLoading,
     isInitialized,
     error,
+    currentUser: user,
 
     // Core functions
     switchWorkspace: handleSwitchWorkspace,
@@ -117,7 +124,7 @@ export function WorkspaceProvider({ children }) {
     cancelInvitation,
 
     // Helpers
-    isCurrentUserAdmin,
+    isCurrentUserAdmin: checkIsCurrentUserAdmin,
 
     // Utility
     clear,
