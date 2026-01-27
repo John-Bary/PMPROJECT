@@ -266,6 +266,81 @@ const updateCategory = async (req, res) => {
   }
 };
 
+// Reorder categories
+const reorderCategories = async (req, res) => {
+  try {
+    const { categoryIds } = req.body;
+
+    // Validate input
+    if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'categoryIds array is required'
+      });
+    }
+
+    // Verify all category IDs exist
+    const existingCategories = await query(
+      'SELECT id FROM categories WHERE id = ANY($1)',
+      [categoryIds]
+    );
+
+    if (existingCategories.rows.length !== categoryIds.length) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Some category IDs are invalid'
+      });
+    }
+
+    // Update positions for each category in a transaction
+    // Using a simple loop since pg doesn't support native transactions without a pool
+    for (let i = 0; i < categoryIds.length; i++) {
+      await query(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+        [i, categoryIds[i]]
+      );
+    }
+
+    // Fetch and return updated categories
+    const result = await query(`
+      SELECT
+        c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at,
+        u.name as created_by_name,
+        COUNT(t.id) as task_count
+      FROM categories c
+      LEFT JOIN users u ON c.created_by = u.id
+      LEFT JOIN tasks t ON c.id = t.category_id
+      GROUP BY c.id, u.name
+      ORDER BY c.position ASC
+    `);
+
+    res.json({
+      status: 'success',
+      message: 'Categories reordered successfully',
+      data: {
+        categories: result.rows.map(cat => ({
+          id: cat.id,
+          name: cat.name,
+          color: cat.color,
+          position: cat.position,
+          taskCount: parseInt(cat.task_count),
+          createdBy: cat.created_by,
+          createdByName: cat.created_by_name,
+          createdAt: cat.created_at,
+          updatedAt: cat.updated_at
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Reorder categories error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error reordering categories',
+      error: error.message
+    });
+  }
+};
+
 // Delete category
 const deleteCategory = async (req, res) => {
   try {
@@ -326,5 +401,6 @@ module.exports = {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  reorderCategories
 };

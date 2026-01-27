@@ -110,6 +110,7 @@ export const categoriesAPI = {
   create: (categoryData) => safeApiCall(() => api.post('/categories', categoryData)),
   update: (id, categoryData) => safeApiCall(() => api.put(`/categories/${id}`, categoryData)),
   delete: (id) => safeApiCall(() => api.delete(`/categories/${id}`)),
+  reorder: (categoryIds) => safeApiCall(() => api.patch('/categories/reorder', { categoryIds })),
 };
 
 // Users API

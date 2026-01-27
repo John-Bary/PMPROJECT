@@ -9,7 +9,8 @@ const {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  reorderCategories
 } = require('../controllers/categoryController');
 
 // All category routes require authentication
@@ -17,8 +18,9 @@ router.use(authMiddleware);
 
 // Category CRUD routes
 router.get('/', getAllCategories);         // GET /api/categories
-router.get('/:id', getCategoryById);       // GET /api/categories/:id
 router.post('/', createCategory);          // POST /api/categories
+router.patch('/reorder', reorderCategories); // PATCH /api/categories/reorder (must be before /:id)
+router.get('/:id', getCategoryById);       // GET /api/categories/:id
 router.put('/:id', updateCategory);        // PUT /api/categories/:id
 router.delete('/:id', deleteCategory);     // DELETE /api/categories/:id
 

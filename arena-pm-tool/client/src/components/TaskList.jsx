@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX } from 'lucide-react';
-import { DragDropContext } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import CategorySection from './CategorySection';
@@ -27,6 +27,7 @@ function TaskList() {
     categories,
     fetchCategories,
     deleteCategory,
+    reorderCategories,
     isLoading: isCategoriesLoading,
   } = useCategoryStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -51,6 +52,7 @@ function TaskList() {
     categories: [],
     hideCompleted: false,
   });
+  const [isDraggingCategory, setIsDraggingCategory] = useState(false);
 
   useEffect(() => {
     fetchTasks();
@@ -165,9 +167,19 @@ function TaskList() {
     setIsModalOpen(true);
   };
 
+  // Handle drag start to detect category dragging
+  const handleDragStart = (start) => {
+    if (start.draggableId.startsWith('category-')) {
+      setIsDraggingCategory(true);
+    }
+  };
+
   // Handle drag and drop
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
+
+    // Reset category dragging state
+    setIsDraggingCategory(false);
 
     // Dropped outside valid droppable area
     if (!destination) {
@@ -182,6 +194,19 @@ function TaskList() {
       return;
     }
 
+    // Handle category reorder
+    if (draggableId.startsWith('category-')) {
+      const newOrder = [...visibleCategories];
+      const [movedCategory] = newOrder.splice(source.index, 1);
+      newOrder.splice(destination.index, 0, movedCategory);
+
+      // Get new order of all category IDs
+      const categoryIds = newOrder.map(cat => cat.id);
+      await reorderCategories(categoryIds);
+      return;
+    }
+
+    // Handle task reorder
     const taskId = parseInt(draggableId);
     const destCategoryId = parseInt(destination.droppableId);
 
@@ -390,28 +415,39 @@ function TaskList() {
               </div>
             </div>
           ) : (
-            <DragDropContext onDragEnd={handleDragEnd}>
-              <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory sm:snap-none">
-                {visibleCategories.map((category) => (
-                  <CategorySection
-                    key={category.id}
-                    category={category}
-                    tasks={getTasksByCategory(category.id)}
-                    onOpenDetail={handleOpenDetail}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    onToggleComplete={handleToggleComplete}
-                    onEditCategory={handleEditCategory}
-                    onDeleteCategory={handleDeleteCategory}
-                    togglingTaskIds={togglingTaskIds}
-                    onAddTask={(cat) => openCreateTask(cat?.id || category.id)}
-                    searchQuery={searchQuery}
-                  />
-                ))}
+            <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+              <Droppable droppableId="categories" direction="horizontal" type="CATEGORY">
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory sm:snap-none"
+                  >
+                    {visibleCategories.map((category, index) => (
+                      <CategorySection
+                        key={category.id}
+                        category={category}
+                        index={index}
+                        tasks={getTasksByCategory(category.id)}
+                        onOpenDetail={handleOpenDetail}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        onToggleComplete={handleToggleComplete}
+                        onEditCategory={handleEditCategory}
+                        onDeleteCategory={handleDeleteCategory}
+                        togglingTaskIds={togglingTaskIds}
+                        onAddTask={(cat) => openCreateTask(cat?.id || category.id)}
+                        searchQuery={searchQuery}
+                        isDraggingCategory={isDraggingCategory}
+                      />
+                    ))}
+                    {provided.placeholder}
 
-                {/* Add Category Button */}
-                <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />
-              </div>
+                    {/* Add Category Button */}
+                    <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />
+                  </div>
+                )}
+              </Droppable>
             </DragDropContext>
           )}
         </>
