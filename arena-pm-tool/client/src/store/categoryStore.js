@@ -82,6 +82,32 @@ const useCategoryStore = create((set, get) => ({
     }
   },
 
+  // Reorder categories (with optimistic update)
+  reorderCategories: async (categoryIds) => {
+    const previousCategories = get().categories;
+
+    // Optimistic update - reorder categories locally first
+    const reorderedCategories = categoryIds.map((id, index) => {
+      const category = previousCategories.find(c => c.id === id);
+      return { ...category, position: index };
+    });
+
+    set({ categories: reorderedCategories });
+
+    try {
+      const response = await categoriesAPI.reorder(categoryIds);
+      // Update with server response to ensure consistency
+      set({ categories: response.data.data.categories });
+      return { success: true };
+    } catch (error) {
+      // Rollback on error
+      set({ categories: previousCategories });
+      const errorMessage = error.response?.data?.message || 'Failed to reorder categories';
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  },
+
   // Delete category
   deleteCategory: async (id) => {
     set({ isMutating: true });
