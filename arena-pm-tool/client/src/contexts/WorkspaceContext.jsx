@@ -1,5 +1,5 @@
 // Workspace Context - Provides workspace state to all components
-import { createContext, useContext, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createContext, useContext, useEffect, useCallback, useRef } from 'react';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
 import useTaskStore from '../store/taskStore';
@@ -83,9 +83,10 @@ export function WorkspaceProvider({ children }) {
   }, [switchWorkspace]);
 
   // Memoized admin check that uses current user's ID
-  const checkIsCurrentUserAdmin = useMemo(() => {
-    return () => isCurrentUserAdmin(user?.id);
-  }, [isCurrentUserAdmin, user?.id, members]);
+  // Re-creates when members change so components get updated admin status
+  const checkIsCurrentUserAdmin = useCallback(() => {
+    return isCurrentUserAdmin(user?.id);
+  }, [isCurrentUserAdmin, user?.id, members]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Context value
   const value = {
