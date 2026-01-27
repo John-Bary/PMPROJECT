@@ -81,17 +81,6 @@ function Login() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-900 mb-2">Demo Credentials:</p>
-            <p className="text-xs text-blue-700">
-              Email: <span className="font-mono">admin@arena.com</span>
-            </p>
-            <p className="text-xs text-blue-700">
-              Password: <span className="font-mono">password123</span>
-            </p>
-          </div>
-
           {/* Register Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{' '}
