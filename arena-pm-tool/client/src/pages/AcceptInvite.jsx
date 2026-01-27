@@ -14,7 +14,6 @@ function AcceptInvite() {
 
   const [status, setStatus] = useState('loading'); // loading, success, error, no-token
   const [errorMessage, setErrorMessage] = useState('');
-  const [workspaceId, setWorkspaceId] = useState(null);
   const [countdown, setCountdown] = useState(3);
 
   // Redirect to login if not authenticated
@@ -42,7 +41,6 @@ function AcceptInvite() {
 
         if (result.success) {
           setStatus('success');
-          setWorkspaceId(result.workspaceId);
         } else {
           setStatus('error');
           setErrorMessage(getErrorMessage(result.error));
