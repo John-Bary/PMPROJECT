@@ -1,10 +1,13 @@
 // Workspace Switcher Component
 // Dropdown to switch between workspaces
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Plus, Settings, Users, Check } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import CreateWorkspaceModal from './CreateWorkspaceModal';
 
 function WorkspaceSwitcher({ className = '' }) {
+  const navigate = useNavigate();
   const {
     workspaces,
     currentWorkspace,
@@ -13,6 +16,7 @@ function WorkspaceSwitcher({ className = '' }) {
   } = useWorkspace();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -95,7 +99,7 @@ function WorkspaceSwitcher({ className = '' }) {
           <button
             onClick={() => {
               setIsOpen(false);
-              // TODO: Open create workspace modal
+              setIsCreateModalOpen(true);
             }}
             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
                        transition-colors text-left text-slate-300"
@@ -107,7 +111,7 @@ function WorkspaceSwitcher({ className = '' }) {
           <button
             onClick={() => {
               setIsOpen(false);
-              // TODO: Navigate to workspace settings
+              navigate('/user/preferences');
             }}
             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
                        transition-colors text-left text-slate-300"
@@ -119,7 +123,7 @@ function WorkspaceSwitcher({ className = '' }) {
           <button
             onClick={() => {
               setIsOpen(false);
-              // TODO: Navigate to members page
+              navigate('/user/team');
             }}
             className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
                        transition-colors text-left text-slate-300"
@@ -129,6 +133,12 @@ function WorkspaceSwitcher({ className = '' }) {
           </button>
         </div>
       )}
+
+      {/* Create Workspace Modal */}
+      <CreateWorkspaceModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
     </div>
   );
 }
