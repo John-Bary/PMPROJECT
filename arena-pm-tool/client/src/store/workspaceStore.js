@@ -464,7 +464,6 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Get user's role in current workspace
   getCurrentUserRole: () => {
-    const { members } = get();
     // This would need the current user's ID to filter
     // For now, return from workspace_members join
     return null;
