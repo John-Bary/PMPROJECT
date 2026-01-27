@@ -49,13 +49,15 @@ CREATE TABLE categories (
     color VARCHAR(7) DEFAULT '#6366f1',
     position INTEGER DEFAULT 0,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    workspace_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_category_name_per_user UNIQUE (name, created_by)
+    CONSTRAINT unique_category_name_per_user UNIQUE (name, created_by, workspace_id)
 );
 
 CREATE INDEX idx_categories_position ON categories(position);
 CREATE INDEX idx_categories_created_by ON categories(created_by);
+CREATE INDEX idx_categories_workspace_id ON categories(workspace_id);
 
 -- ============================================================================
 -- TASKS TABLE
@@ -73,6 +75,7 @@ CREATE TABLE tasks (
     parent_task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
     assignee_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    workspace_id UUID,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -84,6 +87,7 @@ CREATE INDEX idx_tasks_parent_task_id ON tasks(parent_task_id);
 CREATE INDEX idx_tasks_created_by ON tasks(created_by);
 CREATE INDEX idx_tasks_position ON tasks(position);
 CREATE INDEX idx_tasks_assignee_id ON tasks(assignee_id);
+CREATE INDEX idx_tasks_workspace_id ON tasks(workspace_id);
 
 -- ============================================================================
 -- TASK ASSIGNMENTS TABLE
