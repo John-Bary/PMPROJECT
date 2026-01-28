@@ -12,6 +12,9 @@ DROP TABLE IF EXISTS comments CASCADE;
 DROP TABLE IF EXISTS task_assignments CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS workspace_invitations CASCADE;
+DROP TABLE IF EXISTS workspace_members CASCADE;
+DROP TABLE IF EXISTS workspaces CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
 -- Drop existing function
@@ -41,6 +44,52 @@ CREATE TABLE users (
 CREATE INDEX idx_users_email ON users(email);
 
 -- ============================================================================
+-- WORKSPACES TABLE
+-- ============================================================================
+CREATE TABLE workspaces (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name VARCHAR(100) NOT NULL,
+    owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_workspaces_owner_id ON workspaces(owner_id);
+
+-- ============================================================================
+-- WORKSPACE MEMBERS TABLE
+-- ============================================================================
+CREATE TABLE workspace_members (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_workspace_member UNIQUE (workspace_id, user_id)
+);
+
+CREATE INDEX idx_workspace_members_workspace_id ON workspace_members(workspace_id);
+CREATE INDEX idx_workspace_members_user_id ON workspace_members(user_id);
+
+-- ============================================================================
+-- WORKSPACE INVITATIONS TABLE
+-- ============================================================================
+CREATE TABLE workspace_invitations (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
+    invited_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    token VARCHAR(64) UNIQUE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
+    accepted_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_workspace_invitations_workspace_id ON workspace_invitations(workspace_id);
+CREATE INDEX idx_workspace_invitations_email ON workspace_invitations(email);
+CREATE INDEX idx_workspace_invitations_token ON workspace_invitations(token);
+
+-- ============================================================================
 -- CATEGORIES TABLE
 -- ============================================================================
 CREATE TABLE categories (
@@ -49,7 +98,7 @@ CREATE TABLE categories (
     color VARCHAR(7) DEFAULT '#6366f1',
     position INTEGER DEFAULT 0,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    workspace_id UUID,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_category_name_per_user UNIQUE (name, created_by, workspace_id)
@@ -75,7 +124,7 @@ CREATE TABLE tasks (
     parent_task_id INTEGER REFERENCES tasks(id) ON DELETE CASCADE,
     assignee_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    workspace_id UUID,
+    workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
