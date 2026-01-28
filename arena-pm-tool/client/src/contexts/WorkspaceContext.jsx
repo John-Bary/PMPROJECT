@@ -1,5 +1,6 @@
 // Workspace Context - Provides workspace state to all components
 import { createContext, useContext, useEffect, useCallback, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import useWorkspaceStore from '../store/workspaceStore';
 import useAuthStore from '../store/authStore';
 import useTaskStore from '../store/taskStore';
@@ -11,6 +12,9 @@ const WorkspaceContext = createContext(null);
 
 // Provider component
 export function WorkspaceProvider({ children }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const {
     workspaces,
     currentWorkspace,
@@ -54,6 +58,16 @@ export function WorkspaceProvider({ children }) {
       initialize();
     }
   }, [isAuthenticated, isInitialized, initialize]);
+
+  // Redirect to workspace selection if user has no workspaces and is on dashboard
+  useEffect(() => {
+    const protectedRoutes = ['/dashboard'];
+    const isOnProtectedRoute = protectedRoutes.some(route => location.pathname.startsWith(route));
+
+    if (isAuthenticated && isInitialized && !isLoading && workspaces.length === 0 && isOnProtectedRoute) {
+      navigate('/workspaces', { replace: true });
+    }
+  }, [isAuthenticated, isInitialized, isLoading, workspaces.length, location.pathname, navigate]);
 
   // Clear workspace state when user logs out
   useEffect(() => {
