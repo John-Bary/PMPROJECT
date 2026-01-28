@@ -2,16 +2,16 @@
 // Dropdown to switch between workspaces
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye } from 'lucide-react';
+import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye, LayoutGrid } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 
 // Role badge component
 const RoleBadge = ({ role }) => {
   const roleConfig = {
-    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-    member: { label: 'Member', icon: Shield, color: 'text-slate-400', bg: 'bg-slate-400/10' },
-    viewer: { label: 'Viewer', icon: Eye, color: 'text-slate-500', bg: 'bg-slate-500/10' },
+    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+    member: { label: 'Member', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50' },
+    viewer: { label: 'Viewer', icon: Eye, color: 'text-neutral-500', bg: 'bg-neutral-100' },
   };
 
   const config = roleConfig[role] || roleConfig.member;
@@ -37,6 +37,9 @@ function WorkspaceSwitcher({ className = '' }) {
 
   // Get user's role in a workspace
   const getUserRole = (workspace) => {
+    // First check userRole from the API response
+    if (workspace.userRole) return workspace.userRole;
+    // Fallback to workspace_members
     if (!workspace.workspace_members || !currentUser) return 'member';
     const membership = workspace.workspace_members.find(m => m.user_id === currentUser.id);
     return membership?.role || 'member';
@@ -65,6 +68,20 @@ function WorkspaceSwitcher({ className = '' }) {
     setIsOpen(false);
   };
 
+  // Get workspace avatar color based on ID
+  const getWorkspaceColor = (id) => {
+    const colors = [
+      'bg-gradient-to-br from-indigo-500 to-purple-600',
+      'bg-gradient-to-br from-teal-500 to-emerald-600',
+      'bg-gradient-to-br from-orange-500 to-red-600',
+      'bg-gradient-to-br from-blue-500 to-cyan-600',
+      'bg-gradient-to-br from-pink-500 to-rose-600',
+      'bg-gradient-to-br from-violet-500 to-fuchsia-600',
+    ];
+    const index = id?.charCodeAt(0) % colors.length || 0;
+    return colors[index];
+  };
+
   // Don't render if no workspaces
   if (!workspaces || workspaces.length === 0) {
     return null;
@@ -76,47 +93,59 @@ function WorkspaceSwitcher({ className = '' }) {
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={isLoading}
-        className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700
-                   border border-slate-600 rounded-lg transition-colors min-w-[180px]
-                   disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
+                   border border-neutral-200 rounded-lg transition-colors min-w-[180px]
+                   disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
       >
-        <div className="w-6 h-6 rounded bg-indigo-600 flex items-center justify-center text-xs font-medium text-white">
+        <div className={`w-6 h-6 rounded ${getWorkspaceColor(currentWorkspace?.id)} flex items-center justify-center text-xs font-medium text-white`}>
           {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
         </div>
-        <span className="flex-1 text-left text-sm text-slate-200 truncate">
+        <span className="flex-1 text-left text-sm text-neutral-800 truncate font-medium">
           {currentWorkspace?.name || 'Select Workspace'}
         </span>
         <ChevronDown
-          className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-64 bg-slate-800 border border-slate-600
-                        rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+        <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-neutral-200
+                        rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+          {/* Header */}
+          <div className="px-3 py-2 border-b border-neutral-100">
+            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+              Your Workspaces
+            </p>
+          </div>
+
           {/* Workspace List */}
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-64 overflow-y-auto py-1">
             {workspaces.map((workspace) => {
               const role = getUserRole(workspace);
               return (
                 <button
                   key={workspace.id}
                   onClick={() => handleSwitch(workspace.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-neutral-50
                              transition-colors text-left
-                             ${workspace.id === currentWorkspace?.id ? 'bg-slate-700/50' : ''}`}
+                             ${workspace.id === currentWorkspace?.id ? 'bg-teal-50' : ''}`}
                 >
-                  <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center
-                                 text-sm font-medium text-white flex-shrink-0">
+                  <div className={`w-9 h-9 rounded-lg ${getWorkspaceColor(workspace.id)} flex items-center justify-center
+                                 text-sm font-semibold text-white flex-shrink-0 shadow-sm`}>
                     {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-200 truncate">{workspace.name}</p>
-                    <RoleBadge role={role} />
+                    <p className="text-sm text-neutral-900 font-medium truncate">{workspace.name}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <RoleBadge role={role} />
+                      <span className="text-xs text-neutral-400">
+                        {workspace.memberCount || 1} member{(workspace.memberCount || 1) !== 1 ? 's' : ''}
+                      </span>
+                    </div>
                   </div>
                   {workspace.id === currentWorkspace?.id && (
-                    <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-teal-600 flex-shrink-0" />
                   )}
                 </button>
               );
@@ -124,44 +153,58 @@ function WorkspaceSwitcher({ className = '' }) {
           </div>
 
           {/* Divider */}
-          <div className="border-t border-slate-600 my-1" />
+          <div className="border-t border-neutral-100 my-1" />
 
           {/* Actions */}
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              setIsCreateModalOpen(true);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
-                       transition-colors text-left text-slate-300"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="text-sm">Create Workspace</span>
-          </button>
+          <div className="py-1">
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/workspaces');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
+                         transition-colors text-left text-neutral-700"
+            >
+              <LayoutGrid className="w-4 h-4 text-neutral-500" />
+              <span className="text-sm">View All Workspaces</span>
+            </button>
 
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              navigate('/user/preferences');
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
-                       transition-colors text-left text-slate-300"
-          >
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">Workspace Settings</span>
-          </button>
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                setIsCreateModalOpen(true);
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
+                         transition-colors text-left text-neutral-700"
+            >
+              <Plus className="w-4 h-4 text-neutral-500" />
+              <span className="text-sm">Create Workspace</span>
+            </button>
 
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              navigate('/user/team');
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
-                       transition-colors text-left text-slate-300"
-          >
-            <Users className="w-4 h-4" />
-            <span className="text-sm">Manage Members</span>
-          </button>
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/user/preferences');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
+                         transition-colors text-left text-neutral-700"
+            >
+              <Settings className="w-4 h-4 text-neutral-500" />
+              <span className="text-sm">Workspace Settings</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                navigate('/user/team');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
+                         transition-colors text-left text-neutral-700"
+            >
+              <Users className="w-4 h-4 text-neutral-500" />
+              <span className="text-sm">Manage Members</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -169,6 +212,7 @@ function WorkspaceSwitcher({ className = '' }) {
       <CreateWorkspaceModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+        redirectToDashboard={false}
       />
     </div>
   );

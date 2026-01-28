@@ -5,6 +5,7 @@ import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import WorkspaceSelectionPage from './pages/WorkspaceSelectionPage';
 import UserArea from './pages/UserArea/UserArea';
 import AcceptInvite from './pages/AcceptInvite';
 import ErrorPage from './pages/ErrorPage';
@@ -61,6 +62,14 @@ function App() {
             <Route path="/accept-invite" element={<AcceptInvite />} />
 
             {/* Protected Routes */}
+            <Route
+              path="/workspaces"
+              element={
+                <ProtectedRoute>
+                  <WorkspaceSelectionPage />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
