@@ -3,6 +3,7 @@ import { X, Plus } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import { ButtonSpinner } from './Loader';
 
 const TaskModal = ({
@@ -17,6 +18,7 @@ const TaskModal = ({
   const { createTask, updateTask } = useTaskStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { users, fetchUsers } = useUserStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
 
   const isEditMode = !!task;
   const isSubtask = !!parentTaskId;
@@ -36,7 +38,9 @@ const TaskModal = ({
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
-      fetchUsers();
+      if (currentWorkspaceId) {
+        fetchUsers(currentWorkspaceId);
+      }
 
       // Populate form data if editing
       if (task) {
@@ -69,7 +73,7 @@ const TaskModal = ({
         });
       }
     }
-  }, [isOpen, task, initialDueDate, parentTask, fetchCategories, fetchUsers, defaultCategoryId]);
+  }, [isOpen, task, initialDueDate, parentTask, fetchCategories, fetchUsers, defaultCategoryId, currentWorkspaceId]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

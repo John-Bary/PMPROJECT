@@ -13,6 +13,7 @@ import {
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import FilterDropdown from '../components/FilterDropdown';
 import TaskModal from '../components/TaskModal';
 import TaskDetailModal from '../components/TaskDetailModal';
@@ -34,6 +35,7 @@ function ListView() {
   } = useTaskStore();
   const { categories, fetchCategories, isLoading: isCategoriesLoading } = useCategoryStore();
   const { users, fetchUsers } = useUserStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
     assignees: [],
@@ -61,8 +63,10 @@ function ListView() {
   useEffect(() => {
     fetchTasks();
     fetchCategories();
-    fetchUsers();
-  }, [fetchTasks, fetchCategories, fetchUsers]);
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
+  }, [fetchTasks, fetchCategories, fetchUsers, currentWorkspaceId]);
 
   // Close open dropdown when clicking outside the active trigger/dropdown
   // Note: For 'assignee' type, the AssigneeDropdown component handles its own click-outside via portal

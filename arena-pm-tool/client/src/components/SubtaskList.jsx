@@ -3,6 +3,7 @@ import { Plus, Check, Trash2, Calendar, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import useTaskStore from '../store/taskStore';
 import useUserStore from '../store/userStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import { tasksAPI } from '../utils/api';
 import { InlineSpinner } from './Loader';
 import DatePicker from './DatePicker';
@@ -40,6 +41,7 @@ function SubtaskList({ taskId, categoryId }) {
 
   const { createTask, updateTask, deleteTask, fetchTasks } = useTaskStore();
   const { users, fetchUsers } = useUserStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
 
   // Priority options
   const priorities = ['low', 'medium', 'high', 'urgent'];
@@ -102,8 +104,10 @@ function SubtaskList({ taskId, categoryId }) {
 
   useEffect(() => {
     fetchSubtasks();
-    fetchUsers();
-  }, [fetchSubtasks, fetchUsers]);
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
+  }, [fetchSubtasks, fetchUsers, currentWorkspaceId]);
 
   // Focus new subtask input when adding
   useEffect(() => {

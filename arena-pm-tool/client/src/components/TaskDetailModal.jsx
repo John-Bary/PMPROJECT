@@ -7,6 +7,7 @@ import {
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
@@ -25,6 +26,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   const { updateTask } = useTaskStore();
   const { categories, fetchCategories } = useCategoryStore();
   const { users, fetchUsers } = useUserStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
@@ -84,9 +86,11 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
   // Fetch users and categories on mount
   useEffect(() => {
-    fetchUsers();
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
     fetchCategories();
-  }, [fetchUsers, fetchCategories]);
+  }, [currentWorkspaceId, fetchUsers, fetchCategories]);
 
   // Handle escape key to close modal
   useEffect(() => {

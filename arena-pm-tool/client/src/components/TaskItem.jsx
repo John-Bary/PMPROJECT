@@ -4,6 +4,7 @@ import { Pencil, Trash2, Check, ChevronDown, Calendar } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
@@ -20,6 +21,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const titleInputRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
   const toLocalDate = (value) => {
     if (!value) return null;
     const d = new Date(value);
@@ -76,8 +78,10 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   // Fetch users on mount
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
+  }, [currentWorkspaceId, fetchUsers]);
 
   // Auto-focus title input when editing
   useEffect(() => {
