@@ -18,6 +18,16 @@ const useCategoryStore = create((set, get) => ({
   fetchCategories: async () => {
     const workspaceId = getWorkspaceId();
 
+    if (!workspaceId) {
+      set({
+        categories: [],
+        error: 'Select or create a workspace to load categories.',
+        isLoading: false,
+        isFetching: false,
+      });
+      return;
+    }
+
     set({ isLoading: true, isFetching: true, error: null });
     try {
       // Include workspace_id in query params

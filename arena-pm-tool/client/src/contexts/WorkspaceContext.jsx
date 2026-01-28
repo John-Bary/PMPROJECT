@@ -47,6 +47,7 @@ export function WorkspaceProvider({ children }) {
 
   // Track previous workspace ID to detect changes
   const prevWorkspaceIdRef = useRef(currentWorkspaceId);
+  const hasFetchedWorkspaceDataRef = useRef(false);
 
   // Initialize workspaces when user is authenticated
   useEffect(() => {
@@ -64,17 +65,37 @@ export function WorkspaceProvider({ children }) {
     }
   }, [isAuthenticated, isInitialized, clear, clearTasks, clearCategories]);
 
-  // Refetch data when workspace changes
+  // Refetch data when workspace changes (and after initialization)
   useEffect(() => {
-    if (currentWorkspaceId && currentWorkspaceId !== prevWorkspaceIdRef.current) {
+    if (!isInitialized) {
+      return;
+    }
+
+    if (!currentWorkspaceId) {
+      prevWorkspaceIdRef.current = currentWorkspaceId;
+      return;
+    }
+
+    if (
+      currentWorkspaceId !== prevWorkspaceIdRef.current ||
+      !hasFetchedWorkspaceDataRef.current
+    ) {
       // Clear and refetch data for new workspace
       clearTasks();
       clearCategories();
       fetchTasks();
       fetchCategories();
+      hasFetchedWorkspaceDataRef.current = true;
     }
     prevWorkspaceIdRef.current = currentWorkspaceId;
-  }, [currentWorkspaceId, clearTasks, clearCategories, fetchTasks, fetchCategories]);
+  }, [
+    currentWorkspaceId,
+    isInitialized,
+    clearTasks,
+    clearCategories,
+    fetchTasks,
+    fetchCategories,
+  ]);
 
   // Memoized switch workspace function that also triggers data refresh
   const handleSwitchWorkspace = useCallback(async (workspaceId) => {
