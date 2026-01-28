@@ -1,4 +1,4 @@
--- Arena PM Tool - Auto-Create Workspace on User Signup
+-- Todorio - Auto-Create Workspace on User Signup
 -- Migration: 20240105000000_auto_create_workspace_on_signup.sql
 -- Description: Creates a trigger to automatically create a personal workspace when a new user signs up
 

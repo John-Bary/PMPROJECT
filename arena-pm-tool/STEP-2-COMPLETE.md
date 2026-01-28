@@ -2,7 +2,7 @@
 
 ## What We Built
 
-Created a complete PostgreSQL database schema with tables, indexes, triggers, and initialization scripts for the Arena PM Tool.
+Created a complete PostgreSQL database schema with tables, indexes, triggers, and initialization scripts for Todorio.
 
 ## Files Created
 

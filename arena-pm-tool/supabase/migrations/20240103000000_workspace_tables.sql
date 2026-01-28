@@ -1,4 +1,4 @@
--- Arena PM Tool - Workspace Tables
+-- Todorio - Workspace Tables
 -- Migration: 20240103000000_workspace_tables.sql
 -- Description: Creates workspace, membership, and invitation tables for multi-workspace support
 

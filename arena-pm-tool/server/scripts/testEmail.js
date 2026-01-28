@@ -11,7 +11,7 @@ const { verifyConnection, sendTaskReminder, sendMultipleTasksReminder } = requir
 const TEST_EMAIL = process.argv[2] || process.env.EMAIL_USER;
 
 async function testEmailService() {
-  console.log('\n📧 Testing Arena PM Tool Email Service\n');
+  console.log('\n📧 Testing Todorio Email Service\n');
   console.log('=' .repeat(50));
 
   // Check if email config exists
@@ -42,7 +42,7 @@ async function testEmailService() {
     userName: 'Test User',
     taskName: 'Complete project documentation',
     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-    taskDescription: 'Write comprehensive documentation for the Arena PM Tool project including API endpoints and user guide.',
+    taskDescription: 'Write comprehensive documentation for the Todorio project including API endpoints and user guide.',
     priority: 'high'
   });
 

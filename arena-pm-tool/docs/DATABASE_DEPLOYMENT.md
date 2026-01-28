@@ -1,6 +1,6 @@
 # Database Deployment Guide
 
-This guide covers deploying the Arena PM Tool database to various production platforms.
+This guide covers deploying the Todorio database to various production platforms.
 
 ## Quick Start
 
@@ -170,11 +170,11 @@ After deployment, you'll have:
 ### Users (5 accounts)
 | Email | Name | Role | Password |
 |-------|------|------|----------|
-| haroldas@360arena.com | Haroldas Savickas | admin | password123 |
-| gediminas@360arena.com | Gediminas Paulauskas | member | password123 |
-| laurita@360arena.com | Laurita Trainyte | member | password123 |
-| elvina@360arena.com | Elvina Radzevičiūtė | member | password123 |
-| jonas@360arena.com | Jonas Barysas | admin | password123 |
+| haroldas@todorio.com | Haroldas Savickas | admin | password123 |
+| gediminas@todorio.com | Gediminas Paulauskas | member | password123 |
+| laurita@todorio.com | Laurita Trainyte | member | password123 |
+| elvina@todorio.com | Elvina Radzevičiūtė | member | password123 |
+| jonas@todorio.com | Jonas Barysas | admin | password123 |
 
 ### Categories (4)
 - To Do

@@ -1,7 +1,7 @@
 {
-  "name": "arena-pm-tool",
+  "name": "todorio",
   "version": "1.0.0",
-  "description": "Arena PM Tool - Full-stack project management application",
+  "description": "Todorio - A simple to do app",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",

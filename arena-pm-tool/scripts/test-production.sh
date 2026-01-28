@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ===========================================
-# Arena PM Tool - Local Production Test Script
+# Todorio - Local Production Test Script
 # ===========================================
 # This script builds and runs the application in production mode locally
 # to verify everything works before deploying.
@@ -9,7 +9,7 @@
 set -e  # Exit on error
 
 echo "=========================================="
-echo "Arena PM Tool - Production Build Test"
+echo "Todorio - Production Build Test"
 echo "=========================================="
 
 # Colors for output

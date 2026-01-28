@@ -78,7 +78,7 @@ function Register() {
         <div className="bg-white rounded-lg shadow-xl p-8">
           {/* Logo/Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Arena PM</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Todorio</h1>
             <p className="text-gray-600 mt-2">Create your account</p>
           </div>
 
@@ -115,7 +115,7 @@ function Register() {
                 className={`w-full px-4 py-2 border ${
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
-                placeholder="john@arena.com"
+                placeholder="john@todorio.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
