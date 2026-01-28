@@ -1,11 +1,11 @@
-# Vercel Deployment Guide - Arena PM Tool Monorepo
+# Vercel Deployment Guide - Todorio Monorepo
 
-This guide explains how to deploy the Arena PM Tool monorepo to Vercel with the frontend (CRA) served as static files and the backend (Express) running as serverless functions.
+This guide explains how to deploy the Todorio monorepo to Vercel with the frontend (CRA) served as static files and the backend (Express) running as serverless functions.
 
 ## Architecture Overview
 
 ```
-arena-pm-tool/
+todorio/
 ├── api/              # Serverless function entry point
 │   └── index.js      # Wraps Express app for Vercel
 ├── client/           # React (CRA) frontend → Static files
@@ -44,7 +44,7 @@ arena-pm-tool/
 | `EMAIL_USER` | SMTP username | `your-email@gmail.com` |
 | `EMAIL_PASSWORD` | SMTP password/app password | `xxxx-xxxx-xxxx-xxxx` |
 | `EMAIL_FROM` | Sender email address | `noreply@yourapp.com` |
-| `EMAIL_FROM_NAME` | Sender display name | `Arena PM Tool` |
+| `EMAIL_FROM_NAME` | Sender display name | `Todorio` |
 | `EMAIL_SECURE` | Use TLS | `false` |
 | `CRON_SECRET` | Secret for cron job authentication | `your-cron-secret` |
 | `ABSTRACT_API_KEY` | Holiday API key | `your-api-key` |
@@ -65,13 +65,13 @@ arena-pm-tool/
 
 1. Go to [vercel.com/new](https://vercel.com/new)
 2. Import your GitHub repository
-3. Select the repository containing `arena-pm-tool`
+3. Select the repository containing `todorio`
 
 ### 2. Configure Project Settings
 
 | Setting | Value |
 |---------|-------|
-| **Root Directory** | `arena-pm-tool` |
+| **Root Directory** | `todorio` |
 | **Framework Preset** | Other (auto-detected from vercel.json) |
 | **Build Command** | Leave empty (uses vercel.json) |
 | **Output Directory** | Leave empty (uses vercel.json) |
@@ -100,7 +100,7 @@ After deployment, verify these endpoints:
   ```json
   {
     "status": "OK",
-    "message": "Arena PM Tool API is running",
+    "message": "Todorio API is running",
     "timestamp": "..."
   }
   ```
@@ -112,13 +112,13 @@ For local development, both services run separately:
 
 ```bash
 # Terminal 1 - Start backend
-cd arena-pm-tool/server
+cd todorio/server
 cp .env.example .env  # Configure local environment
 npm install
 npm run dev           # Runs on http://localhost:5001
 
 # Terminal 2 - Start frontend
-cd arena-pm-tool/client
+cd todorio/client
 cp .env.example .env  # Set REACT_APP_API_URL=http://localhost:5001/api
 npm install
 npm start             # Runs on http://localhost:3000
@@ -129,7 +129,7 @@ npm start             # Runs on http://localhost:3000
 ### API returns 404
 
 - Check that routes start with `/api/`
-- Verify `vercel.json` is in the correct location (`arena-pm-tool/vercel.json`)
+- Verify `vercel.json` is in the correct location (`todorio/vercel.json`)
 
 ### CORS errors
 
@@ -151,7 +151,7 @@ npm start             # Runs on http://localhost:3000
 ## File Structure Reference
 
 ```
-arena-pm-tool/
+todorio/
 ├── vercel.json              # Vercel deployment configuration
 ├── api/
 │   └── index.js             # Serverless function entry point (imports server/server.js)

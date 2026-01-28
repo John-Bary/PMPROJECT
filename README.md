@@ -1,6 +1,6 @@
-# Arena PM Tool
+# Todorio
 
-A full-stack project management application similar to Asana, built with React, Node.js, and PostgreSQL.
+A simple to do app built with React, Node.js, and PostgreSQL.
 
 ## Tech Stack
 
@@ -22,7 +22,7 @@ git clone <your-repo-url>
 cd PMPROJECT
 
 # Install server dependencies
-cd arena-pm-tool/server
+cd todorio/server
 npm install
 
 # Install client dependencies
@@ -32,7 +32,7 @@ npm install
 
 ### 2. Configure Environment
 
-**Server** - Copy `arena-pm-tool/server/.env.example` to `arena-pm-tool/server/.env`:
+**Server** - Copy `todorio/server/.env.example` to `todorio/server/.env`:
 
 | Variable | Description |
 |----------|-------------|
@@ -48,7 +48,7 @@ npm install
 | `EMAIL_FROM` | Sender email address |
 | `ABSTRACT_API_KEY` | Holiday API key (optional) |
 
-**Client** - Copy `arena-pm-tool/client/.env.example` to `arena-pm-tool/client/.env`:
+**Client** - Copy `todorio/client/.env.example` to `todorio/client/.env`:
 
 | Variable | Description |
 |----------|-------------|
@@ -57,7 +57,7 @@ npm install
 ### 3. Set Up Database
 
 ```bash
-cd arena-pm-tool/server
+cd todorio/server
 npm run db:init
 ```
 
@@ -65,28 +65,28 @@ npm run db:init
 
 **Terminal 1 - Backend:**
 ```bash
-cd arena-pm-tool/server
+cd todorio/server
 npm run dev
 ```
 Server runs at http://localhost:5001
 
 **Terminal 2 - Frontend:**
 ```bash
-cd arena-pm-tool/client
+cd todorio/client
 npm start
 ```
 App runs at http://localhost:3000
 
 ## Development Commands
 
-### Client (`arena-pm-tool/client`)
+### Client (`todorio/client`)
 | Command | Description |
 |---------|-------------|
 | `npm start` | Start dev server (port 3000) |
 | `npm run build` | Build for production |
 | `npm test` | Run tests |
 
-### Server (`arena-pm-tool/server`)
+### Server (`todorio/server`)
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start dev server with nodemon |
@@ -99,10 +99,10 @@ App runs at http://localhost:3000
 
 ```bash
 # Build client
-cd arena-pm-tool/client
+cd todorio/client
 npm run build
 
-# The build output is in arena-pm-tool/client/build/
+# The build output is in todorio/client/build/
 ```
 
 ## Deployment Notes
@@ -116,7 +116,7 @@ npm run build
 ## Project Structure
 
 ```
-arena-pm-tool/
+todorio/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/    # Reusable UI components

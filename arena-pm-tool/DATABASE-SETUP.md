@@ -63,7 +63,7 @@ Make sure your `.env` file has the correct database credentials:
 ```env
 DB_HOST=localhost
 DB_PORT=5432
-DB_NAME=arena_pm_tool
+DB_NAME=todorio
 DB_USER=postgres
 DB_PASSWORD=postgres
 ```
@@ -78,7 +78,7 @@ npm run db:init
 ```
 
 This will:
-- Create the `arena_pm_tool` database
+- Create the `todorio` database
 - Create all tables (users, categories, tasks, task_assignments)
 - Add demo data (5 users, 4 categories, 5 sample tasks)
 
@@ -87,7 +87,7 @@ This will:
 Check that the database was created successfully:
 
 ```bash
-psql -U postgres -d arena_pm_tool -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
+psql -U postgres -d todorio -c "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
 ```
 
 ## Database Schema
@@ -111,14 +111,14 @@ psql -U postgres -d arena_pm_tool -c "SELECT table_name FROM information_schema.
 After initialization, you can log in with these accounts:
 
 **Admin:**
-- Email: `admin@arena.com`
+- Email: `admin@todorio.com`
 - Password: `password123`
 
 **Team Members:**
-- `john@arena.com` - password123
-- `jane@arena.com` - password123
-- `mike@arena.com` - password123
-- `sarah@arena.com` - password123
+- `john@todorio.com` - password123
+- `jane@todorio.com` - password123
+- `mike@todorio.com` - password123
+- `sarah@todorio.com` - password123
 
 ## Useful Commands
 
@@ -129,7 +129,7 @@ npm run db:reset
 
 ### Connect to Database
 ```bash
-psql -U postgres -d arena_pm_tool
+psql -U postgres -d todorio
 ```
 
 ### Common SQL Queries

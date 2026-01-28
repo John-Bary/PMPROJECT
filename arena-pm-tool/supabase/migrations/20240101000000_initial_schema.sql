@@ -1,4 +1,4 @@
--- Arena PM Tool - Initial Database Schema
+-- Todorio - Initial Database Schema
 -- Migration: 20240101000000_initial_schema.sql
 -- Description: Creates all core tables for the project management application
 

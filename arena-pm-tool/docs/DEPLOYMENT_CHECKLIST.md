@@ -1,4 +1,4 @@
-# Arena PM Tool - Deployment Checklist
+# Todorio - Deployment Checklist
 
 Complete guide for publishing to GitHub, connecting Supabase, and deploying on Vercel.
 
@@ -38,17 +38,17 @@ vercel --version  # Install if missing: npm install -g vercel
 
 ### Step 2.1: Create GitHub Repository
 1. Go to https://github.com/new
-2. Repository name: `arena-pm-tool` (or your preferred name)
+2. Repository name: `todorio` (or your preferred name)
 3. Set visibility: **Private** (recommended for production apps)
 4. Do NOT initialize with README (we have one)
 5. Click **Create repository**
 
 ### Step 2.2: Push Code to GitHub
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool
+cd /home/user/PMPROJECT/todorio
 
 # Add remote (replace YOUR_USERNAME with your GitHub username)
-git remote add origin https://github.com/YOUR_USERNAME/arena-pm-tool.git
+git remote add origin https://github.com/YOUR_USERNAME/todorio.git
 
 # Verify no secrets are committed
 git status
@@ -74,7 +74,7 @@ supabase/.branches
 supabase/.temp
 ```
 
-**Files**: `/arena-pm-tool/.gitignore`, `/arena-pm-tool/client/.gitignore`, `/arena-pm-tool/server/.gitignore`
+**Files**: `/todorio/.gitignore`, `/todorio/client/.gitignore`, `/todorio/server/.gitignore`
 
 ---
 
@@ -85,7 +85,7 @@ supabase/.temp
 2. Click **New Project**
 3. Configure:
    - **Organization**: Select or create
-   - **Project name**: `arena-pm-tool`
+   - **Project name**: `todorio`
    - **Database password**: Generate a strong password and **SAVE IT SECURELY**
    - **Region**: Choose closest to your users
    - **Pricing plan**: Free tier works for development
@@ -114,7 +114,7 @@ postgresql://postgres.[PROJECT_REF]:[YOUR_PASSWORD]@aws-0-[REGION].pooler.supaba
 
 ### Step 3.3: Run Database Migrations
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool
+cd /home/user/PMPROJECT/todorio
 
 # Link to your Supabase project (get project ref from dashboard URL)
 npx supabase link --project-ref YOUR_PROJECT_REF
@@ -208,7 +208,7 @@ openssl rand -base64 32 | tr -d '\n'
 
 ### Step 4.2: Deploy Server to Vercel
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool/server
+cd /home/user/PMPROJECT/todorio/server
 
 # Login to Vercel (if not already)
 vercel login
@@ -220,7 +220,7 @@ vercel
 # - Set up and deploy? Y
 # - Which scope? [Select your account]
 # - Link to existing project? N
-# - Project name? arena-pm-tool-api
+# - Project name? todorio-api
 # - Directory? ./
 # - Override settings? N
 ```
@@ -263,12 +263,12 @@ The cron job is defined in `server/vercel.json`:
 
 ### Step 4.5: Deploy to Production
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool/server
+cd /home/user/PMPROJECT/todorio/server
 
 # Deploy to production
 vercel --prod
 
-# Note the production URL (e.g., https://arena-pm-tool-api.vercel.app)
+# Note the production URL (e.g., https://todorio-api.vercel.app)
 ```
 
 **Save the server URL** - you'll need it for the client configuration.
@@ -287,7 +287,7 @@ curl https://your-server.vercel.app/api/health
 
 ### Step 5.1: Deploy Client to Vercel
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool/client
+cd /home/user/PMPROJECT/todorio/client
 
 # Deploy (follow prompts)
 vercel
@@ -296,7 +296,7 @@ vercel
 # - Set up and deploy? Y
 # - Which scope? [Select your account]
 # - Link to existing project? N
-# - Project name? arena-pm-tool
+# - Project name? todorio
 # - Directory? ./
 # - Override settings? N (vercel.json handles it)
 ```
@@ -326,12 +326,12 @@ Verify in Vercel Dashboard > Your Client Project > Settings > General:
 
 ### Step 5.4: Deploy to Production
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool/client
+cd /home/user/PMPROJECT/todorio/client
 
 # Deploy to production
 vercel --prod
 
-# Note the production URL (e.g., https://arena-pm-tool.vercel.app)
+# Note the production URL (e.g., https://todorio.vercel.app)
 ```
 
 ### Step 5.5: Update Server CORS
@@ -342,13 +342,13 @@ Vercel Dashboard > Server Project > Settings > Environment Variables
 
 | Variable | New Value |
 |----------|-----------|
-| `ALLOWED_ORIGINS` | `https://arena-pm-tool.vercel.app,https://arena-pm-tool-git-main-yourname.vercel.app` |
+| `ALLOWED_ORIGINS` | `https://todorio.vercel.app,https://todorio-git-main-yourname.vercel.app` |
 
 Include both production and preview URLs if needed.
 
 **Redeploy server to apply:**
 ```bash
-cd /home/user/PMPROJECT/arena-pm-tool/server
+cd /home/user/PMPROJECT/todorio/server
 vercel --prod
 ```
 

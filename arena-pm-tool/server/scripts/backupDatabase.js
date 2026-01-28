@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Database Backup Script for Arena PM Tool
+ * Database Backup Script for Todorio
  *
  * Creates a timestamped pg_dump backup of the database.
  * Can be run manually or scheduled via cron.
@@ -39,7 +39,7 @@ const timestamp = new Date().toISOString()
   .replace('T', '_')
   .slice(0, 19);
 
-const backupFilename = `arena_pm_backup_${timestamp}.sql`;
+const backupFilename = `todorio_backup_${timestamp}.sql`;
 const backupPath = path.join(BACKUP_DIR, backupFilename);
 
 // Build pg_dump command
@@ -48,7 +48,7 @@ const pgDumpArgs = [
   '-h', process.env.DB_HOST || 'localhost',
   '-p', process.env.DB_PORT || '5432',
   '-U', process.env.DB_USER || 'postgres',
-  '-d', process.env.DB_NAME || 'arena_pm_tool',
+  '-d', process.env.DB_NAME || 'todorio',
   '-F', 'p',
   '--clean',
   '--if-exists',
@@ -61,7 +61,7 @@ const pgDumpCommand = dbPassword
   : `pg_dump ${pgDumpArgs.join(' ')}`;
 
 console.log('Starting database backup...');
-console.log(`Database: ${process.env.DB_NAME || 'arena_pm_tool'}`);
+console.log(`Database: ${process.env.DB_NAME || 'todorio'}`);
 console.log(`Output: ${backupPath}`);
 
 exec(pgDumpCommand, (error, stdout, stderr) => {
@@ -92,7 +92,7 @@ function cleanupOldBackups() {
   let deletedCount = 0;
 
   files.forEach(file => {
-    if (!file.startsWith('arena_pm_backup_')) return;
+    if (!file.startsWith('todorio_backup_')) return;
 
     const filePath = path.join(BACKUP_DIR, file);
     const stats = fs.statSync(filePath);

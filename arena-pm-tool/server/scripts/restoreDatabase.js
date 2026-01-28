@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Database Restore Script for Arena PM Tool
+ * Database Restore Script for Todorio
  *
  * Restores database from a backup file.
  *
@@ -39,7 +39,7 @@ const rl = readline.createInterface({
 });
 
 console.log('WARNING: This will overwrite the current database!');
-console.log(`Database: ${process.env.DB_NAME || 'arena_pm_tool'}`);
+console.log(`Database: ${process.env.DB_NAME || 'todorio'}`);
 console.log(`Backup file: ${backupFile}`);
 
 rl.question('\nType "RESTORE" to confirm: ', (answer) => {
@@ -61,7 +61,7 @@ function performRestore() {
     '-h', process.env.DB_HOST || 'localhost',
     '-p', process.env.DB_PORT || '5432',
     '-U', process.env.DB_USER || 'postgres',
-    '-d', process.env.DB_NAME || 'arena_pm_tool',
+    '-d', process.env.DB_NAME || 'todorio',
     '-f', backupFile
   ];
 

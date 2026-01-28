@@ -372,7 +372,7 @@ function WorkspaceSelectionPage() {
         {/* Simple header */}
         <header className="bg-white border-b border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-neutral-900">Arena PM</h1>
+            <h1 className="text-xl font-bold text-neutral-900">Todorio</h1>
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
@@ -390,7 +390,7 @@ function WorkspaceSelectionPage() {
             <Briefcase className="w-10 h-10 text-teal-600" />
           </div>
           <h2 className="text-2xl font-bold text-neutral-900 mb-3">
-            Welcome to Arena PM, {user?.name?.split(' ')[0]}!
+            Welcome to Todorio, {user?.name?.split(' ')[0]}!
           </h2>
           <p className="text-neutral-600 mb-8 max-w-md mx-auto">
             Get started by creating your first workspace. Workspaces help you organize projects and collaborate with your team.
@@ -443,7 +443,7 @@ function WorkspaceSelectionPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-neutral-900">Arena PM</h1>
+              <h1 className="text-xl font-bold text-neutral-900">Todorio</h1>
               <span className="hidden sm:inline-block px-2.5 py-1 bg-neutral-100 text-neutral-600 text-xs font-medium rounded-full">
                 {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
               </span>

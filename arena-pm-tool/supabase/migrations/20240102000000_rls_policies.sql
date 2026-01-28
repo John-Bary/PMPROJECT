@@ -1,4 +1,4 @@
--- Arena PM Tool - Row Level Security (RLS) Policies
+-- Todorio - Row Level Security (RLS) Policies
 -- Migration: 20240102000000_rls_policies.sql
 -- Description: Implements secure-by-default RLS policies for all tables
 --

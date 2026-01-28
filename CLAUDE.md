@@ -1,8 +1,8 @@
-# CLAUDE.md - Arena PM Tool
+# CLAUDE.md - Todorio
 
 ## Project Overview
 
-Arena PM Tool is a full-stack project management application similar to Asana. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
+Todorio is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ Arena PM Tool is a full-stack project management application similar to Asana. I
 ## Project Structure
 
 ```
-arena-pm-tool/
+todorio/
 ├── client/                    # React frontend
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
@@ -73,14 +73,14 @@ arena-pm-tool/
 
 ## Development Commands
 
-### Frontend (from `/arena-pm-tool/client`)
+### Frontend (from `/todorio/client`)
 ```bash
 npm start          # Start dev server on port 3000
 npm run build      # Build for production
 npm test           # Run tests
 ```
 
-### Backend (from `/arena-pm-tool/server`)
+### Backend (from `/todorio/server`)
 ```bash
 npm run dev        # Start dev server with nodemon on port 5000
 npm start          # Start production server
@@ -115,7 +115,7 @@ npm run db:reset   # Reset database (destructive)
 ### Server (`server/.env`)
 ```
 PORT=5000
-DATABASE_URL=postgresql://user:password@localhost:5432/arena_pm_tool
+DATABASE_URL=postgresql://user:password@localhost:5432/todorio
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 SMTP_HOST=smtp.gmail.com

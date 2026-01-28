@@ -1,4 +1,4 @@
--- Arena PM Tool - Add Workspace ID to Data Tables
+-- Todorio - Add Workspace ID to Data Tables
 -- Migration: 20240104000000_add_workspace_id_to_tables.sql
 -- Description: Adds workspace_id column to categories and tasks tables for multi-workspace support
 --
