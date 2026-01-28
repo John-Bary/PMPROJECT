@@ -31,7 +31,7 @@ function TaskList() {
     reorderCategories,
     isLoading: isCategoriesLoading,
   } = useCategoryStore();
-  const { canEdit } = useWorkspace();
+  const { canEdit, currentWorkspaceId, isInitialized } = useWorkspace();
   const userCanEdit = canEdit();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -58,9 +58,12 @@ function TaskList() {
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
 
   useEffect(() => {
+    if (!isInitialized || !currentWorkspaceId) {
+      return;
+    }
     fetchTasks();
     fetchCategories();
-  }, [fetchTasks, fetchCategories]);
+  }, [fetchTasks, fetchCategories, isInitialized, currentWorkspaceId]);
 
   const handleOpenDetail = (task) => {
     setSelectedTaskId(task.id);

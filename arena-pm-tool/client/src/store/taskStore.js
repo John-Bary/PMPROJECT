@@ -26,6 +26,16 @@ const useTaskStore = create((set, get) => ({
     const showLoading = options?.showLoading !== false;
     const workspaceId = getWorkspaceId();
 
+    if (!workspaceId) {
+      set({
+        tasks: [],
+        error: 'Select or create a workspace to load tasks.',
+        isLoading: false,
+        isFetching: false,
+      });
+      return;
+    }
+
     if (showLoading) {
       set({ isLoading: true, isFetching: true, error: null });
     }

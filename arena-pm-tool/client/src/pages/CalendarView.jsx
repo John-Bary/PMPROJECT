@@ -4,10 +4,12 @@ import useTaskStore from '../store/taskStore';
 import useHolidayStore from '../store/holidayStore';
 import TaskModal from '../components/TaskModal';
 import { PageLoader } from '../components/Loader';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 
 function CalendarView() {
   const { tasks, isLoading: loading, fetchTasks, updateTask } = useTaskStore();
   const { fetchHolidays, getHolidayByDate } = useHolidayStore();
+  const { currentWorkspaceId, isInitialized } = useWorkspace();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week'); // 'week' or 'month'
   const [selectedTask, setSelectedTask] = useState(null);
@@ -136,8 +138,11 @@ function CalendarView() {
 
   // Fetch tasks on mount
   useEffect(() => {
+    if (!isInitialized || !currentWorkspaceId) {
+      return;
+    }
     fetchTasks();
-  }, [fetchTasks]);
+  }, [fetchTasks, isInitialized, currentWorkspaceId]);
 
   // Fetch holidays for visible years
   useEffect(() => {
