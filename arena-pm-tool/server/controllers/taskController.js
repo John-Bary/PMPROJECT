@@ -3,6 +3,7 @@
 
 const { query } = require('../config/database');
 const { sendTaskAssignmentNotification } = require('../utils/emailService');
+const { verifyWorkspaceAccess, canUserEdit } = require('../middleware/workspaceAuth');
 
 // Helper function to format date for client - just return YYYY-MM-DD string
 const formatDueDateForClient = (dbDate) => {
@@ -29,6 +30,23 @@ const getAllTasks = async (req, res) => {
       search,
       workspace_id
     } = req.query;
+
+    // Require workspace_id
+    if (!workspace_id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    }
+
+    // Verify user has access to this workspace
+    const membership = await verifyWorkspaceAccess(req.user.id, workspace_id);
+    if (!membership) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
 
     // Build dynamic query with JSON aggregation for assignees
     let queryText = `
@@ -234,6 +252,31 @@ const createTask = async (req, res) => {
       workspace_id
     } = req.body;
 
+    // Require workspace_id
+    if (!workspace_id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    }
+
+    // Verify user has write access to this workspace
+    const membership = await verifyWorkspaceAccess(req.user.id, workspace_id);
+    if (!membership) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
+
+    // Check if user is a viewer (read-only)
+    if (membership.role === 'viewer') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Viewers cannot create tasks. Contact an admin to request edit permissions.'
+      });
+    }
+
     // Validate required fields
     if (!title) {
       return res.status(400).json({
@@ -428,6 +471,23 @@ const updateTask = async (req, res) => {
     }
 
     const currentTask = checkResult.rows[0];
+
+    // Verify user has write access to task's workspace
+    if (currentTask.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, currentTask.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+      if (membership.role === 'viewer') {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Viewers cannot edit tasks. Contact an admin to request edit permissions.'
+        });
+      }
+    }
 
     // Validate priority if provided
     if (priority) {
@@ -735,6 +795,23 @@ const deleteTask = async (req, res) => {
     }
 
     const task = checkResult.rows[0];
+
+    // Verify user has write access to task's workspace
+    if (task.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, task.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+      if (membership.role === 'viewer') {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Viewers cannot delete tasks. Contact an admin to request edit permissions.'
+        });
+      }
+    }
 
     // Delete the task
     await query('DELETE FROM tasks WHERE id = $1', [id]);

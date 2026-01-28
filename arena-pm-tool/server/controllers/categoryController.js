@@ -2,11 +2,29 @@
 // Handles all category-related operations
 
 const { query } = require('../config/database');
+const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 
 // Get all categories
 const getAllCategories = async (req, res) => {
   try {
     const { workspace_id } = req.query;
+
+    // Require workspace_id
+    if (!workspace_id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    }
+
+    // Verify user has access to this workspace
+    const membership = await verifyWorkspaceAccess(req.user.id, workspace_id);
+    if (!membership) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
 
     let queryText = `
       SELECT
@@ -16,15 +34,10 @@ const getAllCategories = async (req, res) => {
       FROM categories c
       LEFT JOIN users u ON c.created_by = u.id
       LEFT JOIN tasks t ON c.id = t.category_id
+      WHERE c.workspace_id = $1
     `;
 
-    const params = [];
-
-    // Filter by workspace_id if provided
-    if (workspace_id) {
-      queryText += ` WHERE c.workspace_id = $1`;
-      params.push(workspace_id);
-    }
+    const params = [workspace_id];
 
     queryText += `
       GROUP BY c.id, u.name
@@ -113,6 +126,31 @@ const createCategory = async (req, res) => {
   try {
     const { name, color = '#3B82F6', workspace_id } = req.body;
 
+    // Require workspace_id
+    if (!workspace_id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    }
+
+    // Verify user has write access to this workspace
+    const membership = await verifyWorkspaceAccess(req.user.id, workspace_id);
+    if (!membership) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
+
+    // Check if user is a viewer (read-only)
+    if (membership.role === 'viewer') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Viewers cannot create categories. Contact an admin to request edit permissions.'
+      });
+    }
+
     // Validate required fields
     if (!name) {
       return res.status(400).json({
@@ -130,13 +168,8 @@ const createCategory = async (req, res) => {
     }
 
     // Check if category name already exists within the same workspace
-    let existingCategoryQuery = 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1)';
-    const existingCategoryParams = [name];
-
-    if (workspace_id) {
-      existingCategoryQuery += ' AND workspace_id = $2';
-      existingCategoryParams.push(workspace_id);
-    }
+    const existingCategoryQuery = 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1) AND workspace_id = $2';
+    const existingCategoryParams = [name, workspace_id];
 
     const existingCategory = await query(existingCategoryQuery, existingCategoryParams);
 
@@ -206,6 +239,25 @@ const updateCategory = async (req, res) => {
         status: 'error',
         message: 'Category not found'
       });
+    }
+
+    const category = checkResult.rows[0];
+
+    // Verify user has write access to category's workspace
+    if (category.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, category.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+      if (membership.role === 'viewer') {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Viewers cannot edit categories. Contact an admin to request edit permissions.'
+        });
+      }
     }
 
     // Validate color format if provided
@@ -384,6 +436,23 @@ const deleteCategory = async (req, res) => {
     }
 
     const category = checkResult.rows[0];
+
+    // Verify user has write access to category's workspace
+    if (category.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, category.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+      if (membership.role === 'viewer') {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Viewers cannot delete categories. Contact an admin to request edit permissions.'
+        });
+      }
+    }
 
     // Check if category has tasks
     const tasksResult = await query(

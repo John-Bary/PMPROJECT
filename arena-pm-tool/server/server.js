@@ -17,6 +17,7 @@ const commentRoutes = require('./routes/comments');
 const meRoutes = require('./routes/me');
 const holidayRoutes = require('./routes/holidays');
 const reminderRoutes = require('./routes/reminders');
+const workspaceRoutes = require('./routes/workspaces');
 
 // Load environment variables
 dotenv.config();
@@ -194,6 +195,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/me', meRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/workspaces', workspaceRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

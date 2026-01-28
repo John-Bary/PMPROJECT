@@ -16,6 +16,7 @@
     "db:push": "cd .. && npx supabase db push",
     "db:pull": "cd .. && npx supabase db pull",
     "db:migrate": "cd .. && npx supabase migration up",
+    "db:migrate-workspaces": "node scripts/migrateToWorkspaces.js",
     "email:test": "node scripts/testEmail.js",
     "reminders:test": "node scripts/testReminders.js",
     "reminders:run": "node jobs/reminderJob.js --run-once",
