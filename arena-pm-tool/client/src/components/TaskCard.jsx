@@ -4,6 +4,7 @@ import { Check, Calendar, ListTodo } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
@@ -41,6 +42,7 @@ function TaskCard({
   const priorityDropdownRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
 
   const toLocalDate = (value) => {
     if (!value) return null;
@@ -72,8 +74,10 @@ function TaskCard({
   const totalSubtasks = task.subtaskCount || 0;
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
+  }, [currentWorkspaceId, fetchUsers]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {

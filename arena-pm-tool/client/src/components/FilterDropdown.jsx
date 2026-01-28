@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Filter } from 'lucide-react';
 import useUserStore from '../store/userStore';
 import useCategoryStore from '../store/categoryStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import AssigneeListItem from './AssigneeListItem';
 
 const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent'];
@@ -9,13 +10,16 @@ const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent'];
 function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
   const { users, fetchUsers } = useUserStore();
   const { categories, fetchCategories } = useCategoryStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    fetchUsers();
+    if (currentWorkspaceId) {
+      fetchUsers(currentWorkspaceId);
+    }
     fetchCategories();
-  }, [fetchUsers, fetchCategories]);
+  }, [currentWorkspaceId, fetchUsers, fetchCategories]);
 
   useEffect(() => {
     if (disabled) {
