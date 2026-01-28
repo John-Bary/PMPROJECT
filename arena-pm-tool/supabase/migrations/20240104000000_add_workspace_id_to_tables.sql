@@ -83,7 +83,7 @@ CREATE POLICY "categories_select_workspace_member"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = categories.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
     );
 
@@ -91,11 +91,11 @@ CREATE POLICY "categories_select_workspace_member"
 CREATE POLICY "categories_insert_workspace_member"
     ON categories FOR INSERT
     WITH CHECK (
-        auth.uid() IS NOT NULL
+        current_user_id() IS NOT NULL
         AND EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = categories.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role IN ('admin', 'member')
         )
     );
@@ -108,7 +108,7 @@ CREATE POLICY "categories_update_workspace_admin_creator"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = categories.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );
@@ -121,7 +121,7 @@ CREATE POLICY "categories_delete_workspace_admin_creator"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = categories.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );
@@ -138,7 +138,7 @@ CREATE POLICY "tasks_select_workspace_member"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = tasks.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
     );
 
@@ -146,11 +146,11 @@ CREATE POLICY "tasks_select_workspace_member"
 CREATE POLICY "tasks_insert_workspace_member"
     ON tasks FOR INSERT
     WITH CHECK (
-        auth.uid() IS NOT NULL
+        current_user_id() IS NOT NULL
         AND EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = tasks.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role IN ('admin', 'member')
         )
     );
@@ -164,7 +164,7 @@ CREATE POLICY "tasks_update_workspace_authorized"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = tasks.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );
@@ -177,7 +177,7 @@ CREATE POLICY "tasks_delete_workspace_admin_creator"
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = tasks.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );

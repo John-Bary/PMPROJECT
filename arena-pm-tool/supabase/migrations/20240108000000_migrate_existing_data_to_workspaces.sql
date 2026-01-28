@@ -36,7 +36,7 @@ BEGIN
     LOOP
         -- Get user email for workspace name
         SELECT email INTO user_email
-        FROM auth.users
+        FROM users
         WHERE id = orphan_user.user_id;
 
         -- Generate workspace name from email
@@ -184,7 +184,7 @@ CREATE POLICY "categories_select_workspace_member"
         EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = categories.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
     );
 
@@ -196,7 +196,7 @@ CREATE POLICY "tasks_select_workspace_member"
         EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = tasks.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
     );
 

@@ -37,7 +37,7 @@ BEGIN
     RETURN EXISTS (
         SELECT 1 FROM workspace_members
         WHERE workspace_id = ws_id
-        AND user_id = auth.uid()
+        AND user_id = current_user_id()
         AND role = 'admin'
     );
 END;
@@ -53,7 +53,7 @@ BEGIN
     RETURN EXISTS (
         SELECT 1 FROM workspace_members
         WHERE workspace_id = ws_id
-        AND user_id = auth.uid()
+        AND user_id = current_user_id()
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -68,7 +68,7 @@ BEGIN
     RETURN EXISTS (
         SELECT 1 FROM workspaces
         WHERE id = ws_id
-        AND owner_id = auth.uid()
+        AND owner_id = current_user_id()
     );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
@@ -79,7 +79,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION user_workspace_ids()
 RETURNS SETOF UUID AS $$
-    SELECT workspace_id FROM workspace_members WHERE user_id = auth.uid();
+    SELECT workspace_id FROM workspace_members WHERE user_id = current_user_id();
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 -- ============================================================================
@@ -151,7 +151,7 @@ CREATE POLICY "workspaces_select_member"
 -- INSERT: Authenticated users can create workspaces (they become owner)
 CREATE POLICY "workspaces_insert_authenticated"
     ON workspaces FOR INSERT
-    WITH CHECK (auth.uid() IS NOT NULL AND owner_id = auth.uid());
+    WITH CHECK (current_user_id() IS NOT NULL AND owner_id = current_user_id());
 
 -- UPDATE: Only workspace admins can update workspace details
 CREATE POLICY "workspaces_update_admin"
@@ -162,7 +162,7 @@ CREATE POLICY "workspaces_update_admin"
 -- DELETE: Only the workspace owner can delete
 CREATE POLICY "workspaces_delete_owner"
     ON workspaces FOR DELETE
-    USING (owner_id = auth.uid());
+    USING (owner_id = current_user_id());
 
 -- ============================================================================
 -- WORKSPACE_MEMBERS POLICIES
@@ -198,7 +198,7 @@ CREATE POLICY "workspace_invitations_select"
     ON workspace_invitations FOR SELECT
     USING (
         is_workspace_admin(workspace_id)
-        OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
+        OR email = (SELECT email FROM users WHERE id = current_user_id())
     );
 
 -- INSERT: Only workspace admins can create invitations
@@ -211,13 +211,13 @@ CREATE POLICY "workspace_invitations_update"
     ON workspace_invitations FOR UPDATE
     USING (
         is_workspace_admin(workspace_id)
-        OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
+        OR email = (SELECT email FROM users WHERE id = current_user_id())
     )
     WITH CHECK (
         is_workspace_admin(workspace_id)
         OR (
             -- Invitees can only update accepted_at (check that other fields unchanged)
-            email = (SELECT email FROM auth.users WHERE id = auth.uid())
+            email = (SELECT email FROM users WHERE id = current_user_id())
         )
     );
 
@@ -394,7 +394,7 @@ CREATE POLICY "workspace_members_insert_owner"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_members.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
     );
 

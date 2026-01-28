@@ -18,16 +18,10 @@
 -- IMPORTANT: Authentication Context
 -- ============================================================================
 --
--- This migration supports TWO authentication modes:
---
--- 1. SUPABASE AUTH (Recommended): Uses auth.uid() for user identification
---    - Works automatically with Supabase client
---    - No additional setup required
---
--- 2. CUSTOM JWT AUTH: Uses app.current_user_id session variable
---    - Requires setting the variable before each query:
---      SET LOCAL app.current_user_id = '123';
---    - See helper function current_user_id() below
+-- This migration supports CUSTOM JWT AUTH: Uses app.current_user_id session variable
+-- - Requires setting the variable before each query:
+--   SET LOCAL app.current_user_id = '123';
+-- - See helper function current_user_id() below
 --
 -- ============================================================================
 
@@ -35,27 +29,12 @@
 -- HELPER FUNCTIONS
 -- ============================================================================
 
--- Function to get current user ID (supports both Supabase Auth and custom JWT)
--- Priority: 1) Supabase auth.uid(), 2) app.current_user_id session variable
+-- Function to get current user ID (custom JWT via app.current_user_id)
 CREATE OR REPLACE FUNCTION current_user_id()
 RETURNS INTEGER AS $$
 DECLARE
-    supabase_uid TEXT;
     custom_uid TEXT;
 BEGIN
-    -- Try Supabase Auth first
-    BEGIN
-        supabase_uid := auth.uid()::TEXT;
-        IF supabase_uid IS NOT NULL THEN
-            -- For Supabase Auth, you may need to look up user by auth.uid()
-            -- This assumes users.id maps to auth.uid() or you have a mapping
-            RETURN supabase_uid::INTEGER;
-        END IF;
-    EXCEPTION WHEN OTHERS THEN
-        -- auth.uid() not available, continue to custom auth
-        NULL;
-    END;
-
     -- Fall back to custom session variable
     custom_uid := current_setting('app.current_user_id', true);
     IF custom_uid IS NOT NULL AND custom_uid != '' THEN

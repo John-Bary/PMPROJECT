@@ -9,7 +9,7 @@
 CREATE TABLE IF NOT EXISTS workspaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
-    owner_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS idx_workspaces_owner_id ON workspaces(owner_id);
 CREATE TABLE IF NOT EXISTS workspace_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
     joined_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT unique_workspace_member UNIQUE (workspace_id, user_id)
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS workspace_invitations (
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
-    invited_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+    invited_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     token TEXT UNIQUE NOT NULL DEFAULT encode(gen_random_bytes(32), 'hex'),
     expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '7 days',
     accepted_at TIMESTAMPTZ,
@@ -74,25 +74,25 @@ CREATE POLICY "workspaces_select_members"
         EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspaces.id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
-        OR owner_id = auth.uid()
+        OR owner_id = current_user_id()
     );
 
 -- Authenticated users can create workspaces
 CREATE POLICY "workspaces_insert_authenticated"
     ON workspaces FOR INSERT
-    WITH CHECK (auth.uid() IS NOT NULL AND owner_id = auth.uid());
+    WITH CHECK (current_user_id() IS NOT NULL AND owner_id = current_user_id());
 
 -- Only workspace owner or admin can update workspace
 CREATE POLICY "workspaces_update_owner_admin"
     ON workspaces FOR UPDATE
     USING (
-        owner_id = auth.uid()
+        owner_id = current_user_id()
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspaces.id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );
@@ -100,7 +100,7 @@ CREATE POLICY "workspaces_update_owner_admin"
 -- Only workspace owner can delete workspace
 CREATE POLICY "workspaces_delete_owner"
     ON workspaces FOR DELETE
-    USING (owner_id = auth.uid());
+    USING (owner_id = current_user_id());
 
 -- ============================================================================
 -- WORKSPACE_MEMBERS POLICIES
@@ -113,7 +113,7 @@ CREATE POLICY "workspace_members_select"
         EXISTS (
             SELECT 1 FROM workspace_members AS wm
             WHERE wm.workspace_id = workspace_members.workspace_id
-            AND wm.user_id = auth.uid()
+            AND wm.user_id = current_user_id()
         )
     );
 
@@ -124,12 +124,12 @@ CREATE POLICY "workspace_members_insert"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_members.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members AS wm
             WHERE wm.workspace_id = workspace_members.workspace_id
-            AND wm.user_id = auth.uid()
+            AND wm.user_id = current_user_id()
             AND wm.role = 'admin'
         )
     );
@@ -141,12 +141,12 @@ CREATE POLICY "workspace_members_update"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_members.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members AS wm
             WHERE wm.workspace_id = workspace_members.workspace_id
-            AND wm.user_id = auth.uid()
+            AND wm.user_id = current_user_id()
             AND wm.role = 'admin'
         )
     );
@@ -155,16 +155,16 @@ CREATE POLICY "workspace_members_update"
 CREATE POLICY "workspace_members_delete"
     ON workspace_members FOR DELETE
     USING (
-        user_id = auth.uid()
+        user_id = current_user_id()
         OR EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_members.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members AS wm
             WHERE wm.workspace_id = workspace_members.workspace_id
-            AND wm.user_id = auth.uid()
+            AND wm.user_id = current_user_id()
             AND wm.role = 'admin'
         )
     );
@@ -180,9 +180,9 @@ CREATE POLICY "workspace_invitations_select"
         EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspace_invitations.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
         )
-        OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
+        OR email = (SELECT email FROM users WHERE id = current_user_id())
     );
 
 -- Workspace owner or admin can create invitations
@@ -192,12 +192,12 @@ CREATE POLICY "workspace_invitations_insert"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_invitations.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspace_invitations.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );
@@ -209,15 +209,15 @@ CREATE POLICY "workspace_invitations_update"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_invitations.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspace_invitations.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
-        OR email = (SELECT email FROM auth.users WHERE id = auth.uid())
+        OR email = (SELECT email FROM users WHERE id = current_user_id())
     );
 
 -- Workspace owner or admin can delete invitations
@@ -227,12 +227,12 @@ CREATE POLICY "workspace_invitations_delete"
         EXISTS (
             SELECT 1 FROM workspaces
             WHERE workspaces.id = workspace_invitations.workspace_id
-            AND workspaces.owner_id = auth.uid()
+            AND workspaces.owner_id = current_user_id()
         )
         OR EXISTS (
             SELECT 1 FROM workspace_members
             WHERE workspace_members.workspace_id = workspace_invitations.workspace_id
-            AND workspace_members.user_id = auth.uid()
+            AND workspace_members.user_id = current_user_id()
             AND workspace_members.role = 'admin'
         )
     );

@@ -17,14 +17,14 @@ CREATE OR REPLACE FUNCTION accept_invitation(invitation_token TEXT)
 RETURNS JSON AS $$
 DECLARE
     invitation_record RECORD;
-    current_user_id UUID;
+    current_user_id_value INTEGER;
     current_user_email TEXT;
     result JSON;
 BEGIN
     -- Get current user info
-    current_user_id := auth.uid();
+    current_user_id_value := current_user_id();
 
-    IF current_user_id IS NULL THEN
+    IF current_user_id_value IS NULL THEN
         RETURN json_build_object(
             'success', false,
             'error', 'You must be logged in to accept an invitation'
@@ -33,8 +33,8 @@ BEGIN
 
     -- Get current user's email
     SELECT email INTO current_user_email
-    FROM auth.users
-    WHERE id = current_user_id;
+    FROM users
+    WHERE id = current_user_id_value;
 
     -- Find valid invitation by token
     SELECT
@@ -84,7 +84,7 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM workspace_members
         WHERE workspace_id = invitation_record.workspace_id
-        AND user_id = current_user_id
+        AND user_id = current_user_id_value
     ) THEN
         -- User is already a member, just mark invitation as accepted
         UPDATE workspace_invitations
@@ -100,7 +100,7 @@ BEGIN
 
     -- Add user to workspace_members
     INSERT INTO workspace_members (workspace_id, user_id, role, joined_at)
-    VALUES (invitation_record.workspace_id, current_user_id, invitation_record.role, NOW());
+    VALUES (invitation_record.workspace_id, current_user_id_value, invitation_record.role, NOW());
 
     -- Mark invitation as accepted
     UPDATE workspace_invitations
