@@ -274,7 +274,7 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Invite user to workspace
   inviteUser: async (email, role = 'member') => {
-    const { currentWorkspaceId, currentWorkspace } = get();
+    const { currentWorkspaceId } = get();
     if (!currentWorkspaceId) {
       return { success: false, error: 'No workspace selected' };
     }
