@@ -88,6 +88,20 @@ export function WorkspaceProvider({ children }) {
     return isCurrentUserAdmin(user?.id);
   }, [isCurrentUserAdmin, user?.id, members]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Check if current user is a viewer (read-only access)
+  const checkIsCurrentUserViewer = useCallback(() => {
+    if (!user?.id || members.length === 0) return false;
+    const currentMember = members.find(m => m.user_id === user.id);
+    return currentMember?.role === 'viewer';
+  }, [user?.id, members]);
+
+  // Check if current user can edit (admins and members, not viewers)
+  const canEdit = useCallback(() => {
+    if (!user?.id || members.length === 0) return true; // Default to allowing edits if no membership data
+    const currentMember = members.find(m => m.user_id === user.id);
+    return currentMember?.role !== 'viewer';
+  }, [user?.id, members]);
+
   // Context value
   const value = {
     // State
@@ -125,6 +139,8 @@ export function WorkspaceProvider({ children }) {
 
     // Helpers
     isCurrentUserAdmin: checkIsCurrentUserAdmin,
+    isCurrentUserViewer: checkIsCurrentUserViewer,
+    canEdit,
 
     // Utility
     clear,

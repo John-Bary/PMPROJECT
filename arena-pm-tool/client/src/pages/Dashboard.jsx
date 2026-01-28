@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, X, Settings, Users } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
+import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import { ButtonSpinner } from '../components/Loader';
 
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const { isCurrentUserAdmin } = useWorkspace();
   const [activeView, setActiveView] = useState('board'); // 'board', 'list', or 'calendar'
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isAdmin = isCurrentUserAdmin();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -52,6 +56,18 @@ function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Workspace Switcher */}
+            <div className="hidden md:block">
+              <WorkspaceSwitcher />
+            </div>
+            <Link
+              to="/user/team"
+              className="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-150"
+              aria-label="Team Settings"
+              title="Team Settings"
+            >
+              <Users size={20} />
+            </Link>
             <Link
               to="/user"
               className="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-150"
@@ -99,6 +115,10 @@ function Dashboard() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-neutral-150 shadow-md animate-fade-in">
           <nav className="max-w-7xl mx-auto px-4 py-2">
+            {/* Mobile Workspace Switcher */}
+            <div className="py-2 mb-2 border-b border-neutral-150">
+              <WorkspaceSwitcher className="w-full" />
+            </div>
             {navItems.map((item) => (
               <button
                 key={item.id}
@@ -114,6 +134,14 @@ function Dashboard() {
               </button>
             ))}
             <div className="border-t border-neutral-150 mt-2 pt-2">
+              <Link
+                to="/user/team"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 w-full py-3 px-3 rounded-lg font-medium text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-150"
+              >
+                <Users size={20} />
+                Team Settings
+              </Link>
               <Link
                 to="/user"
                 onClick={() => setIsMobileMenuOpen(false)}

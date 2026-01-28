@@ -8,7 +8,7 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
 
-function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '' }) {
+function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true }) {
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -115,6 +115,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   const handleAssigneeClick = (e) => {
     e.stopPropagation();
+    if (!canEdit) return;
     setShowAssigneeDropdown(!showAssigneeDropdown);
   };
 
@@ -141,6 +142,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   const handleDateClick = (e) => {
     e.stopPropagation();
+    if (!canEdit) return;
     setShowDatePicker(!showDatePicker);
   };
 
@@ -156,6 +158,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   const handlePriorityClick = (e) => {
     e.stopPropagation();
+    if (!canEdit) return;
     setShowPriorityDropdown(!showPriorityDropdown);
   };
 
@@ -172,6 +175,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   const handleTitleClick = (e) => {
     e.stopPropagation();
+    if (!canEdit) return;
     setIsEditingTitle(true);
   };
 
@@ -221,34 +225,36 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   return (
     <>
-    <Draggable draggableId={task.id.toString()} index={index}>
+    <Draggable draggableId={task.id.toString()} index={index} isDragDisabled={!canEdit}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          {...provided.dragHandleProps}
+          {...(canEdit ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-white border border-neutral-150 rounded-xl p-3 sm:p-4 hover:shadow transition-all duration-200 cursor-pointer active:cursor-grabbing group relative ${
+          className={`bg-white border border-neutral-150 rounded-xl p-3 sm:p-4 hover:shadow transition-all duration-200 cursor-pointer ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-60' : ''
           } ${snapshot.isDragging ? 'shadow-md cursor-grabbing' : ''}`}
         >
-          {/* Action Buttons - visible on mobile, hover on desktop */}
-          <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={handleEdit}
-              className="p-1.5 text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
-              title="Edit task"
-            >
-              <Pencil size={14} className="sm:w-4 sm:h-4" />
-            </button>
-            <button
-              onClick={handleDelete}
-              className="p-1.5 text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
-              title="Delete task"
-            >
-              <Trash2 size={14} className="sm:w-4 sm:h-4" />
-            </button>
-          </div>
+          {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
+          {canEdit && (
+            <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={handleEdit}
+                className="p-1.5 text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
+                title="Edit task"
+              >
+                <Pencil size={14} className="sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={handleDelete}
+                className="p-1.5 text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                title="Delete task"
+              >
+                <Trash2 size={14} className="sm:w-4 sm:h-4" />
+              </button>
+            </div>
+          )}
 
       {/* Completion Checkbox and Title */}
       <div className="flex items-start gap-3 mb-2">
@@ -258,9 +264,9 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             isCompleted
               ? 'bg-teal-500 border-teal-500'
               : 'border-neutral-300 hover:border-teal-500'
-          } ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}`}
-          disabled={isToggling}
-          title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+          } ${isToggling || !canEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
+          disabled={isToggling || !canEdit}
+          title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
           {isToggling ? (
             <InlineSpinner size="sm" />
@@ -284,10 +290,10 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         ) : (
           <h4
             onClick={handleTitleClick}
-            className={`font-medium text-neutral-900 flex-1 pr-16 cursor-text hover:bg-neutral-100 rounded-lg px-1 -mx-1 transition-all duration-150 ${
+            className={`font-medium text-neutral-900 flex-1 pr-16 ${canEdit ? 'cursor-text hover:bg-neutral-100' : 'cursor-default'} rounded-lg px-1 -mx-1 transition-all duration-150 ${
               isCompleted ? 'line-through text-neutral-500' : ''
             }`}
-            title="Click to edit"
+            title={canEdit ? 'Click to edit' : ''}
           >
             {task.title}
           </h4>
