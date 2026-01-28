@@ -1,6 +1,7 @@
 // Workspace State Management with Zustand
+// Uses Express API backend for workspace operations
 import { create } from 'zustand';
-import supabase, { isSupabaseConfigured } from '../utils/supabase';
+import { workspacesAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 
 const WORKSPACE_STORAGE_KEY = 'arena_current_workspace_id';
@@ -17,28 +18,23 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Initialize workspace data on app load
   initialize: async () => {
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not configured - workspace features disabled');
-      set({ isInitialized: true });
-      return;
-    }
-
     set({ isLoading: true, error: null });
 
     try {
-      // Fetch user's workspaces
-      const { data: workspaces, error: workspacesError } = await supabase
-        .from('workspaces')
-        .select(`
-          *,
-          workspace_members!inner (
-            user_id,
-            role
-          )
-        `)
-        .order('created_at', { ascending: true });
+      // Fetch user's workspaces from Express API
+      const response = await workspacesAPI.getAll();
+      const workspaces = response.data.data.workspaces || [];
 
-      if (workspacesError) throw workspacesError;
+      // Transform API response to match expected format
+      const transformedWorkspaces = workspaces.map(ws => ({
+        id: ws.id,
+        name: ws.name,
+        owner_id: ws.ownerId,
+        created_at: ws.createdAt,
+        workspace_members: [{ user_id: null, role: ws.userRole }], // For role checking
+        userRole: ws.userRole,
+        memberCount: ws.memberCount,
+      }));
 
       // Get stored workspace ID from localStorage
       const storedWorkspaceId = localStorage.getItem(WORKSPACE_STORAGE_KEY);
@@ -47,15 +43,15 @@ const useWorkspaceStore = create((set, get) => ({
       let currentWorkspace = null;
       let currentWorkspaceId = null;
 
-      if (workspaces && workspaces.length > 0) {
+      if (transformedWorkspaces.length > 0) {
         // Try to use stored workspace if it exists and user has access
         if (storedWorkspaceId) {
-          currentWorkspace = workspaces.find(w => w.id === storedWorkspaceId);
+          currentWorkspace = transformedWorkspaces.find(w => w.id === storedWorkspaceId);
         }
 
         // Fall back to first workspace if stored one not found
         if (!currentWorkspace) {
-          currentWorkspace = workspaces[0];
+          currentWorkspace = transformedWorkspaces[0];
         }
 
         currentWorkspaceId = currentWorkspace.id;
@@ -63,7 +59,7 @@ const useWorkspaceStore = create((set, get) => ({
       }
 
       set({
-        workspaces: workspaces || [],
+        workspaces: transformedWorkspaces,
         currentWorkspace,
         currentWorkspaceId,
         isLoading: false,
@@ -122,24 +118,29 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Fetch workspaces (refresh)
   fetchWorkspaces: async () => {
-    if (!isSupabaseConfigured()) return;
-
     set({ isLoading: true, error: null });
 
     try {
-      const { data: workspaces, error } = await supabase
-        .from('workspaces')
-        .select('*')
-        .order('created_at', { ascending: true });
+      const response = await workspacesAPI.getAll();
+      const workspaces = response.data.data.workspaces || [];
 
-      if (error) throw error;
+      // Transform API response
+      const transformedWorkspaces = workspaces.map(ws => ({
+        id: ws.id,
+        name: ws.name,
+        owner_id: ws.ownerId,
+        created_at: ws.createdAt,
+        workspace_members: [{ user_id: null, role: ws.userRole }],
+        userRole: ws.userRole,
+        memberCount: ws.memberCount,
+      }));
 
       set({
-        workspaces: workspaces || [],
+        workspaces: transformedWorkspaces,
         isLoading: false,
       });
 
-      return { success: true, workspaces };
+      return { success: true, workspaces: transformedWorkspaces };
     } catch (error) {
       set({ error: error.message, isLoading: false });
       toast.error('Failed to fetch workspaces');
@@ -149,97 +150,67 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Create a new workspace
   createWorkspace: async (name) => {
-    if (!isSupabaseConfigured()) {
-      toast.error('Supabase not configured');
-      return { success: false, error: 'Supabase not configured' };
-    }
-
     set({ isLoading: true, error: null });
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const response = await workspacesAPI.create({ name });
+      const workspace = response.data.data.workspace;
 
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      // Create workspace
-      const { data: workspace, error: workspaceError } = await supabase
-        .from('workspaces')
-        .insert({ name, owner_id: user.id })
-        .select()
-        .single();
-
-      if (workspaceError) throw workspaceError;
-
-      // Add creator as admin member
-      const { error: memberError } = await supabase
-        .from('workspace_members')
-        .insert({
-          workspace_id: workspace.id,
-          user_id: user.id,
-          role: 'admin',
-        });
-
-      if (memberError) throw memberError;
+      // Transform to match expected format
+      const transformedWorkspace = {
+        id: workspace.id,
+        name: workspace.name,
+        owner_id: workspace.ownerId,
+        created_at: workspace.createdAt,
+        workspace_members: [{ user_id: null, role: 'admin' }],
+        userRole: 'admin',
+        memberCount: 1,
+      };
 
       // Update local state
       set((state) => ({
-        workspaces: [...state.workspaces, workspace],
+        workspaces: [...state.workspaces, transformedWorkspace],
         isLoading: false,
       }));
 
       toast.success(`Workspace "${name}" created`);
-      return { success: true, workspace };
+      return { success: true, workspace: transformedWorkspace };
     } catch (error) {
       set({ error: error.message, isLoading: false });
-      toast.error(error.message || 'Failed to create workspace');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create workspace';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Update workspace
   updateWorkspace: async (workspaceId, data) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
-
     try {
-      const { data: workspace, error } = await supabase
-        .from('workspaces')
-        .update(data)
-        .eq('id', workspaceId)
-        .select()
-        .single();
-
-      if (error) throw error;
+      const response = await workspacesAPI.update(workspaceId, data);
+      const workspace = response.data.data.workspace;
 
       set((state) => ({
         workspaces: state.workspaces.map(w =>
-          w.id === workspaceId ? { ...w, ...workspace } : w
+          w.id === workspaceId ? { ...w, name: workspace.name } : w
         ),
         currentWorkspace: state.currentWorkspaceId === workspaceId
-          ? { ...state.currentWorkspace, ...workspace }
+          ? { ...state.currentWorkspace, name: workspace.name }
           : state.currentWorkspace,
       }));
 
       toast.success('Workspace updated');
       return { success: true, workspace };
     } catch (error) {
-      toast.error(error.message || 'Failed to update workspace');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update workspace';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Delete workspace
   deleteWorkspace: async (workspaceId) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
-
     try {
-      const { error } = await supabase
-        .from('workspaces')
-        .delete()
-        .eq('id', workspaceId);
-
-      if (error) throw error;
+      await workspacesAPI.delete(workspaceId);
 
       const { workspaces, currentWorkspaceId } = get();
       const remainingWorkspaces = workspaces.filter(w => w.id !== workspaceId);
@@ -267,31 +238,34 @@ const useWorkspaceStore = create((set, get) => ({
       toast.success('Workspace deleted');
       return { success: true };
     } catch (error) {
-      toast.error(error.message || 'Failed to delete workspace');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to delete workspace';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Fetch workspace members
   fetchMembers: async (workspaceId) => {
-    if (!isSupabaseConfigured()) return;
-
     try {
-      const { data: members, error } = await supabase
-        .from('workspace_members')
-        .select(`
-          *,
-          user:user_id (
-            id,
-            email
-          )
-        `)
-        .eq('workspace_id', workspaceId);
+      const response = await workspacesAPI.getMembers(workspaceId);
+      const members = response.data.data.members || [];
 
-      if (error) throw error;
+      // Transform to match expected format (compatible with TeamSettings)
+      const transformedMembers = members.map(m => ({
+        id: m.memberId,
+        user_id: m.userId,
+        role: m.role,
+        joined_at: m.joinedAt,
+        user: {
+          id: m.userId,
+          email: m.email,
+          name: m.name,
+          avatarUrl: m.avatarUrl,
+        }
+      }));
 
-      set({ members: members || [] });
-      return { success: true, members };
+      set({ members: transformedMembers });
+      return { success: true, members: transformedMembers };
     } catch (error) {
       console.error('Failed to fetch members:', error);
       return { success: false, error: error.message };
@@ -300,121 +274,77 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Invite user to workspace
   inviteUser: async (email, role = 'member') => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
-
     const { currentWorkspaceId, currentWorkspace } = get();
     if (!currentWorkspaceId) {
       return { success: false, error: 'No workspace selected' };
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const response = await workspacesAPI.invite(currentWorkspaceId, email, role);
+      const invitation = response.data.data.invitation;
 
-      const { data: invitation, error } = await supabase
-        .from('workspace_invitations')
-        .insert({
-          workspace_id: currentWorkspaceId,
-          email,
-          role,
-          invited_by: user.id,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
+      // Transform to match expected format
+      const transformedInvitation = {
+        id: invitation.id,
+        email: invitation.email,
+        role: invitation.role,
+        token: invitation.token,
+        expires_at: invitation.expiresAt,
+        created_at: invitation.createdAt,
+      };
 
       set((state) => ({
-        invitations: [...state.invitations, invitation],
+        invitations: [...state.invitations, transformedInvitation],
       }));
 
-      // Send invitation email via Edge Function
-      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-      if (supabaseUrl && invitation.token) {
-        try {
-          const response = await fetch(`${supabaseUrl}/functions/v1/send-invite`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify({
-              email,
-              token: invitation.token,
-              workspaceName: currentWorkspace?.name || 'Workspace',
-              inviterName: user.email || 'A team member',
-            }),
-          });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            console.warn('Failed to send invitation email:', errorData);
-            // Don't fail the invitation creation, just warn about email
-            toast.success(`Invitation created for ${email} (email may not have been sent)`);
-            return { success: true, invitation, emailSent: false };
-          }
-
-          toast.success(`Invitation sent to ${email}`);
-          return { success: true, invitation, emailSent: true };
-        } catch (emailError) {
-          console.warn('Error sending invitation email:', emailError);
-          toast.success(`Invitation created for ${email} (email may not have been sent)`);
-          return { success: true, invitation, emailSent: false };
-        }
-      }
-
       toast.success(`Invitation sent to ${email}`);
-      return { success: true, invitation };
+      return { success: true, invitation: transformedInvitation };
     } catch (error) {
-      toast.error(error.message || 'Failed to send invitation');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to send invitation';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
-  // Accept invitation (via RPC function)
+  // Accept invitation (via token)
   acceptInvitation: async (token) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
-
     try {
-      const { data, error } = await supabase.rpc('accept_invitation', {
-        invitation_token: token,
-      });
-
-      if (error) throw error;
-
-      if (!data.success) {
-        toast.error(data.error);
-        return { success: false, error: data.error };
-      }
+      const response = await workspacesAPI.acceptInvitation(token);
+      const data = response.data.data;
 
       // Refresh workspaces to include the new one
       await get().fetchWorkspaces();
 
-      toast.success('Successfully joined workspace');
-      return { success: true, workspaceId: data.workspace_id };
+      toast.success(response.data.message || 'Successfully joined workspace');
+      return { success: true, workspaceId: data.workspaceId };
     } catch (error) {
-      toast.error(error.message || 'Failed to accept invitation');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to accept invitation';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Fetch invitations for current workspace
   fetchInvitations: async () => {
-    if (!isSupabaseConfigured()) return;
-
     const { currentWorkspaceId } = get();
     if (!currentWorkspaceId) return;
 
     try {
-      const { data: invitations, error } = await supabase
-        .from('workspace_invitations')
-        .select('*')
-        .eq('workspace_id', currentWorkspaceId)
-        .is('accepted_at', null);
+      const response = await workspacesAPI.getInvitations(currentWorkspaceId);
+      const invitations = response.data.data.invitations || [];
 
-      if (error) throw error;
+      // Transform to match expected format
+      const transformedInvitations = invitations.map(inv => ({
+        id: inv.id,
+        email: inv.email,
+        role: inv.role,
+        expires_at: inv.expiresAt,
+        created_at: inv.createdAt,
+        invited_by_name: inv.invitedByName,
+      }));
 
-      set({ invitations: invitations || [] });
-      return { success: true, invitations };
+      set({ invitations: transformedInvitations });
+      return { success: true, invitations: transformedInvitations };
     } catch (error) {
       console.error('Failed to fetch invitations:', error);
       return { success: false, error: error.message };
@@ -423,15 +353,13 @@ const useWorkspaceStore = create((set, get) => ({
 
   // Remove member from workspace
   removeMember: async (memberId) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+    const { currentWorkspaceId } = get();
+    if (!currentWorkspaceId) {
+      return { success: false, error: 'No workspace selected' };
+    }
 
     try {
-      const { error } = await supabase
-        .from('workspace_members')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
+      await workspacesAPI.removeMember(currentWorkspaceId, memberId);
 
       set((state) => ({
         members: state.members.filter(m => m.id !== memberId),
@@ -440,24 +368,21 @@ const useWorkspaceStore = create((set, get) => ({
       toast.success('Member removed');
       return { success: true };
     } catch (error) {
-      toast.error(error.message || 'Failed to remove member');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to remove member';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Update member role
   updateMemberRole: async (memberId, role) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+    const { currentWorkspaceId } = get();
+    if (!currentWorkspaceId) {
+      return { success: false, error: 'No workspace selected' };
+    }
 
     try {
-      const { data: member, error } = await supabase
-        .from('workspace_members')
-        .update({ role })
-        .eq('id', memberId)
-        .select()
-        .single();
-
-      if (error) throw error;
+      await workspacesAPI.updateMemberRole(currentWorkspaceId, memberId, role);
 
       set((state) => ({
         members: state.members.map(m =>
@@ -466,24 +391,23 @@ const useWorkspaceStore = create((set, get) => ({
       }));
 
       toast.success('Member role updated');
-      return { success: true, member };
+      return { success: true };
     } catch (error) {
-      toast.error(error.message || 'Failed to update member role');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to update member role';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
   },
 
   // Cancel/delete invitation
   cancelInvitation: async (invitationId) => {
-    if (!isSupabaseConfigured()) return { success: false, error: 'Supabase not configured' };
+    const { currentWorkspaceId } = get();
+    if (!currentWorkspaceId) {
+      return { success: false, error: 'No workspace selected' };
+    }
 
     try {
-      const { error } = await supabase
-        .from('workspace_invitations')
-        .delete()
-        .eq('id', invitationId);
-
-      if (error) throw error;
+      await workspacesAPI.cancelInvitation(currentWorkspaceId, invitationId);
 
       set((state) => ({
         invitations: state.invitations.filter(i => i.id !== invitationId),
@@ -492,16 +416,10 @@ const useWorkspaceStore = create((set, get) => ({
       toast.success('Invitation cancelled');
       return { success: true };
     } catch (error) {
-      toast.error(error.message || 'Failed to cancel invitation');
-      return { success: false, error: error.message };
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to cancel invitation';
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
-  },
-
-  // Get user's role in current workspace
-  getCurrentUserRole: () => {
-    // This would need the current user's ID to filter
-    // For now, return from workspace_members join
-    return null;
   },
 
   // Check if user is admin of current workspace
@@ -509,7 +427,10 @@ const useWorkspaceStore = create((set, get) => ({
     const { currentWorkspace, members } = get();
     if (!currentWorkspace || !userId) return false;
 
-    // Find the current user in members and check their role
+    // First check from workspace's userRole (from getAll response)
+    if (currentWorkspace.userRole === 'admin') return true;
+
+    // Fallback: check from members array
     const currentMember = members.find(m => m.user_id === userId);
     return currentMember?.role === 'admin';
   },
