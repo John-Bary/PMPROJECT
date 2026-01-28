@@ -3,7 +3,7 @@
 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { query } = require('../config/database');
+const { query, getClient } = require('../config/database');
 
 // Generate JWT token
 const generateToken = (userId, email, role) => {
@@ -16,11 +16,14 @@ const generateToken = (userId, email, role) => {
 
 // Register new user
 const register = async (req, res) => {
+  const client = await getClient();
+
   try {
     const { email, password, name } = req.body;
 
     // Validate input
     if (!email || !password || !name) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'Please provide email, password, and name.'
@@ -30,6 +33,7 @@ const register = async (req, res) => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'Please provide a valid email address.'
@@ -38,6 +42,7 @@ const register = async (req, res) => {
 
     // Validate password length
     if (password.length < 6) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'Password must be at least 6 characters long.'
@@ -45,12 +50,13 @@ const register = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await query(
+    const existingUser = await client.query(
       'SELECT id FROM users WHERE email = $1',
       [email.toLowerCase()]
     );
 
     if (existingUser.rows.length > 0) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'User with this email already exists.'
@@ -62,24 +68,45 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Check total user count (limit to 20 users as per requirements)
-    const userCount = await query('SELECT COUNT(*) FROM users');
+    const userCount = await client.query('SELECT COUNT(*) FROM users');
     if (parseInt(userCount.rows[0].count) >= 20) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'Maximum number of team members (20) reached. Cannot register new users.'
       });
     }
 
+    // Start transaction for user + workspace creation
+    await client.query('BEGIN');
+
     // Create user (first user becomes admin, rest are members)
     const isFirstUser = parseInt(userCount.rows[0].count) === 0;
     const role = isFirstUser ? 'admin' : 'member';
 
-    const result = await query(
+    const result = await client.query(
       'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at',
       [email.toLowerCase(), hashedPassword, name, role]
     );
 
     const newUser = result.rows[0];
+
+    // Create personal workspace for the new user
+    const workspaceName = `${name}'s Workspace`;
+    const workspaceResult = await client.query(
+      'INSERT INTO workspaces (name, owner_id) VALUES ($1, $2) RETURNING id, name',
+      [workspaceName, newUser.id]
+    );
+
+    const workspace = workspaceResult.rows[0];
+
+    // Add user as admin of their personal workspace
+    await client.query(
+      'INSERT INTO workspace_members (workspace_id, user_id, role) VALUES ($1, $2, $3)',
+      [workspace.id, newUser.id, 'admin']
+    );
+
+    await client.query('COMMIT');
 
     // Generate JWT token
     const token = generateToken(newUser.id, newUser.email, newUser.role);
@@ -104,16 +131,23 @@ const register = async (req, res) => {
           role: newUser.role,
           createdAt: newUser.created_at
         },
+        workspace: {
+          id: workspace.id,
+          name: workspace.name
+        },
         token
       }
     });
   } catch (error) {
+    await client.query('ROLLBACK');
     console.error('Registration error:', error);
     res.status(500).json({
       status: 'error',
       message: 'Error registering user',
       error: error.message
     });
+  } finally {
+    client.release();
   }
 };
 

@@ -141,6 +141,33 @@ export const holidaysAPI = {
   getByYear: (year) => safeApiCall(() => api.get(`/holidays?year=${year}`)),
 };
 
+// Workspaces API
+export const workspacesAPI = {
+  getAll: () => safeApiCall(() => api.get('/workspaces')),
+  getById: (id) => safeApiCall(() => api.get(`/workspaces/${id}`)),
+  create: (data) => safeApiCall(() => api.post('/workspaces', data)),
+  update: (id, data) => safeApiCall(() => api.put(`/workspaces/${id}`, data)),
+  delete: (id) => safeApiCall(() => api.delete(`/workspaces/${id}`)),
+  // Members
+  getMembers: (workspaceId) => safeApiCall(() => api.get(`/workspaces/${workspaceId}/members`)),
+  updateMemberRole: (workspaceId, memberId, role) =>
+    safeApiCall(() => api.patch(`/workspaces/${workspaceId}/members/${memberId}`, { role })),
+  removeMember: (workspaceId, memberId) =>
+    safeApiCall(() => api.delete(`/workspaces/${workspaceId}/members/${memberId}`)),
+  // Invitations
+  invite: (workspaceId, email, role = 'member') =>
+    safeApiCall(() => api.post(`/workspaces/${workspaceId}/invite`, { email, role })),
+  getInvitations: (workspaceId) =>
+    safeApiCall(() => api.get(`/workspaces/${workspaceId}/invitations`)),
+  cancelInvitation: (workspaceId, invitationId) =>
+    safeApiCall(() => api.delete(`/workspaces/${workspaceId}/invitations/${invitationId}`)),
+  acceptInvitation: (token) =>
+    safeApiCall(() => api.post(`/workspaces/accept-invite/${token}`)),
+  // Get users for workspace (for assignee dropdown)
+  getUsers: (workspaceId) =>
+    safeApiCall(() => api.get(`/workspaces/users?workspace_id=${workspaceId}`)),
+};
+
 // User Profile API (Me)
 export const meAPI = {
   getProfile: () => safeApiCall(() => api.get('/me')),
