@@ -48,7 +48,7 @@ function Dashboard() {
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Todorio</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Todoria</h1>
               <p className="text-xs sm:text-sm text-neutral-600 hidden sm:block">Welcome, {user?.name}!</p>
             </div>
           </div>

@@ -1,7 +1,7 @@
 {
-  "name": "todorio",
+  "name": "todoria",
   "version": "1.0.0",
-  "description": "Todorio - A simple to do app",
+  "description": "Todoria - A simple to do app",
   "private": true,
   "scripts": {
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",

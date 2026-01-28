@@ -1,6 +1,6 @@
--- Todorio - Seed Data
+-- Todoria - Seed Data
 -- Run this after migrations to populate demo data
--- Usage: psql -d todorio -f supabase/seed.sql
+-- Usage: psql -d todoria -f supabase/seed.sql
 
 -- Note: Passwords are bcrypt hashed. The demo password is 'demo123'
 -- You can generate new hashes with: npx bcryptjs 'your-password'
@@ -28,7 +28,7 @@ ON CONFLICT DO NOTHING;
 -- Demo Tasks
 INSERT INTO tasks (title, description, category_id, priority, status, position, created_by)
 SELECT
-    'Welcome to Todorio',
+    'Welcome to Todoria',
     'This is your first task. Click to edit or drag to reorder.',
     c.id,
     'medium',

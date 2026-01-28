@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ===========================================
-# Todorio - Local Production Test Script
+# Todoria - Local Production Test Script
 # ===========================================
 # This script builds and runs the application in production mode locally
 # to verify everything works before deploying.
@@ -9,7 +9,7 @@
 set -e  # Exit on error
 
 echo "=========================================="
-echo "Todorio - Production Build Test"
+echo "Todoria - Production Build Test"
 echo "=========================================="
 
 # Colors for output

@@ -1,4 +1,4 @@
-# Todorio - API Documentation
+# Todoria - API Documentation
 
 Base URL: `http://localhost:5001/api`
 
@@ -21,7 +21,7 @@ Check if API is running.
 ```json
 {
   "status": "OK",
-  "message": "Todorio API is running",
+  "message": "Todoria API is running",
   "timestamp": "2026-01-20T..."
 }
 ```
@@ -51,7 +51,7 @@ Register a new user (max 5 users).
 **Request Body:**
 ```json
 {
-  "email": "user@todorio.com",
+  "email": "user@todoria.com",
   "password": "password123",
   "name": "User Name"
 }
@@ -71,7 +71,7 @@ Register a new user (max 5 users).
   "data": {
     "user": {
       "id": 6,
-      "email": "user@todorio.com",
+      "email": "user@todoria.com",
       "name": "User Name",
       "role": "member",
       "createdAt": "2026-01-20T..."
@@ -96,7 +96,7 @@ Login with email and password.
 **Request Body:**
 ```json
 {
-  "email": "admin@todorio.com",
+  "email": "admin@todoria.com",
   "password": "password123"
 }
 ```
@@ -109,7 +109,7 @@ Login with email and password.
   "data": {
     "user": {
       "id": 1,
-      "email": "admin@todorio.com",
+      "email": "admin@todoria.com",
       "name": "Admin User",
       "role": "admin",
       "avatarUrl": null
@@ -156,7 +156,7 @@ Get current user's profile.
   "data": {
     "user": {
       "id": 1,
-      "email": "admin@todorio.com",
+      "email": "admin@todoria.com",
       "name": "Admin User",
       "role": "admin",
       "avatarUrl": null,
@@ -185,7 +185,7 @@ Get all team members.
     "users": [
       {
         "id": 1,
-        "email": "admin@todorio.com",
+        "email": "admin@todoria.com",
         "name": "Admin User",
         "role": "admin",
         "avatarUrl": null,
@@ -227,7 +227,7 @@ All errors follow this format:
 # Login (cookie set automatically)
 curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@todorio.com","password":"password123"}' \
+  -d '{"email":"admin@todoria.com","password":"password123"}' \
   -c cookies.txt
 
 # Use cookie for authenticated requests
@@ -240,7 +240,7 @@ curl -X GET http://localhost:5001/api/auth/me \
 # Get token from login response
 curl -X POST http://localhost:5001/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@todorio.com","password":"password123"}'
+  -d '{"email":"admin@todoria.com","password":"password123"}'
 
 # Use token in Authorization header
 curl -X GET http://localhost:5001/api/auth/me \
@@ -264,11 +264,11 @@ All passwords: `password123`
 
 | Email | Name | Role |
 |-------|------|------|
-| admin@todorio.com | Admin User | admin |
-| john@todorio.com | John Doe | member |
-| jane@todorio.com | Jane Smith | member |
-| mike@todorio.com | Mike Johnson | member |
-| sarah@todorio.com | Sarah Williams | member |
+| admin@todoria.com | Admin User | admin |
+| john@todoria.com | John Doe | member |
+| jane@todoria.com | Jane Smith | member |
+| mike@todoria.com | Mike Johnson | member |
+| sarah@todoria.com | Sarah Williams | member |
 
 ---
 

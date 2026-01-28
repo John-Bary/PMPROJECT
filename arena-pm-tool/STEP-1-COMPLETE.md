@@ -2,7 +2,7 @@
 
 ## What We Built
 
-Successfully initialized the Todorio project with both frontend and backend setup.
+Successfully initialized the Todoria project with both frontend and backend setup.
 
 ## Files Created
 

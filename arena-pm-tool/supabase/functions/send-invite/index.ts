@@ -86,18 +86,18 @@ serve(async (req: Request) => {
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">Todorio</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">Todoria</h1>
   </div>
 
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
     <h2 style="color: #1f2937; margin-top: 0;">You're Invited!</h2>
 
     <p style="color: #4b5563; font-size: 16px;">
-      <strong>${inviterName}</strong> has invited you to join <strong>${workspaceName}</strong> on Todorio.
+      <strong>${inviterName}</strong> has invited you to join <strong>${workspaceName}</strong> on Todoria.
     </p>
 
     <p style="color: #4b5563; font-size: 16px;">
-      Todorio is a collaborative project management tool that helps teams stay organized and productive.
+      Todoria is a collaborative project management tool that helps teams stay organized and productive.
     </p>
 
     <div style="text-align: center; margin: 30px 0;">
@@ -126,9 +126,9 @@ serve(async (req: Request) => {
 
     // Plain text version
     const emailText = `
-You're invited to join ${workspaceName} on Todorio!
+You're invited to join ${workspaceName} on Todoria!
 
-${inviterName} has invited you to collaborate on Todorio, a project management tool that helps teams stay organized and productive.
+${inviterName} has invited you to collaborate on Todoria, a project management tool that helps teams stay organized and productive.
 
 Click the link below to accept the invitation:
 ${inviteUrl}
@@ -146,9 +146,9 @@ If you didn't expect this invitation, you can safely ignore this email.
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: "Todorio <noreply@todorio.com>",
+        from: "Todoria <noreply@todoria.com>",
         to: [email],
-        subject: `You're invited to join ${workspaceName} on Todorio`,
+        subject: `You're invited to join ${workspaceName} on Todoria`,
         html: emailHtml,
         text: emailText,
       }),

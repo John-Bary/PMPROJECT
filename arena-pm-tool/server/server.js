@@ -134,7 +134,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.get('/api/health', async (req, res) => {
   const health = {
     status: 'OK',
-    message: 'Todorio API is running',
+    message: 'Todoria API is running',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development',
     serverless: !!process.env.VERCEL

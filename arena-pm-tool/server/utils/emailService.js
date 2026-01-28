@@ -46,7 +46,7 @@ const renderTemplate = (templateName, data = {}) => {
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 const getFromAddress = () => {
-  const fromName = process.env.EMAIL_FROM_NAME || 'Todorio';
+  const fromName = process.env.EMAIL_FROM_NAME || 'Todoria';
   const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
   return `${fromName} <${fromEmail}>`;
 };

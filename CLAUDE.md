@@ -1,8 +1,8 @@
-# CLAUDE.md - Todorio
+# CLAUDE.md - Todoria
 
 ## Project Overview
 
-Todorio is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
+Todoria is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
 
 ## Tech Stack
 
@@ -28,7 +28,7 @@ Todorio is a simple to do app. It provides task management with categories, cale
 ## Project Structure
 
 ```
-todorio/
+todoria/
 ├── client/                    # React frontend
 │   ├── src/
 │   │   ├── components/        # Reusable UI components
@@ -73,14 +73,14 @@ todorio/
 
 ## Development Commands
 
-### Frontend (from `/todorio/client`)
+### Frontend (from `/todoria/client`)
 ```bash
 npm start          # Start dev server on port 3000
 npm run build      # Build for production
 npm test           # Run tests
 ```
 
-### Backend (from `/todorio/server`)
+### Backend (from `/todoria/server`)
 ```bash
 npm run dev        # Start dev server with nodemon on port 5000
 npm start          # Start production server
@@ -115,7 +115,7 @@ npm run db:reset   # Reset database (destructive)
 ### Server (`server/.env`)
 ```
 PORT=5000
-DATABASE_URL=postgresql://user:password@localhost:5432/todorio
+DATABASE_URL=postgresql://user:password@localhost:5432/todoria
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 SMTP_HOST=smtp.gmail.com

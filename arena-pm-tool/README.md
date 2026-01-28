@@ -1,4 +1,4 @@
-# Todorio - Simple To Do App
+# Todoria - Simple To Do App
 
 A simple to do app built with React, Node.js, and PostgreSQL.
 
@@ -33,7 +33,7 @@ A simple to do app built with React, Node.js, and PostgreSQL.
 ## Project Structure
 
 ```
-todorio/
+todoria/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/    # Reusable components
@@ -88,7 +88,7 @@ npm install
    - Update the values with your configuration
 
 4. Set up the database:
-   - Create a PostgreSQL database named `todorio`
+   - Create a PostgreSQL database named `todoria`
    - Run migrations (see [Database Migrations](#database-migrations) below)
 
 ### Running the Application
@@ -125,7 +125,7 @@ npm install -g supabase
 
 ### Migration Commands
 
-Run these commands from the project root (`todorio/`):
+Run these commands from the project root (`todoria/`):
 
 | Command | Description |
 |---------|-------------|
@@ -136,7 +136,7 @@ Run these commands from the project root (`todorio/`):
 | `npm run db:status` | List all migrations and their status |
 | `npm run db:migrate:new -- <name>` | Create a new empty migration file |
 
-From the server directory (`todorio/server/`):
+From the server directory (`todoria/server/`):
 
 | Command | Description |
 |---------|-------------|
@@ -242,7 +242,7 @@ This is a monorepo with separate frontend and backend. Deploy them as **two sepa
 ### Step 1: Deploy the Server (API)
 
 1. Create a new Vercel project
-2. Set the **Root Directory** to `todorio/server`
+2. Set the **Root Directory** to `todoria/server`
 3. Vercel will auto-detect the Node.js configuration from `vercel.json`
 4. Add these **Environment Variables**:
 
@@ -255,12 +255,12 @@ This is a monorepo with separate frontend and backend. Deploy them as **two sepa
    | `NODE_ENV` | `production` |
    | `TRUST_PROXY` | `true` |
 
-5. Deploy and note the URL (e.g., `https://todorio-api.vercel.app`)
+5. Deploy and note the URL (e.g., `https://todoria-api.vercel.app`)
 
 ### Step 2: Deploy the Client (Frontend)
 
 1. Create another Vercel project
-2. Set the **Root Directory** to `todorio/client`
+2. Set the **Root Directory** to `todoria/client`
 3. Vercel will auto-detect Create React App
 4. Add these **Environment Variables**:
 
@@ -274,7 +274,7 @@ This is a monorepo with separate frontend and backend. Deploy them as **two sepa
 
 After both are deployed:
 1. Go to your **server** project settings
-2. Update `ALLOWED_ORIGINS` to include your client URL (e.g., `https://todorio.vercel.app`)
+2. Update `ALLOWED_ORIGINS` to include your client URL (e.g., `https://todoria.vercel.app`)
 3. Redeploy the server
 
 ### Database Options

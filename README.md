@@ -1,4 +1,4 @@
-# Todorio
+# Todoria
 
 A simple to do app built with React, Node.js, and PostgreSQL.
 
@@ -22,7 +22,7 @@ git clone <your-repo-url>
 cd PMPROJECT
 
 # Install server dependencies
-cd todorio/server
+cd todoria/server
 npm install
 
 # Install client dependencies
@@ -32,7 +32,7 @@ npm install
 
 ### 2. Configure Environment
 
-**Server** - Copy `todorio/server/.env.example` to `todorio/server/.env`:
+**Server** - Copy `todoria/server/.env.example` to `todoria/server/.env`:
 
 | Variable | Description |
 |----------|-------------|
@@ -48,7 +48,7 @@ npm install
 | `EMAIL_FROM` | Sender email address |
 | `ABSTRACT_API_KEY` | Holiday API key (optional) |
 
-**Client** - Copy `todorio/client/.env.example` to `todorio/client/.env`:
+**Client** - Copy `todoria/client/.env.example` to `todoria/client/.env`:
 
 | Variable | Description |
 |----------|-------------|
@@ -57,7 +57,7 @@ npm install
 ### 3. Set Up Database
 
 ```bash
-cd todorio/server
+cd todoria/server
 npm run db:init
 ```
 
@@ -65,28 +65,28 @@ npm run db:init
 
 **Terminal 1 - Backend:**
 ```bash
-cd todorio/server
+cd todoria/server
 npm run dev
 ```
 Server runs at http://localhost:5001
 
 **Terminal 2 - Frontend:**
 ```bash
-cd todorio/client
+cd todoria/client
 npm start
 ```
 App runs at http://localhost:3000
 
 ## Development Commands
 
-### Client (`todorio/client`)
+### Client (`todoria/client`)
 | Command | Description |
 |---------|-------------|
 | `npm start` | Start dev server (port 3000) |
 | `npm run build` | Build for production |
 | `npm test` | Run tests |
 
-### Server (`todorio/server`)
+### Server (`todoria/server`)
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start dev server with nodemon |
@@ -99,10 +99,10 @@ App runs at http://localhost:3000
 
 ```bash
 # Build client
-cd todorio/client
+cd todoria/client
 npm run build
 
-# The build output is in todorio/client/build/
+# The build output is in todoria/client/build/
 ```
 
 ## Deployment Notes
@@ -116,7 +116,7 @@ npm run build
 ## Project Structure
 
 ```
-todorio/
+todoria/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── components/    # Reusable UI components

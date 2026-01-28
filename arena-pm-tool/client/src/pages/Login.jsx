@@ -39,7 +39,7 @@ function Login() {
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
           {/* Logo/Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todorio</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todoria</h1>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">Sign in to your account</p>
           </div>
 
@@ -57,7 +57,7 @@ function Login() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base"
-                placeholder="admin@todorio.com"
+                placeholder="admin@todoria.com"
               />
             </div>
 

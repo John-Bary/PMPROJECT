@@ -2,7 +2,7 @@
 # Authentication API Test Script
 # Tests all auth endpoints
 
-echo "🧪 Testing Todorio Authentication API"
+echo "🧪 Testing Todoria Authentication API"
 echo "============================================"
 echo ""
 
@@ -14,10 +14,10 @@ curl -s "$BASE_URL/health" | json_pp
 echo ""
 
 # Test 2: Login with Admin
-echo "2️⃣  Testing login (admin@todorio.com)..."
+echo "2️⃣  Testing login (admin@todoria.com)..."
 LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@todorio.com","password":"password123"}' \
+  -d '{"email":"admin@todoria.com","password":"password123"}' \
   -c /tmp/auth_cookies.txt)
 echo $LOGIN_RESPONSE | json_pp
 TOKEN=$(echo $LOGIN_RESPONSE | grep -o '"token":"[^"]*' | cut -d'"' -f4)
@@ -63,14 +63,14 @@ echo ""
 echo "9️⃣  Testing login with invalid credentials..."
 curl -s -X POST "$BASE_URL/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"email":"wrong@todorio.com","password":"wrongpass"}' | json_pp
+  -d '{"email":"wrong@todoria.com","password":"wrongpass"}' | json_pp
 echo ""
 
 # Test 10: Registration (will fail due to 5 user limit)
 echo "🔟 Testing user registration (should hit 5-user limit)..."
 curl -s -X POST "$BASE_URL/auth/register" \
   -H "Content-Type: application/json" \
-  -d '{"email":"newuser@todorio.com","password":"newpass123","name":"New User"}' | json_pp
+  -d '{"email":"newuser@todoria.com","password":"newpass123","name":"New User"}' | json_pp
 echo ""
 
 echo "✅ All tests completed!"
