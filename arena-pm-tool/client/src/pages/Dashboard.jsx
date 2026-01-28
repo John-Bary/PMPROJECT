@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LayoutGrid, Calendar, List, Menu, X, Settings, Users } from 'lucide-react';
 import useAuthStore from '../store/authStore';
-import { useWorkspace } from '../contexts/WorkspaceContext';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
@@ -12,11 +11,9 @@ import { ButtonSpinner } from '../components/Loader';
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const { isCurrentUserAdmin } = useWorkspace();
   const [activeView, setActiveView] = useState('board'); // 'board', 'list', or 'calendar'
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const isAdmin = isCurrentUserAdmin();
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
