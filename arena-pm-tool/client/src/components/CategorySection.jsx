@@ -18,6 +18,7 @@ function CategorySection({
   searchQuery = '',
   index,
   isDraggingCategory = false,
+  canEdit = true,
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -50,14 +51,18 @@ function CategorySection({
           <div className="mb-3 sm:mb-4 group">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                {/* Drag Handle */}
-                <div
-                  {...categoryProvided.dragHandleProps}
-                  className="p-1 text-neutral-300 hover:text-neutral-500 cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
-                  title="Drag to reorder category"
-                >
-                  <GripVertical size={16} />
-                </div>
+                {/* Drag Handle - only show for users who can edit */}
+                {canEdit ? (
+                  <div
+                    {...categoryProvided.dragHandleProps}
+                    className="p-1 text-neutral-300 hover:text-neutral-500 cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
+                    title="Drag to reorder category"
+                  >
+                    <GripVertical size={16} />
+                  </div>
+                ) : (
+                  <div className="w-6" /> /* Spacer for alignment */
+                )}
 
                 {/* Collapse/Expand Button */}
                 <button
@@ -76,28 +81,30 @@ function CategorySection({
                 <span className="text-xs sm:text-sm text-neutral-500 flex-shrink-0">({tasks.length})</span>
               </div>
 
-              {/* Category Action Buttons - always visible on mobile for touch */}
-              <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                <button
-                  onClick={() => onEditCategory(category)}
-                  className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
-                  title="Edit category"
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  onClick={() => onDeleteCategory(category)}
-                  className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
-                  title="Delete category"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              {/* Category Action Buttons - only show for users who can edit */}
+              {canEdit && (
+                <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                  <button
+                    onClick={() => onEditCategory(category)}
+                    className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
+                    title="Edit category"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => onDeleteCategory(category)}
+                    className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                    title="Delete category"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Tasks - Droppable Area (disabled when category is being dragged) */}
-          <Droppable droppableId={category.id.toString()} isDropDisabled={isDraggingCategory}>
+          {/* Tasks - Droppable Area (disabled when category is being dragged or user is viewer) */}
+          <Droppable droppableId={category.id.toString()} isDropDisabled={isDraggingCategory || !canEdit}>
             {(provided, snapshot) => (
               <div
                 ref={provided.innerRef}
@@ -118,6 +125,7 @@ function CategorySection({
                     onToggleComplete={onToggleComplete}
                     isToggling={togglingTaskIds.has(task.id)}
                     searchQuery={searchQuery}
+                    canEdit={canEdit}
                   />
                 ))
               ) : (
@@ -127,13 +135,15 @@ function CategorySection({
                   description={
                     snapshot.isDraggingOver
                       ? 'Drop a task to move it into this category.'
-                      : 'Add a task to get this category moving.'
+                      : canEdit
+                        ? 'Add a task to get this category moving.'
+                        : 'No tasks in this category.'
                   }
                   tone="ghost"
                   size="sm"
                   className="bg-white/80"
                   primaryAction={
-                    onAddTask
+                    onAddTask && canEdit
                       ? {
                           label: 'Add task',
                           onClick: () => onAddTask(category),

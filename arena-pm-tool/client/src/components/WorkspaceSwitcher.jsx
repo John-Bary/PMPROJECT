@@ -2,9 +2,28 @@
 // Dropdown to switch between workspaces
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, Settings, Users, Check } from 'lucide-react';
+import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
+
+// Role badge component
+const RoleBadge = ({ role }) => {
+  const roleConfig = {
+    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+    member: { label: 'Member', icon: Shield, color: 'text-slate-400', bg: 'bg-slate-400/10' },
+    viewer: { label: 'Viewer', icon: Eye, color: 'text-slate-500', bg: 'bg-slate-500/10' },
+  };
+
+  const config = roleConfig[role] || roleConfig.member;
+  const Icon = config.icon;
+
+  return (
+    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded ${config.bg} ${config.color}`}>
+      <Icon className="w-3 h-3" />
+      <span>{config.label}</span>
+    </span>
+  );
+};
 
 function WorkspaceSwitcher({ className = '' }) {
   const navigate = useNavigate();
@@ -13,7 +32,15 @@ function WorkspaceSwitcher({ className = '' }) {
     currentWorkspace,
     switchWorkspace,
     isLoading,
+    currentUser,
   } = useWorkspace();
+
+  // Get user's role in a workspace
+  const getUserRole = (workspace) => {
+    if (!workspace.workspace_members || !currentUser) return 'member';
+    const membership = workspace.workspace_members.find(m => m.user_id === currentUser.id);
+    return membership?.role || 'member';
+  };
 
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -70,26 +97,30 @@ function WorkspaceSwitcher({ className = '' }) {
                         rounded-lg shadow-xl z-50 py-1 overflow-hidden">
           {/* Workspace List */}
           <div className="max-h-64 overflow-y-auto">
-            {workspaces.map((workspace) => (
-              <button
-                key={workspace.id}
-                onClick={() => handleSwitch(workspace.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
-                           transition-colors text-left
-                           ${workspace.id === currentWorkspace?.id ? 'bg-slate-700/50' : ''}`}
-              >
-                <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center
-                               text-sm font-medium text-white flex-shrink-0">
-                  {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 truncate">{workspace.name}</p>
-                </div>
-                {workspace.id === currentWorkspace?.id && (
-                  <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                )}
-              </button>
-            ))}
+            {workspaces.map((workspace) => {
+              const role = getUserRole(workspace);
+              return (
+                <button
+                  key={workspace.id}
+                  onClick={() => handleSwitch(workspace.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 hover:bg-slate-700
+                             transition-colors text-left
+                             ${workspace.id === currentWorkspace?.id ? 'bg-slate-700/50' : ''}`}
+                >
+                  <div className="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center
+                                 text-sm font-medium text-white flex-shrink-0">
+                    {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-200 truncate">{workspace.name}</p>
+                    <RoleBadge role={role} />
+                  </div>
+                  {workspace.id === currentWorkspace?.id && (
+                    <Check className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Divider */}

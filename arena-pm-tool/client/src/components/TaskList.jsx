@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX } from 'lucide-react';
+import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye } from 'lucide-react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
+import { useWorkspace } from '../contexts/WorkspaceContext';
 import CategorySection from './CategorySection';
 import TaskModal from './TaskModal';
 import TaskDetailModal from './TaskDetailModal';
@@ -30,6 +31,8 @@ function TaskList() {
     reorderCategories,
     isLoading: isCategoriesLoading,
   } = useCategoryStore();
+  const { canEdit } = useWorkspace();
+  const userCanEdit = canEdit();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [defaultCategoryId, setDefaultCategoryId] = useState(null);
@@ -263,7 +266,7 @@ function TaskList() {
 
   const isLoadingData = isTasksLoading || isCategoriesLoading || isFetching;
   const disableControls = isLoadingData;
-  const disablePrimaryAction = isLoadingData || isMutating;
+  const disablePrimaryAction = isLoadingData || isMutating || !userCanEdit;
   const hasActiveFilters = Boolean(searchQuery.trim()) ||
     filters.assignees.length > 0 ||
     filters.priorities.length > 0 ||
@@ -285,6 +288,17 @@ function TaskList() {
 
   return (
     <>
+      {/* Viewer Mode Banner */}
+      {!userCanEdit && (
+        <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 text-amber-800">
+          <Eye className="h-5 w-5 flex-shrink-0" />
+          <div>
+            <p className="font-medium text-sm">View Only Mode</p>
+            <p className="text-xs text-amber-700">You have viewer access to this workspace. Contact an admin to request edit permissions.</p>
+          </div>
+        </div>
+      )}
+
       {/* Header with Search, Filter and Add Task button */}
       <div className="mb-4 sm:mb-6">
         {/* Title Row */}
@@ -304,10 +318,11 @@ function TaskList() {
             onClick={() => openCreateTask(getSuggestedCategoryId())}
             className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
+            title={!userCanEdit ? 'View-only access' : ''}
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : 'Add Task'}</span>
-            <span className="sm:hidden">Add</span>
+            <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : !userCanEdit ? 'View Only' : 'Add Task'}</span>
+            <span className="sm:hidden">{!userCanEdit ? 'View' : 'Add'}</span>
           </button>
         </div>
 
@@ -439,12 +454,13 @@ function TaskList() {
                         onAddTask={(cat) => openCreateTask(cat?.id || category.id)}
                         searchQuery={searchQuery}
                         isDraggingCategory={isDraggingCategory}
+                        canEdit={userCanEdit}
                       />
                     ))}
                     {provided.placeholder}
 
-                    {/* Add Category Button */}
-                    <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />
+                    {/* Add Category Button - only show for users who can edit */}
+                    {userCanEdit && <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />}
                   </div>
                 )}
               </Droppable>
