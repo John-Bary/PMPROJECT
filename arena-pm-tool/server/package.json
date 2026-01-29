@@ -39,7 +39,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
-    "nodemailer": "^7.0.12",
+    "resend": "^4.0.0",
     "pg": "^8.17.1"
   },
   "devDependencies": {
