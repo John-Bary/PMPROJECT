@@ -220,6 +220,19 @@ const formatDate = (date) => {
   });
 };
 
+// Send workspace invitation email
+const sendWorkspaceInvite = async ({ to, inviterName, workspaceName, inviteUrl }) => {
+  const subject = `You're invited to join ${workspaceName} on Todorio`;
+
+  const html = renderTemplate('workspaceInvite.html', {
+    inviterName: inviterName || 'A team member',
+    workspaceName,
+    inviteUrl
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
 // Send welcome email to newly registered user
 const sendWelcomeEmail = async ({ to, userName }) => {
   const subject = 'Welcome to Todorio!';
@@ -237,5 +250,6 @@ module.exports = {
   sendTaskReminder,
   sendMultipleTasksReminder,
   sendTaskAssignmentNotification,
+  sendWorkspaceInvite,
   sendWelcomeEmail
 };

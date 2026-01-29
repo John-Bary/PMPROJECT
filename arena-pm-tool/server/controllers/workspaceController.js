@@ -3,6 +3,7 @@
 
 const { query, getClient } = require('../config/database');
 const crypto = require('crypto');
+const { sendWorkspaceInvite } = require('../utils/emailService');
 
 // Helper: Generate secure random token
 const generateToken = () => crypto.randomBytes(32).toString('hex');
@@ -473,6 +474,19 @@ const inviteToWorkspace = async (req, res) => {
       'SELECT name FROM workspaces WHERE id = $1',
       [id]
     );
+
+    // Send invitation email (fire-and-forget, don't block response)
+    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const inviteUrl = `${clientUrl}/accept-invite?token=${encodeURIComponent(invitation.token)}`;
+
+    sendWorkspaceInvite({
+      to: email.toLowerCase(),
+      inviterName: req.user.name,
+      workspaceName: workspaceResult.rows[0]?.name || 'a workspace',
+      inviteUrl
+    }).catch(err => {
+      console.error(`Failed to send invite email to ${email}:`, err.message);
+    });
 
     res.status(201).json({
       status: 'success',
