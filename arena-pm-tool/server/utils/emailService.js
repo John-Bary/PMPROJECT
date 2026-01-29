@@ -180,8 +180,8 @@ const sendTaskAssignmentNotification = async ({
 }) => {
   const subject = `New Task Assigned: "${taskTitle}"`;
 
-  // Build task URL - uses CLIENT_URL env variable or defaults to localhost
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+  // Build task URL - uses CLIENT_URL env variable or defaults to production
+  const clientUrl = (process.env.CLIENT_URL || 'https://www.todoria.com').replace(/\/+$/, '');
   const taskUrl = `${clientUrl}/tasks?taskId=${taskId}`;
 
   const html = renderTemplate('taskAssignment.html', {
