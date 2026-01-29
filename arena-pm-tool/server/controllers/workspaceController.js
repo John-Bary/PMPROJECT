@@ -476,7 +476,7 @@ const inviteToWorkspace = async (req, res) => {
     );
 
     // Send invitation email (fire-and-forget, don't block response)
-    const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000';
+    const clientUrl = (process.env.CLIENT_URL || 'https://www.todoria.com').replace(/\/+$/, '');
     const inviteUrl = `${clientUrl}/accept-invite?token=${encodeURIComponent(invitation.token)}`;
 
     sendWorkspaceInvite({
