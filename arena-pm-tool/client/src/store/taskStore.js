@@ -26,6 +26,11 @@ const useTaskStore = create((set, get) => ({
     const showLoading = options?.showLoading !== false;
     const workspaceId = getWorkspaceId();
 
+    // Don't fetch if no workspace is selected - avoids "workspace_id is required" errors
+    if (!workspaceId) {
+      return;
+    }
+
     if (showLoading) {
       set({ isLoading: true, isFetching: true, error: null });
     }
@@ -34,7 +39,7 @@ const useTaskStore = create((set, get) => ({
       // Include workspace_id in filters
       const filtersWithWorkspace = {
         ...filters,
-        ...(workspaceId ? { workspace_id: workspaceId } : {}),
+        workspace_id: workspaceId,
       };
       const response = await tasksAPI.getAll(filtersWithWorkspace);
       set({
