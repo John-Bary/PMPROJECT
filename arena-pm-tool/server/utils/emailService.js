@@ -1,14 +1,20 @@
 const fs = require('fs');
 const path = require('path');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
 const templatesDir = path.join(__dirname, '..', 'templates', 'email');
 const templateCache = new Map();
 
-const ensureEmailConfig = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    throw new Error('Email credentials missing. Set EMAIL_USER and EMAIL_PASSWORD in your .env file.');
+let resendClient = null;
+
+const getResendClient = () => {
+  if (!resendClient) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is missing. Set it in your .env file.');
+    }
+    resendClient = new Resend(process.env.RESEND_API_KEY);
   }
+  return resendClient;
 };
 
 const loadTemplate = (templateName) => {
@@ -47,32 +53,14 @@ const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, '
 
 const getFromAddress = () => {
   const fromName = process.env.EMAIL_FROM_NAME || 'Todorio';
-  const fromEmail = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+  const fromEmail = process.env.EMAIL_FROM;
   return `${fromName} <${fromEmail}>`;
-};
-
-// Create reusable transporter
-const createTransporter = () => {
-  ensureEmailConfig();
-
-  const port = parseInt(process.env.EMAIL_PORT, 10) || 587;
-
-  return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port,
-    secure: process.env.EMAIL_SECURE === 'true' || port === 465,
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD
-    }
-  });
 };
 
 // Verify email configuration
 const verifyConnection = async () => {
   try {
-    const transporter = createTransporter();
-    await transporter.verify();
+    getResendClient();
     console.log('✅ Email service is ready');
     return true;
   } catch (error) {
@@ -84,19 +72,23 @@ const verifyConnection = async () => {
 // Send email with HTML template
 const sendEmail = async ({ to, subject, html, text }) => {
   try {
-    const transporter = createTransporter();
+    const resend = getResendClient();
 
-    const mailOptions = {
+    const { data, error } = await resend.emails.send({
       from: getFromAddress(),
-      to,
+      to: Array.isArray(to) ? to : [to],
       subject,
       html,
       text: text || stripHtml(html)
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('📧 Email sent:', info.messageId);
-    return { success: true, messageId: info.messageId };
+    if (error) {
+      console.error('❌ Failed to send email:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    console.log('📧 Email sent:', data.id);
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error('❌ Failed to send email:', error.message);
     return { success: false, error: error.message };
@@ -229,7 +221,6 @@ const formatDate = (date) => {
 };
 
 module.exports = {
-  createTransporter,
   verifyConnection,
   sendEmail,
   sendTaskReminder,
