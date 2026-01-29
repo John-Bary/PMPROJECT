@@ -315,6 +315,20 @@ const useWorkspaceStore = create((set, get) => ({
       // Refresh workspaces to include the new one
       await get().fetchWorkspaces();
 
+      // Switch to the newly joined workspace so the dashboard loads correctly
+      if (data.workspaceId) {
+        const { workspaces } = get();
+        const joinedWorkspace = workspaces.find(w => w.id === data.workspaceId);
+        if (joinedWorkspace) {
+          localStorage.setItem(WORKSPACE_STORAGE_KEY, data.workspaceId);
+          set({
+            currentWorkspace: joinedWorkspace,
+            currentWorkspaceId: data.workspaceId,
+          });
+          get().fetchMembers(data.workspaceId);
+        }
+      }
+
       toast.success(response.data.message || 'Successfully joined workspace');
       return { success: true, workspaceId: data.workspaceId };
     } catch (error) {

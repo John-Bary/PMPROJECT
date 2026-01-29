@@ -18,10 +18,15 @@ const useCategoryStore = create((set, get) => ({
   fetchCategories: async () => {
     const workspaceId = getWorkspaceId();
 
+    // Don't fetch if no workspace is selected - avoids "workspace_id is required" errors
+    if (!workspaceId) {
+      return;
+    }
+
     set({ isLoading: true, isFetching: true, error: null });
     try {
       // Include workspace_id in query params
-      const params = workspaceId ? { workspace_id: workspaceId } : {};
+      const params = { workspace_id: workspaceId };
       const response = await categoriesAPI.getAll(params);
       set({
         categories: response.data.data.categories,
