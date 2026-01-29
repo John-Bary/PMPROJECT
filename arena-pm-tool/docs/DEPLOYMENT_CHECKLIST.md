@@ -239,10 +239,9 @@ Add these variables for **Production** (and optionally Preview):
 | `JWT_EXPIRES_IN` | `7d` | Token expiration |
 | `ALLOWED_ORIGINS` | `https://your-client.vercel.app` | Client URL (add after client deploy) |
 | `CRON_SECRET` | `[your generated secret]` | From Step 4.1 |
-| `SMTP_HOST` | `smtp.gmail.com` | For email reminders (optional) |
-| `SMTP_PORT` | `587` | Gmail TLS port |
-| `SMTP_USER` | `your-email@gmail.com` | Gmail address |
-| `SMTP_PASS` | `your-app-password` | Gmail App Password (not regular password) |
+| `RESEND_API_KEY` | `re_your_api_key` | For email reminders (optional) |
+| `EMAIL_FROM` | `noreply@yourdomain.com` | Sender email address |
+| `EMAIL_FROM_NAME` | `Todorio` | Sender display name |
 
 ### Step 4.4: Configure Vercel Cron Job
 
@@ -427,10 +426,9 @@ curl -X OPTIONS https://your-server.vercel.app/api/health \
 | `JWT_EXPIRES_IN` | No | No | Token expiry (default: `7d`) |
 | `ALLOWED_ORIGINS` | Yes | No | Comma-separated allowed CORS origins |
 | `CRON_SECRET` | Yes | **YES** | Vercel cron job authentication |
-| `SMTP_HOST` | No | No | Email server hostname |
-| `SMTP_PORT` | No | No | Email server port |
-| `SMTP_USER` | No | **YES** | Email account username |
-| `SMTP_PASS` | No | **YES** | Email account password/app password |
+| `RESEND_API_KEY` | No | **YES** | Resend API key for email |
+| `EMAIL_FROM` | No | No | Sender email address |
+| `EMAIL_FROM_NAME` | No | No | Sender display name |
 
 ### Client Environment Variables (Vercel)
 

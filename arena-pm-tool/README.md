@@ -27,7 +27,7 @@ A simple to do app built with React, Node.js, and PostgreSQL.
 - Node.js + Express
 - PostgreSQL
 - JWT Authentication
-- Nodemailer (email reminders)
+- Resend (email reminders)
 - Node-cron (scheduled tasks)
 
 ## Project Structure

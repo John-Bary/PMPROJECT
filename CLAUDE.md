@@ -21,7 +21,7 @@ Todorio is a simple to do app. It provides task management with categories, cale
 - **Framework**: Express 5
 - **Database**: PostgreSQL (via pg)
 - **Authentication**: JWT (jsonwebtoken) + bcryptjs
-- **Email**: Nodemailer
+- **Email**: Resend
 - **Scheduled Tasks**: node-cron
 - **Environment**: dotenv
 
@@ -118,10 +118,9 @@ PORT=5000
 DATABASE_URL=postgresql://user:password@localhost:5432/todorio
 JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email
-SMTP_PASS=your-app-password
+RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@example.com
+EMAIL_FROM_NAME=Todorio
 ```
 
 ### Client (`client/.env`)

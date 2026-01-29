@@ -1,29 +1,27 @@
 /**
  * Test script for email service
- * Run with: node scripts/testEmail.js
+ * Run with: node scripts/testEmail.js [recipient-email]
  *
- * Make sure you have configured EMAIL_* environment variables in .env
+ * Make sure you have configured RESEND_API_KEY and EMAIL_FROM in .env
  */
 
 require('dotenv').config();
 const { verifyConnection, sendTaskReminder, sendMultipleTasksReminder } = require('../utils/emailService');
 
-const TEST_EMAIL = process.argv[2] || process.env.EMAIL_USER;
+const TEST_EMAIL = process.argv[2] || process.env.EMAIL_FROM;
 
 async function testEmailService() {
-  console.log('\n📧 Testing Todorio Email Service\n');
+  console.log('\n📧 Testing Todorio Email Service (Resend)\n');
   console.log('=' .repeat(50));
 
-  // Check if email config exists
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-    console.error('\n❌ Error: EMAIL_USER and EMAIL_PASSWORD must be set in .env file');
+  // Check if Resend config exists
+  if (!process.env.RESEND_API_KEY) {
+    console.error('\n❌ Error: RESEND_API_KEY must be set in .env file');
     console.log('\nExample .env configuration:');
-    console.log('  EMAIL_HOST=smtp.gmail.com');
-    console.log('  EMAIL_PORT=587');
-    console.log('  EMAIL_USER=your_email@gmail.com');
-    console.log('  EMAIL_PASSWORD=your_app_password');
-    console.log('\nNote: For Gmail, use an App Password (not your regular password)');
-    console.log('Create one at: https://myaccount.google.com/apppasswords\n');
+    console.log('  RESEND_API_KEY=re_your_api_key_here');
+    console.log('  EMAIL_FROM=noreply@yourdomain.com');
+    console.log('  EMAIL_FROM_NAME=Todorio');
+    console.log('\nGet your API key at: https://resend.com/api-keys\n');
     process.exit(1);
   }
 
@@ -31,8 +29,8 @@ async function testEmailService() {
   const isConnected = await verifyConnection();
 
   if (!isConnected) {
-    console.error('\n❌ Failed to connect to email server');
-    console.log('Please check your EMAIL_* settings in .env\n');
+    console.error('\n❌ Failed to verify Resend configuration');
+    console.log('Please check your RESEND_API_KEY in .env\n');
     process.exit(1);
   }
 
