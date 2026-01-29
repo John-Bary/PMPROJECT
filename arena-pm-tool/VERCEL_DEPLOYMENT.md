@@ -39,13 +39,9 @@ todorio/
 | `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
 | `SUPABASE_ANON_KEY` | Supabase anon key | `eyJ...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJ...` |
-| `EMAIL_HOST` | SMTP server host | `smtp.gmail.com` |
-| `EMAIL_PORT` | SMTP server port | `587` |
-| `EMAIL_USER` | SMTP username | `your-email@gmail.com` |
-| `EMAIL_PASSWORD` | SMTP password/app password | `xxxx-xxxx-xxxx-xxxx` |
+| `RESEND_API_KEY` | Resend API key | `re_your_api_key` |
 | `EMAIL_FROM` | Sender email address | `noreply@yourapp.com` |
 | `EMAIL_FROM_NAME` | Sender display name | `Todorio` |
-| `EMAIL_SECURE` | Use TLS | `false` |
 | `CRON_SECRET` | Secret for cron job authentication | `your-cron-secret` |
 | `ABSTRACT_API_KEY` | Holiday API key | `your-api-key` |
 | `RATE_LIMIT_WINDOW_MS` | Rate limit window | `900000` |

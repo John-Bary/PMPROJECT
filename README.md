@@ -5,7 +5,7 @@ A simple to do app built with React, Node.js, and PostgreSQL.
 ## Tech Stack
 
 **Frontend:** React 19, Tailwind CSS, Zustand, React Router 7, @hello-pangea/dnd
-**Backend:** Express 5, PostgreSQL, JWT Authentication, Nodemailer, node-cron
+**Backend:** Express 5, PostgreSQL, JWT Authentication, Resend, node-cron
 
 ## Prerequisites
 
@@ -41,11 +41,9 @@ npm install
 | `JWT_SECRET` | Secret key for JWT tokens |
 | `JWT_EXPIRES_IN` | Token expiration (default: 7d) |
 | `ALLOWED_ORIGINS` | CORS allowed origins |
-| `EMAIL_HOST` | SMTP server host |
-| `EMAIL_PORT` | SMTP port (default: 587) |
-| `EMAIL_USER` | SMTP username |
-| `EMAIL_PASSWORD` | SMTP password |
+| `RESEND_API_KEY` | Resend API key |
 | `EMAIL_FROM` | Sender email address |
+| `EMAIL_FROM_NAME` | Sender display name |
 | `ABSTRACT_API_KEY` | Holiday API key (optional) |
 
 **Client** - Copy `todorio/client/.env.example` to `todorio/client/.env`:
@@ -108,7 +106,7 @@ npm run build
 ## Deployment Notes
 
 1. Set `NODE_ENV=production` on your server
-2. Configure environment variables for production database and SMTP
+2. Configure environment variables for production database and email service (Resend)
 3. Serve the React build with a static file server or from Express
 4. Set `TRUST_PROXY=true` if behind a reverse proxy
 5. Configure `ALLOWED_ORIGINS` to your production domain

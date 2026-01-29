@@ -4,6 +4,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
+const { sendWelcomeEmail } = require('../utils/emailService');
 
 // Generate JWT token
 const generateToken = (userId, email, role) => {
@@ -117,6 +118,14 @@ const register = async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    // Send welcome email (async, don't block response)
+    sendWelcomeEmail({
+      to: newUser.email,
+      userName: newUser.name
+    }).catch(err => {
+      console.error(`Failed to send welcome email to ${newUser.email}:`, err.message);
     });
 
     // Return user data (without password)

@@ -26,7 +26,7 @@
   - bcryptjs (for password hashing)
   - jsonwebtoken (for auth)
   - pg or mongoose (database)
-  - nodemailer (email)
+  - resend (email)
   - node-cron (scheduled tasks)
   
 □ Create folder structure:
@@ -440,7 +440,7 @@
 
 ### Step 32: Setup Email Service
 ```bash
-□ Install nodemailer
+□ Install resend
 □ Setup email credentials (Gmail/SendGrid)
 □ Create /utils/emailService.js
 □ Test sending basic email

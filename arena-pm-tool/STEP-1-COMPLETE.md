@@ -32,7 +32,7 @@ Successfully initialized the Todorio project with both frontend and backend setu
 - bcryptjs - Password hashing
 - jsonwebtoken - JWT authentication
 - cookie-parser - Cookie parsing
-- nodemailer - Email sending
+- resend - Email sending
 - node-cron - Scheduled tasks
 - nodemon (dev) - Auto-restart server
 

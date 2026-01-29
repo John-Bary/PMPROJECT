@@ -220,10 +220,22 @@ const formatDate = (date) => {
   });
 };
 
+// Send welcome email to newly registered user
+const sendWelcomeEmail = async ({ to, userName }) => {
+  const subject = 'Welcome to Todorio!';
+
+  const html = renderTemplate('welcome.html', {
+    userName: userName || 'there'
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
 module.exports = {
   verifyConnection,
   sendEmail,
   sendTaskReminder,
   sendMultipleTasksReminder,
-  sendTaskAssignmentNotification
+  sendTaskAssignmentNotification,
+  sendWelcomeEmail
 };
