@@ -585,6 +585,13 @@ const acceptInvitation = async (req, res) => {
       WHERE id = $1
     `, [invitation.id]);
 
+    // Initialize onboarding progress for the new member
+    await client.query(`
+      INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+      VALUES ($1, $2, 1, '[]'::jsonb)
+      ON CONFLICT (workspace_id, user_id) DO NOTHING
+    `, [invitation.workspace_id, req.user.id]);
+
     await client.query('COMMIT');
 
     res.json({
@@ -593,7 +600,8 @@ const acceptInvitation = async (req, res) => {
       data: {
         workspaceId: invitation.workspace_id,
         workspaceName: invitation.workspace_name,
-        role: invitation.role
+        role: invitation.role,
+        needsOnboarding: true
       }
     });
   } catch (error) {

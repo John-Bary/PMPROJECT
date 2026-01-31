@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS comments CASCADE;
 DROP TABLE IF EXISTS task_assignments CASCADE;
 DROP TABLE IF EXISTS tasks CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS workspace_onboarding_progress CASCADE;
 DROP TABLE IF EXISTS workspace_invitations CASCADE;
 DROP TABLE IF EXISTS workspace_members CASCADE;
 DROP TABLE IF EXISTS workspaces CASCADE;
@@ -64,6 +65,7 @@ CREATE TABLE workspace_members (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role VARCHAR(20) NOT NULL DEFAULT 'member' CHECK (role IN ('admin', 'member', 'viewer')),
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    onboarding_completed_at TIMESTAMP WITH TIME ZONE,
     CONSTRAINT unique_workspace_member UNIQUE (workspace_id, user_id)
 );
 
@@ -88,6 +90,26 @@ CREATE TABLE workspace_invitations (
 CREATE INDEX idx_workspace_invitations_workspace_id ON workspace_invitations(workspace_id);
 CREATE INDEX idx_workspace_invitations_email ON workspace_invitations(email);
 CREATE INDEX idx_workspace_invitations_token ON workspace_invitations(token);
+
+-- ============================================================================
+-- WORKSPACE ONBOARDING PROGRESS TABLE
+-- ============================================================================
+CREATE TABLE workspace_onboarding_progress (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    current_step INTEGER DEFAULT 1,
+    steps_completed JSONB DEFAULT '[]'::jsonb,
+    profile_updated BOOLEAN DEFAULT false,
+    skipped_at TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_onboarding_per_member UNIQUE (workspace_id, user_id)
+);
+
+CREATE INDEX idx_onboarding_workspace_id ON workspace_onboarding_progress(workspace_id);
+CREATE INDEX idx_onboarding_user_id ON workspace_onboarding_progress(user_id);
 
 -- ============================================================================
 -- CATEGORIES TABLE
@@ -195,5 +217,10 @@ CREATE TRIGGER update_tasks_updated_at
 
 CREATE TRIGGER update_comments_updated_at
     BEFORE UPDATE ON comments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_onboarding_progress_updated_at
+    BEFORE UPDATE ON workspace_onboarding_progress
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

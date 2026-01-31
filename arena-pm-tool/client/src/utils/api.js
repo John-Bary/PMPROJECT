@@ -166,6 +166,17 @@ export const workspacesAPI = {
   // Get users for workspace (for assignee dropdown)
   getUsers: (workspaceId) =>
     safeApiCall(() => api.get(`/workspaces/users?workspace_id=${workspaceId}`)),
+  // Onboarding
+  getOnboardingStatus: (workspaceId) =>
+    safeApiCall(() => api.get(`/workspaces/${workspaceId}/onboarding`)),
+  startOnboarding: (workspaceId) =>
+    safeApiCall(() => api.post(`/workspaces/${workspaceId}/onboarding/start`)),
+  updateOnboardingProgress: (workspaceId, data) =>
+    safeApiCall(() => api.put(`/workspaces/${workspaceId}/onboarding/progress`, data)),
+  completeOnboarding: (workspaceId) =>
+    safeApiCall(() => api.post(`/workspaces/${workspaceId}/onboarding/complete`)),
+  skipOnboarding: (workspaceId) =>
+    safeApiCall(() => api.post(`/workspaces/${workspaceId}/onboarding/skip`)),
 };
 
 // User Profile API (Me)

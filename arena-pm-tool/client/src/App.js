@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import WorkspaceSelectionPage from './pages/WorkspaceSelectionPage';
 import UserArea from './pages/UserArea/UserArea';
 import AcceptInvite from './pages/AcceptInvite';
+import WorkspaceOnboarding from './pages/WorkspaceOnboarding';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -60,6 +61,16 @@ function App() {
 
             {/* Invitation Accept Route (handles its own auth) */}
             <Route path="/accept-invite" element={<AcceptInvite />} />
+
+            {/* Onboarding Route */}
+            <Route
+              path="/onboarding"
+              element={
+                <ProtectedRoute>
+                  <WorkspaceOnboarding />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected Routes */}
             <Route

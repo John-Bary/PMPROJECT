@@ -5,6 +5,7 @@ const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
 const workspaceController = require('../controllers/workspaceController');
+const onboardingController = require('../controllers/onboardingController');
 
 // All routes require authentication
 router.use(authMiddleware);
@@ -59,5 +60,24 @@ router.delete('/:id/invitations/:invitationId', workspaceController.cancelInvita
 
 // POST /api/workspaces/accept-invite/:token - Accept invitation (any authenticated user)
 router.post('/accept-invite/:token', workspaceController.acceptInvitation);
+
+// ============================================================================
+// Workspace Onboarding
+// ============================================================================
+
+// GET /api/workspaces/:id/onboarding - Get onboarding status and data
+router.get('/:id/onboarding', onboardingController.getOnboardingStatus);
+
+// POST /api/workspaces/:id/onboarding/start - Start/restart onboarding
+router.post('/:id/onboarding/start', onboardingController.startOnboarding);
+
+// PUT /api/workspaces/:id/onboarding/progress - Update step progress
+router.put('/:id/onboarding/progress', onboardingController.updateProgress);
+
+// POST /api/workspaces/:id/onboarding/complete - Mark onboarding as complete
+router.post('/:id/onboarding/complete', onboardingController.completeOnboarding);
+
+// POST /api/workspaces/:id/onboarding/skip - Skip onboarding
+router.post('/:id/onboarding/skip', onboardingController.skipOnboarding);
 
 module.exports = router;
