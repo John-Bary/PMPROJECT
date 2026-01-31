@@ -58,7 +58,7 @@ function AcceptInvite() {
     };
 
     processInvitation();
-  }, [token, isAuthenticated, acceptInvitation]);
+  }, [token, isAuthenticated, acceptInvitation, navigate]);
 
   // Countdown and redirect on success
   useEffect(() => {
