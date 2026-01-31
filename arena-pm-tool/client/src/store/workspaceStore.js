@@ -330,7 +330,7 @@ const useWorkspaceStore = create((set, get) => ({
       }
 
       toast.success(response.data.message || 'Successfully joined workspace');
-      return { success: true, workspaceId: data.workspaceId };
+      return { success: true, workspaceId: data.workspaceId, needsOnboarding: data.needsOnboarding || false };
     } catch (error) {
       const errorMsg = error.response?.data?.message || error.message || 'Failed to accept invitation';
       toast.error(errorMsg);

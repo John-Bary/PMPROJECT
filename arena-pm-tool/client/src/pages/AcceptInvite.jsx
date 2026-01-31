@@ -40,6 +40,12 @@ function AcceptInvite() {
         const result = await acceptInvitation(token);
 
         if (result.success) {
+          // Redirect to onboarding if needed
+          if (result.needsOnboarding && result.workspaceId) {
+            navigate(`/onboarding?workspaceId=${result.workspaceId}`, { replace: true });
+            return;
+          }
+
           setStatus('success');
         } else {
           setStatus('error');
