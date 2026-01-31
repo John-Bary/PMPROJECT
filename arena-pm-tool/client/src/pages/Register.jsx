@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import { ButtonSpinner } from '../components/Loader';
 
 function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, isLoading } = useAuthStore();
+
+  // Get return URL from query params (for invitation flow, etc.)
+  const returnUrl = searchParams.get('returnUrl');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -68,7 +72,9 @@ function Register() {
     const result = await register(registerData);
 
     if (result.success) {
-      navigate('/dashboard');
+      // Redirect to return URL if provided (e.g., invitation flow), otherwise dashboard
+      const redirectTo = returnUrl || '/dashboard';
+      navigate(redirectTo, { replace: true });
     }
   };
 
@@ -171,7 +177,10 @@ function Register() {
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link
+              to={returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login'}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
               Sign in
             </Link>
           </p>

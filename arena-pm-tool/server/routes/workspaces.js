@@ -7,7 +7,14 @@ const { authMiddleware } = require('../middleware/auth');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
 
-// All routes require authentication
+// ============================================================================
+// Public Routes (no authentication required)
+// ============================================================================
+
+// GET /api/workspaces/invite-info/:token - Get invitation details (public)
+router.get('/invite-info/:token', workspaceController.getInviteInfo);
+
+// All remaining routes require authentication
 router.use(authMiddleware);
 
 // ============================================================================

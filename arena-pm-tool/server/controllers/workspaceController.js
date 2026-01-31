@@ -849,6 +849,53 @@ const removeMember = async (req, res) => {
   }
 };
 
+// Get public invitation info (no auth required)
+// Returns minimal info so the invite landing page can display context
+const getInviteInfo = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    const result = await query(`
+      SELECT
+        wi.email, wi.role, wi.expires_at,
+        w.name as workspace_name,
+        u.name as inviter_name
+      FROM workspace_invitations wi
+      JOIN workspaces w ON wi.workspace_id = w.id
+      LEFT JOIN users u ON wi.invited_by = u.id
+      WHERE wi.token = $1
+        AND wi.accepted_at IS NULL
+        AND wi.expires_at > NOW()
+    `, [token]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Invalid or expired invitation'
+      });
+    }
+
+    const invite = result.rows[0];
+
+    res.json({
+      status: 'success',
+      data: {
+        workspaceName: invite.workspace_name,
+        inviterName: invite.inviter_name,
+        role: invite.role,
+        email: invite.email,
+        expiresAt: invite.expires_at,
+      }
+    });
+  } catch (error) {
+    console.error('Get invite info error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching invitation info'
+    });
+  }
+};
+
 // Export helper for use in other controllers
 module.exports = {
   getMyWorkspaces,
@@ -864,5 +911,6 @@ module.exports = {
   cancelInvitation,
   updateMemberRole,
   removeMember,
-  verifyWorkspaceAccess
+  verifyWorkspaceAccess,
+  getInviteInfo
 };
