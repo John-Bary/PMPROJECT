@@ -595,13 +595,19 @@ const acceptInvitation = async (req, res) => {
     `, [invitation.id]);
 
     // Initialize onboarding progress for the new member (non-fatal)
+    // Use SAVEPOINT so a failure here doesn't abort the entire transaction
+    let onboardingInitialized = false;
+    await client.query('SAVEPOINT onboarding_init');
     try {
       await client.query(`
         INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
         VALUES ($1, $2, 1, '[]'::jsonb)
         ON CONFLICT (workspace_id, user_id) DO NOTHING
       `, [invitation.workspace_id, req.user.id]);
+      await client.query('RELEASE SAVEPOINT onboarding_init');
+      onboardingInitialized = true;
     } catch (onboardingError) {
+      await client.query('ROLLBACK TO SAVEPOINT onboarding_init');
       console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
     }
 
@@ -614,7 +620,7 @@ const acceptInvitation = async (req, res) => {
         workspaceId: invitation.workspace_id,
         workspaceName: invitation.workspace_name,
         role: invitation.role,
-        needsOnboarding: true
+        needsOnboarding: onboardingInitialized
       }
     });
   } catch (error) {
