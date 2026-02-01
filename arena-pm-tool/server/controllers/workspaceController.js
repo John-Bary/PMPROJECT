@@ -515,9 +515,10 @@ const inviteToWorkspace = async (req, res) => {
 
 // Accept invitation
 const acceptInvitation = async (req, res) => {
-  const client = await getClient();
+  let client;
 
   try {
+    client = await getClient();
     const { token } = req.params;
 
     await client.query('BEGIN');
@@ -549,6 +550,14 @@ const acceptInvitation = async (req, res) => {
       'SELECT email FROM users WHERE id = $1',
       [req.user.id]
     );
+
+    if (!userResult.rows[0]) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({
+        status: 'error',
+        message: 'User account not found'
+      });
+    }
 
     if (userResult.rows[0].email.toLowerCase() !== invitation.email.toLowerCase()) {
       await client.query('ROLLBACK');
@@ -585,12 +594,16 @@ const acceptInvitation = async (req, res) => {
       WHERE id = $1
     `, [invitation.id]);
 
-    // Initialize onboarding progress for the new member
-    await client.query(`
-      INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
-      VALUES ($1, $2, 1, '[]'::jsonb)
-      ON CONFLICT (workspace_id, user_id) DO NOTHING
-    `, [invitation.workspace_id, req.user.id]);
+    // Initialize onboarding progress for the new member (non-fatal)
+    try {
+      await client.query(`
+        INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+        VALUES ($1, $2, 1, '[]'::jsonb)
+        ON CONFLICT (workspace_id, user_id) DO NOTHING
+      `, [invitation.workspace_id, req.user.id]);
+    } catch (onboardingError) {
+      console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
+    }
 
     await client.query('COMMIT');
 
@@ -605,7 +618,13 @@ const acceptInvitation = async (req, res) => {
       }
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('Rollback failed:', rollbackError.message);
+      }
+    }
     console.error('Accept invitation error:', error);
     res.status(500).json({
       status: 'error',
@@ -613,7 +632,9 @@ const acceptInvitation = async (req, res) => {
       error: error.message
     });
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 };
 
