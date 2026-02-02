@@ -2,6 +2,7 @@
 // Protects routes by verifying JWT tokens
 
 const jwt = require('jsonwebtoken');
+const Sentry = require('../lib/sentry');
 
 // Middleware to verify JWT token from cookies or Authorization header
 const authMiddleware = async (req, res, next) => {
@@ -34,6 +35,9 @@ const authMiddleware = async (req, res, next) => {
       email: decoded.email,
       role: decoded.role
     };
+
+    // Set Sentry user context for error tracking
+    Sentry.setUser({ id: decoded.userId, email: decoded.email });
 
     // Continue to next middleware/route handler
     next();

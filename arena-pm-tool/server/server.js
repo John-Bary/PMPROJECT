@@ -1,8 +1,15 @@
 // Import required packages
+const dotenv = require('dotenv');
+
+// Load environment variables before Sentry init
+dotenv.config();
+
+// Initialize Sentry as early as possible
+const Sentry = require('./lib/sentry');
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const { pool } = require('./config/database');
@@ -18,9 +25,6 @@ const meRoutes = require('./routes/me');
 const holidayRoutes = require('./routes/holidays');
 const reminderRoutes = require('./routes/reminders');
 const workspaceRoutes = require('./routes/workspaces');
-
-// Load environment variables
-dotenv.config();
 
 // Initialize Express app
 const app = express();
@@ -196,6 +200,9 @@ app.use('/api/me', meRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+
+// Sentry error handler (must be before other error handlers)
+Sentry.setupExpressErrorHandler(app);
 
 // 404 handler for undefined routes
 app.use((req, res) => {
