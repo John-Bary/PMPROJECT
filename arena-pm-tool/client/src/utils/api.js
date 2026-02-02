@@ -163,6 +163,8 @@ export const workspacesAPI = {
     safeApiCall(() => api.delete(`/workspaces/${workspaceId}/invitations/${invitationId}`)),
   acceptInvitation: (token) =>
     safeApiCall(() => api.post(`/workspaces/accept-invite/${token}`)),
+  getInviteInfo: (token) =>
+    safeApiCall(() => api.get(`/workspaces/invite-info/${token}`)),
   // Get users for workspace (for assignee dropdown)
   getUsers: (workspaceId) =>
     safeApiCall(() => api.get(`/workspaces/users?workspace_id=${workspaceId}`)),

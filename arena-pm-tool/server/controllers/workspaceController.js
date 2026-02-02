@@ -477,7 +477,7 @@ const inviteToWorkspace = async (req, res) => {
 
     // Send invitation email (fire-and-forget, don't block response)
     const clientUrl = (process.env.CLIENT_URL || 'https://www.todoria.com').replace(/\/+$/, '');
-    const inviteUrl = `${clientUrl}/accept-invite?token=${encodeURIComponent(invitation.token)}`;
+    const inviteUrl = `${clientUrl}/invite/${encodeURIComponent(invitation.token)}`;
 
     sendWorkspaceInvite({
       to: email.toLowerCase(),
@@ -893,6 +893,88 @@ const removeMember = async (req, res) => {
   }
 };
 
+// Get invite info (public - no auth required)
+// Returns workspace name, inviter name, and invite status for the landing page
+const getInviteInfo = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        status: 'error',
+        inviteStatus: 'invalid',
+        message: 'Invitation token is required'
+      });
+    }
+
+    const result = await query(`
+      SELECT
+        wi.id, wi.workspace_id, wi.email, wi.role,
+        wi.accepted_at, wi.expires_at,
+        w.name as workspace_name,
+        u.name as inviter_name
+      FROM workspace_invitations wi
+      JOIN workspaces w ON wi.workspace_id = w.id
+      LEFT JOIN users u ON wi.invited_by = u.id
+      WHERE wi.token = $1
+    `, [token]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        inviteStatus: 'invalid',
+        message: 'This invite link is invalid.'
+      });
+    }
+
+    const invitation = result.rows[0];
+
+    // Check if already accepted
+    if (invitation.accepted_at) {
+      return res.json({
+        status: 'success',
+        data: {
+          inviteStatus: 'accepted',
+          workspaceName: invitation.workspace_name,
+          inviterName: invitation.inviter_name,
+          workspaceId: invitation.workspace_id
+        }
+      });
+    }
+
+    // Check if expired
+    if (invitation.expires_at < new Date()) {
+      return res.json({
+        status: 'success',
+        data: {
+          inviteStatus: 'expired',
+          workspaceName: invitation.workspace_name,
+          inviterName: invitation.inviter_name
+        }
+      });
+    }
+
+    // Valid invitation
+    res.json({
+      status: 'success',
+      data: {
+        inviteStatus: 'valid',
+        workspaceName: invitation.workspace_name,
+        inviterName: invitation.inviter_name,
+        invitedEmail: invitation.email,
+        role: invitation.role
+      }
+    });
+  } catch (error) {
+    console.error('Get invite info error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error fetching invitation info',
+      error: error.message
+    });
+  }
+};
+
 // Export helper for use in other controllers
 module.exports = {
   getMyWorkspaces,
@@ -904,6 +986,7 @@ module.exports = {
   getWorkspaceUsers,
   inviteToWorkspace,
   acceptInvitation,
+  getInviteInfo,
   getWorkspaceInvitations,
   cancelInvitation,
   updateMemberRole,

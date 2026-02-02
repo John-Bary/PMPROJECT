@@ -59,7 +59,7 @@ function InviteMemberModal({ isOpen, onClose }) {
   };
 
   const generateInviteLink = (token) => {
-    return `${window.location.origin}/accept-invite?token=${token}`;
+    return `${window.location.origin}/invite/${token}`;
   };
 
   const handleSubmit = async (e) => {

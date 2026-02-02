@@ -73,7 +73,7 @@ serve(async (req: Request) => {
     }
 
     // Construct the invite URL
-    const inviteUrl = `${APP_URL}/accept-invite?token=${encodeURIComponent(token)}`;
+    const inviteUrl = `${APP_URL}/invite/${encodeURIComponent(token)}`;
 
     // Compose the email HTML
     const emailHtml = `
