@@ -523,23 +523,24 @@ const acceptInvitation = async (req, res) => {
 
     await client.query('BEGIN');
 
-    // Find valid invitation
+    // Find invitation by token (without filtering on accepted_at/expires_at
+    // so we can return specific error messages for each case)
     const inviteResult = await client.query(`
       SELECT
         wi.id, wi.workspace_id, wi.email, wi.role,
+        wi.accepted_at, wi.expires_at,
         w.name as workspace_name
       FROM workspace_invitations wi
       JOIN workspaces w ON wi.workspace_id = w.id
       WHERE wi.token = $1
-        AND wi.accepted_at IS NULL
-        AND wi.expires_at > NOW()
+      FOR UPDATE
     `, [token]);
 
     if (inviteResult.rows.length === 0) {
       await client.query('ROLLBACK');
       return res.status(400).json({
         status: 'error',
-        message: 'Invalid or expired invitation'
+        message: 'Invalid invitation token'
       });
     }
 
@@ -567,31 +568,53 @@ const acceptInvitation = async (req, res) => {
       });
     }
 
-    // Check if already a member
+    // Check if user is already a member (handles duplicate/concurrent requests)
     const existingMember = await client.query(
-      'SELECT id FROM workspace_members WHERE workspace_id = $1 AND user_id = $2',
+      'SELECT id, role FROM workspace_members WHERE workspace_id = $1 AND user_id = $2',
       [invitation.workspace_id, req.user.id]
     );
 
     if (existingMember.rows.length > 0) {
+      // Already a member — return success for idempotency
+      await client.query('ROLLBACK');
+      return res.json({
+        status: 'success',
+        message: `You are already a member of "${invitation.workspace_name}"`,
+        data: {
+          workspaceId: invitation.workspace_id,
+          workspaceName: invitation.workspace_name,
+          role: existingMember.rows[0].role,
+          needsOnboarding: false
+        }
+      });
+    }
+
+    // Check if invitation has expired (only for not-yet-accepted invitations)
+    if (!invitation.accepted_at && invitation.expires_at < new Date()) {
       await client.query('ROLLBACK');
       return res.status(400).json({
         status: 'error',
-        message: 'You are already a member of this workspace'
+        message: 'This invitation has expired. Please ask the workspace admin to send a new invitation.'
       });
     }
+
+    // If invitation was already accepted by a previous request but user is
+    // not yet a member (shouldn't normally happen), proceed with adding them
+    // — this covers race conditions where the first request committed the
+    // accepted_at update but failed before inserting the member row.
 
     // Add user to workspace
     await client.query(`
       INSERT INTO workspace_members (workspace_id, user_id, role)
       VALUES ($1, $2, $3)
+      ON CONFLICT (workspace_id, user_id) DO NOTHING
     `, [invitation.workspace_id, req.user.id, invitation.role]);
 
-    // Mark invitation as accepted
+    // Mark invitation as accepted (idempotent — only update if not already set)
     await client.query(`
       UPDATE workspace_invitations
       SET accepted_at = NOW()
-      WHERE id = $1
+      WHERE id = $1 AND accepted_at IS NULL
     `, [invitation.id]);
 
     // Initialize onboarding progress for the new member (non-fatal)

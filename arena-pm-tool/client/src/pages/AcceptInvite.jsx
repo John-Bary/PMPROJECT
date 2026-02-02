@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, UserPlus, ArrowRight } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
@@ -16,6 +16,9 @@ function AcceptInvite() {
   const [errorMessage, setErrorMessage] = useState('');
   const [countdown, setCountdown] = useState(3);
 
+  // Guard against React 18 Strict Mode double-invocation
+  const processingRef = useRef(false);
+
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isAuthenticated) {
@@ -32,6 +35,10 @@ function AcceptInvite() {
       setStatus('no-token');
       return;
     }
+
+    // Prevent duplicate API calls from React Strict Mode double-mounting
+    if (processingRef.current) return;
+    processingRef.current = true;
 
     const processInvitation = async () => {
       setStatus('loading');
