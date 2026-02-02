@@ -11,9 +11,9 @@ const getOnboardingStatus = async (req, res) => {
   try {
     const { id: workspaceId } = req.params;
 
-    // Verify user is a member
+    // Verify user is a member (only select columns guaranteed to exist)
     const memberResult = await query(
-      `SELECT wm.role, wm.onboarding_completed_at, wm.joined_at
+      `SELECT wm.role, wm.joined_at
        FROM workspace_members wm
        WHERE wm.workspace_id = $1 AND wm.user_id = $2`,
       [workspaceId, req.user.id]
@@ -27,6 +27,19 @@ const getOnboardingStatus = async (req, res) => {
     }
 
     const membership = memberResult.rows[0];
+
+    // Try to read onboarding_completed_at (column may not exist yet)
+    let onboardingCompletedAt = null;
+    try {
+      const ocResult = await query(
+        `SELECT onboarding_completed_at FROM workspace_members
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+      onboardingCompletedAt = ocResult.rows[0]?.onboarding_completed_at || null;
+    } catch (err) {
+      // Column doesn't exist yet — migration not applied
+    }
 
     // Get workspace info with inviter details
     const workspaceResult = await query(
@@ -123,7 +136,7 @@ const getOnboardingStatus = async (req, res) => {
       console.error('Non-fatal: Failed to fetch workspace stats:', err.message);
     }
 
-    const isCompleted = !!membership.onboarding_completed_at || !!progress?.completed_at;
+    const isCompleted = !!onboardingCompletedAt || !!progress?.completed_at;
     const isSkipped = !!progress?.skipped_at;
 
     res.json({
@@ -136,7 +149,7 @@ const getOnboardingStatus = async (req, res) => {
           stepsCompleted: progress?.steps_completed || [],
           totalSteps: TOTAL_STEPS,
           steps: ONBOARDING_STEPS,
-          completedAt: progress?.completed_at || membership.onboarding_completed_at,
+          completedAt: progress?.completed_at || onboardingCompletedAt,
           skippedAt: progress?.skipped_at,
         },
         workspace: {
@@ -349,15 +362,19 @@ const completeOnboarding = async (req, res) => {
       [workspaceId, req.user.id, TOTAL_STEPS, JSON.stringify(ONBOARDING_STEPS)]
     );
 
-    // Mark onboarding as completed in workspace_members
-    await client.query(
-      `UPDATE workspace_members
-       SET onboarding_completed_at = NOW()
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
-
     await client.query('COMMIT');
+
+    // Mark onboarding as completed in workspace_members (non-critical, column may not exist)
+    try {
+      await query(
+        `UPDATE workspace_members
+         SET onboarding_completed_at = NOW()
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+    } catch (err) {
+      console.error('Non-fatal: Failed to set onboarding_completed_at on workspace_members:', err.message);
+    }
 
     res.json({
       status: 'success',
@@ -409,15 +426,19 @@ const skipOnboarding = async (req, res) => {
       [workspaceId, req.user.id]
     );
 
-    // Also mark completed in workspace_members so we don't prompt again
-    await client.query(
-      `UPDATE workspace_members
-       SET onboarding_completed_at = NOW()
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
-
     await client.query('COMMIT');
+
+    // Also mark completed in workspace_members so we don't prompt again (non-critical, column may not exist)
+    try {
+      await query(
+        `UPDATE workspace_members
+         SET onboarding_completed_at = NOW()
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+    } catch (err) {
+      console.error('Non-fatal: Failed to set onboarding_completed_at on workspace_members:', err.message);
+    }
 
     res.json({
       status: 'success',
