@@ -617,14 +617,24 @@ const acceptInvitation = async (req, res) => {
       WHERE id = $1 AND accepted_at IS NULL
     `, [invitation.id]);
 
-    // Initialize onboarding progress for the new member (non-fatal)
+    // Initialize onboarding progress for the new member (non-fatal).
+    // Wrapped in a SAVEPOINT so that a failure here does NOT abort the
+    // enclosing transaction (in PostgreSQL, any failed statement aborts the
+    // transaction, causing COMMIT to silently become ROLLBACK).
     try {
+      await client.query('SAVEPOINT init_onboarding');
       await client.query(`
         INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
         VALUES ($1, $2, 1, '[]'::jsonb)
         ON CONFLICT (workspace_id, user_id) DO NOTHING
       `, [invitation.workspace_id, req.user.id]);
+      await client.query('RELEASE SAVEPOINT init_onboarding');
     } catch (onboardingError) {
+      try {
+        await client.query('ROLLBACK TO SAVEPOINT init_onboarding');
+      } catch (spError) {
+        console.error('Non-fatal: Savepoint rollback failed:', spError.message);
+      }
       console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
     }
 
@@ -637,7 +647,7 @@ const acceptInvitation = async (req, res) => {
         workspaceId: invitation.workspace_id,
         workspaceName: invitation.workspace_name,
         role: invitation.role,
-        needsOnboarding: true
+        needsOnboarding: false
       }
     });
   } catch (error) {
