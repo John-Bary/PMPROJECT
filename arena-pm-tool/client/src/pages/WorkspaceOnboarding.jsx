@@ -29,6 +29,7 @@ function WorkspaceOnboarding() {
   const [isSaving, setIsSaving] = useState(false);
   const [onboardingData, setOnboardingData] = useState(null);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   // Profile form state
   const [firstName, setFirstName] = useState('');
@@ -46,6 +47,7 @@ function WorkspaceOnboarding() {
 
     try {
       setIsLoading(true);
+      setError(null);
       const response = await workspacesAPI.getOnboardingStatus(workspaceId);
       const data = response.data.data;
       setOnboardingData(data);
@@ -69,7 +71,8 @@ function WorkspaceOnboarding() {
       }
     } catch (err) {
       console.error('Failed to fetch onboarding:', err);
-      setError('Failed to load onboarding data');
+      setRetryCount(prev => prev + 1);
+      setError('Failed to load onboarding data. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -244,18 +247,37 @@ function WorkspaceOnboarding() {
 
   // Error state
   if (error || !onboardingData) {
+    const maxRetriesReached = retryCount >= 3;
     return (
       <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 max-w-md w-full text-center">
           <X className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Unable to Load</h2>
-          <p className="text-neutral-400 mb-6">{error || 'Could not load onboarding data.'}</p>
-          <button
-            onClick={() => navigate('/dashboard', { replace: true })}
-            className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-          >
-            Go to Dashboard
-          </button>
+          <p className="text-neutral-400 mb-6">
+            {maxRetriesReached
+              ? 'We were unable to load onboarding after several attempts. You can continue to the dashboard and your workspace will be ready to use.'
+              : error || 'Could not load onboarding data.'}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {!maxRetriesReached && (
+              <button
+                onClick={fetchOnboarding}
+                className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+            )}
+            <button
+              onClick={() => navigate('/dashboard', { replace: true })}
+              className={`px-6 py-2.5 rounded-lg transition-colors ${
+                maxRetriesReached
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                  : 'bg-neutral-800 hover:bg-neutral-700 text-neutral-300'
+              }`}
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );

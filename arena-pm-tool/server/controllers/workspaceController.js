@@ -617,9 +617,13 @@ const acceptInvitation = async (req, res) => {
       WHERE id = $1 AND accepted_at IS NULL
     `, [invitation.id]);
 
-    // Initialize onboarding progress for the new member (non-fatal)
+    await client.query('COMMIT');
+
+    // Initialize onboarding progress AFTER commit so a failure here
+    // cannot roll back the member insertion. Uses pool-level query()
+    // because the transaction is already committed.
     try {
-      await client.query(`
+      await query(`
         INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
         VALUES ($1, $2, 1, '[]'::jsonb)
         ON CONFLICT (workspace_id, user_id) DO NOTHING
@@ -627,8 +631,6 @@ const acceptInvitation = async (req, res) => {
     } catch (onboardingError) {
       console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
     }
-
-    await client.query('COMMIT');
 
     res.json({
       status: 'success',

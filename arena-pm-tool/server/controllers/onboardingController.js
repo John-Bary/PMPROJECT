@@ -46,54 +46,82 @@ const getOnboardingStatus = async (req, res) => {
 
     const workspace = workspaceResult.rows[0];
 
+    // ---- Non-critical queries: failures use fallback values ----
+
     // Get invitation info to find who invited them
-    const inviteResult = await query(
-      `SELECT wi.role as invited_role, u.name as inviter_name, u.email as inviter_email
-       FROM workspace_invitations wi
-       LEFT JOIN users u ON wi.invited_by = u.id
-       WHERE wi.workspace_id = $1 AND wi.email = (SELECT email FROM users WHERE id = $2)
-       ORDER BY wi.accepted_at DESC NULLS LAST
-       LIMIT 1`,
-      [workspaceId, req.user.id]
-    );
+    let invitation = null;
+    try {
+      const inviteResult = await query(
+        `SELECT wi.role as invited_role, u.name as inviter_name, u.email as inviter_email
+         FROM workspace_invitations wi
+         LEFT JOIN users u ON wi.invited_by = u.id
+         WHERE wi.workspace_id = $1 AND wi.email = (SELECT email FROM users WHERE id = $2)
+         ORDER BY wi.accepted_at DESC NULLS LAST
+         LIMIT 1`,
+        [workspaceId, req.user.id]
+      );
+      invitation = inviteResult.rows[0] || null;
+    } catch (err) {
+      console.error('Non-fatal: Failed to fetch invitation info:', err.message);
+    }
 
     // Get onboarding progress
-    const progressResult = await query(
-      `SELECT * FROM workspace_onboarding_progress
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
+    let progress = null;
+    try {
+      const progressResult = await query(
+        `SELECT * FROM workspace_onboarding_progress
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+      progress = progressResult.rows[0] || null;
+    } catch (err) {
+      console.error('Non-fatal: Failed to fetch onboarding progress:', err.message);
+    }
 
     // Get current user profile info
-    const userResult = await query(
-      `SELECT id, name, first_name, last_name, email, avatar_url, avatar_color
-       FROM users WHERE id = $1`,
-      [req.user.id]
-    );
+    let userProfile = null;
+    try {
+      const userResult = await query(
+        `SELECT id, name, first_name, last_name, email, avatar_url, avatar_color
+         FROM users WHERE id = $1`,
+        [req.user.id]
+      );
+      userProfile = userResult.rows[0] || null;
+    } catch (err) {
+      console.error('Non-fatal: Failed to fetch user profile:', err.message);
+    }
 
     // Get workspace members for the tour step
-    const membersResult = await query(
-      `SELECT u.id, u.name, u.avatar_url, u.avatar_color, wm.role
-       FROM workspace_members wm
-       JOIN users u ON wm.user_id = u.id
-       WHERE wm.workspace_id = $1
-       ORDER BY wm.role, u.name
-       LIMIT 10`,
-      [workspaceId]
-    );
+    let membersList = [];
+    try {
+      const membersResult = await query(
+        `SELECT u.id, u.name, u.avatar_url, u.avatar_color, wm.role
+         FROM workspace_members wm
+         JOIN users u ON wm.user_id = u.id
+         WHERE wm.workspace_id = $1
+         ORDER BY wm.role, u.name
+         LIMIT 10`,
+        [workspaceId]
+      );
+      membersList = membersResult.rows;
+    } catch (err) {
+      console.error('Non-fatal: Failed to fetch members list:', err.message);
+    }
 
     // Get workspace stats
-    const statsResult = await query(
-      `SELECT
-         (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $1) as member_count,
-         (SELECT COUNT(*) FROM categories WHERE workspace_id = $1) as category_count,
-         (SELECT COUNT(*) FROM tasks WHERE workspace_id = $1) as task_count`,
-      [workspaceId]
-    );
-
-    const progress = progressResult.rows[0] || null;
-    const invitation = inviteResult.rows[0] || null;
-    const stats = statsResult.rows[0];
+    let stats = { member_count: '0', category_count: '0', task_count: '0' };
+    try {
+      const statsResult = await query(
+        `SELECT
+           (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $1) as member_count,
+           (SELECT COUNT(*) FROM categories WHERE workspace_id = $1) as category_count,
+           (SELECT COUNT(*) FROM tasks WHERE workspace_id = $1) as task_count`,
+        [workspaceId]
+      );
+      stats = statsResult.rows[0] || stats;
+    } catch (err) {
+      console.error('Non-fatal: Failed to fetch workspace stats:', err.message);
+    }
 
     const isCompleted = !!membership.onboarding_completed_at || !!progress?.completed_at;
     const isSkipped = !!progress?.skipped_at;
@@ -125,16 +153,16 @@ const getOnboardingStatus = async (req, res) => {
           role: invitation.invited_role,
         } : null,
         userRole: membership.role,
-        user: userResult.rows[0] ? {
-          id: userResult.rows[0].id,
-          name: userResult.rows[0].name,
-          firstName: userResult.rows[0].first_name,
-          lastName: userResult.rows[0].last_name,
-          email: userResult.rows[0].email,
-          avatarUrl: userResult.rows[0].avatar_url,
-          avatarColor: userResult.rows[0].avatar_color,
+        user: userProfile ? {
+          id: userProfile.id,
+          name: userProfile.name,
+          firstName: userProfile.first_name,
+          lastName: userProfile.last_name,
+          email: userProfile.email,
+          avatarUrl: userProfile.avatar_url,
+          avatarColor: userProfile.avatar_color,
         } : null,
-        members: membersResult.rows.map(m => ({
+        members: membersList.map(m => ({
           id: m.id,
           name: m.name,
           avatarUrl: m.avatar_url,
