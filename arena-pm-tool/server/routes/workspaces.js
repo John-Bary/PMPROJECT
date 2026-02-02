@@ -49,6 +49,10 @@ router.delete('/:id/members/:memberId', workspaceController.removeMember);
 // Workspace Invitations
 // ============================================================================
 
+// POST /api/workspaces/accept-invite/:token - Accept invitation (any authenticated user)
+// Defined before /:id routes to prevent parameterized route conflicts
+router.post('/accept-invite/:token', workspaceController.acceptInvitation);
+
 // POST /api/workspaces/:id/invite - Invite user to workspace
 router.post('/:id/invite', workspaceController.inviteToWorkspace);
 
@@ -57,9 +61,6 @@ router.get('/:id/invitations', workspaceController.getWorkspaceInvitations);
 
 // DELETE /api/workspaces/:id/invitations/:invitationId - Cancel invitation
 router.delete('/:id/invitations/:invitationId', workspaceController.cancelInvitation);
-
-// POST /api/workspaces/accept-invite/:token - Accept invitation (any authenticated user)
-router.post('/accept-invite/:token', workspaceController.acceptInvitation);
 
 // ============================================================================
 // Workspace Onboarding
