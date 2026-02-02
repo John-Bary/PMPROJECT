@@ -10,6 +10,7 @@ function Login() {
 
   // Get return URL from query params (for invitation flow, etc.)
   const returnUrl = searchParams.get('returnUrl');
+  const inviteToken = searchParams.get('invite');
 
   const [formData, setFormData] = useState({
     email: '',
@@ -27,9 +28,14 @@ function Login() {
     e.preventDefault();
     const result = await login(formData);
     if (result.success) {
-      // Redirect to return URL if provided, otherwise dashboard
-      const redirectTo = returnUrl || '/dashboard';
-      navigate(redirectTo, { replace: true });
+      // If invite token present, redirect to accept-invite flow
+      if (inviteToken) {
+        navigate(`/accept-invite?token=${encodeURIComponent(inviteToken)}`, { replace: true });
+      } else {
+        // Redirect to return URL if provided, otherwise dashboard
+        const redirectTo = returnUrl || '/dashboard';
+        navigate(redirectTo, { replace: true });
+      }
     }
   };
 
@@ -37,6 +43,15 @@ function Login() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
+          {/* Invite Banner */}
+          {inviteToken && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
+              <p className="text-sm text-blue-700">
+                Sign in to accept your workspace invitation
+              </p>
+            </div>
+          )}
+
           {/* Logo/Header */}
           <div className="text-center mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todorio</h1>
@@ -90,7 +105,10 @@ function Login() {
           {/* Register Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Don't have an account?{' '}
-            <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link
+              to={inviteToken ? `/register?invite=${encodeURIComponent(inviteToken)}` : '/register'}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
               Sign up
             </Link>
           </p>

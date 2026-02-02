@@ -1,15 +1,19 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
 import { ButtonSpinner } from '../components/Loader';
 
 function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register, isLoading } = useAuthStore();
+
+  const inviteToken = searchParams.get('invite');
+  const prefillEmail = searchParams.get('email') || '';
 
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    email: prefillEmail,
     password: '',
     confirmPassword: '',
   });
@@ -68,7 +72,12 @@ function Register() {
     const result = await register(registerData);
 
     if (result.success) {
-      navigate('/dashboard');
+      // If invite token present, redirect to accept-invite flow
+      if (inviteToken) {
+        navigate(`/accept-invite?token=${encodeURIComponent(inviteToken)}`, { replace: true });
+      } else {
+        navigate('/dashboard');
+      }
     }
   };
 
@@ -76,6 +85,15 @@ function Register() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8">
+          {/* Invite Banner */}
+          {inviteToken && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
+              <p className="text-sm text-blue-700">
+                Create an account to accept your workspace invitation
+              </p>
+            </div>
+          )}
+
           {/* Logo/Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900">Todorio</h1>
@@ -171,7 +189,10 @@ function Register() {
           {/* Login Link */}
           <p className="mt-6 text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+            <Link
+              to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login'}
+              className="text-blue-600 hover:text-blue-700 font-medium"
+            >
               Sign in
             </Link>
           </p>

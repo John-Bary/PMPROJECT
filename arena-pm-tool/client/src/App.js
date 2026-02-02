@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import WorkspaceSelectionPage from './pages/WorkspaceSelectionPage';
 import UserArea from './pages/UserArea/UserArea';
 import AcceptInvite from './pages/AcceptInvite';
+import InviteLanding from './pages/InviteLanding';
 import WorkspaceOnboarding from './pages/WorkspaceOnboarding';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -58,6 +59,9 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            {/* Invite Landing Page (public - shows invite details and auth choices) */}
+            <Route path="/invite/:token" element={<InviteLanding />} />
 
             {/* Invitation Accept Route (handles its own auth) */}
             <Route path="/accept-invite" element={<AcceptInvite />} />
