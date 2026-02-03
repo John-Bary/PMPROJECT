@@ -28,6 +28,16 @@ const getOnboardingStatus = async (req, res) => {
 
     const membership = memberResult.rows[0];
 
+    // Self-healing: ensure onboarding progress row exists.
+    // If the initial insert in acceptInvitation failed (e.g. due to a
+    // connection-pool issue), this creates it on first access.
+    await query(
+      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+       VALUES ($1, $2, 1, '[]'::jsonb)
+       ON CONFLICT (workspace_id, user_id) DO NOTHING`,
+      [workspaceId, req.user.id]
+    );
+
     // Get workspace info with inviter details
     const workspaceResult = await query(
       `SELECT w.name, w.owner_id, u.name as owner_name

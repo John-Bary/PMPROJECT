@@ -69,7 +69,13 @@ function WorkspaceOnboarding() {
       }
     } catch (err) {
       console.error('Failed to fetch onboarding:', err);
-      setError('Failed to load onboarding data');
+      if (err.response?.status === 403) {
+        setError('You are not a member of this workspace. Please try again in a moment.');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Failed to load onboarding data. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
