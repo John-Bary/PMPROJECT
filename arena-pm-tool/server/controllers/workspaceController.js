@@ -617,7 +617,12 @@ const acceptInvitation = async (req, res) => {
       WHERE id = $1 AND accepted_at IS NULL
     `, [invitation.id]);
 
-    // Initialize onboarding progress for the new member (non-fatal)
+    await client.query('COMMIT');
+
+    // Initialize onboarding progress for the new member AFTER commit
+    // This must be outside the main transaction so that a failure here
+    // does not cause PostgreSQL to abort the transaction and silently
+    // roll back the workspace_members insert above.
     try {
       await client.query(`
         INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
@@ -627,8 +632,6 @@ const acceptInvitation = async (req, res) => {
     } catch (onboardingError) {
       console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
     }
-
-    await client.query('COMMIT');
 
     res.json({
       status: 'success',

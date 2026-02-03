@@ -250,12 +250,23 @@ function WorkspaceOnboarding() {
           <X className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-white mb-2">Unable to Load</h2>
           <p className="text-neutral-400 mb-6">{error || 'Could not load onboarding data.'}</p>
-          <button
-            onClick={() => navigate('/dashboard', { replace: true })}
-            className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
-          >
-            Go to Dashboard
-          </button>
+          <div className="flex items-center justify-center gap-3">
+            <button
+              onClick={() => {
+                setError(null);
+                fetchOnboarding();
+              }}
+              className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => navigate('/dashboard', { replace: true })}
+              className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
