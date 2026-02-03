@@ -624,12 +624,12 @@ const acceptInvitation = async (req, res) => {
 
     await client.query('COMMIT');
 
-    // Initialize onboarding progress for the new member AFTER commit
-    // This must be outside the main transaction so that a failure here
-    // does not cause PostgreSQL to abort the transaction and silently
-    // roll back the workspace_members insert above.
+    // Initialize onboarding progress for the new member AFTER commit.
+    // Use pool query() instead of the transaction client — the client
+    // has already committed and may be in an unreliable state in
+    // serverless / limited-pool environments.
     try {
-      await client.query(`
+      await query(`
         INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
         VALUES ($1, $2, 1, '[]'::jsonb)
         ON CONFLICT (workspace_id, user_id) DO NOTHING
