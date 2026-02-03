@@ -69,7 +69,12 @@ function WorkspaceOnboarding() {
       }
     } catch (err) {
       console.error('Failed to fetch onboarding:', err);
-      if (err.response?.status === 403) {
+      if (err.response?.status === 401) {
+        // Auth failed — redirect to login with returnUrl so user comes back here
+        const returnPath = `/onboarding${workspaceId ? `?workspaceId=${workspaceId}` : ''}`;
+        navigate(`/login?returnUrl=${encodeURIComponent(returnPath)}`, { replace: true });
+        return;
+      } else if (err.response?.status === 403) {
         setError('You are not a member of this workspace. Please try again in a moment.');
       } else if (err.response?.data?.message) {
         setError(err.response.data.message);

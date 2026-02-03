@@ -78,17 +78,20 @@ export function WorkspaceProvider({ children }) {
     }
   }, [isAuthenticated, isInitialized, clear, clearTasks, clearCategories]);
 
-  // Refetch data when workspace changes
+  // Refetch data when workspace changes (skip during onboarding to reduce concurrent requests)
   useEffect(() => {
     if (currentWorkspaceId && currentWorkspaceId !== prevWorkspaceIdRef.current) {
+      const isOnboarding = location.pathname === '/onboarding';
       // Clear and refetch data for new workspace
       clearTasks();
       clearCategories();
-      fetchTasks();
-      fetchCategories();
+      if (!isOnboarding) {
+        fetchTasks();
+        fetchCategories();
+      }
     }
     prevWorkspaceIdRef.current = currentWorkspaceId;
-  }, [currentWorkspaceId, clearTasks, clearCategories, fetchTasks, fetchCategories]);
+  }, [currentWorkspaceId, clearTasks, clearCategories, fetchTasks, fetchCategories, location.pathname]);
 
   // Memoized switch workspace function that also triggers data refresh
   const handleSwitchWorkspace = useCallback(async (workspaceId) => {

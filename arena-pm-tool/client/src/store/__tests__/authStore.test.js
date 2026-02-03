@@ -19,6 +19,7 @@ jest.mock('../../utils/api', () => ({
     deleteAvatar: jest.fn(),
     getProfile: jest.fn(),
   },
+  resetAuthInterceptorFlag: jest.fn(),
 }));
 
 // Mock react-hot-toast
