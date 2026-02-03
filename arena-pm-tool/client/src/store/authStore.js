@@ -1,6 +1,6 @@
 // Authentication State Management with Zustand
 import { create } from 'zustand';
-import { authAPI, meAPI } from '../utils/api';
+import { authAPI, meAPI, resetAuthInterceptorFlag } from '../utils/api';
 import toast from 'react-hot-toast';
 
 const useAuthStore = create((set) => ({
@@ -20,6 +20,9 @@ const useAuthStore = create((set) => ({
       // Store in localStorage
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', token);
+
+      // Reset the 401 interceptor flag so future 401s are handled normally
+      resetAuthInterceptorFlag();
 
       set({
         user,
@@ -52,6 +55,9 @@ const useAuthStore = create((set) => ({
       // Store in localStorage
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', token);
+
+      // Reset the 401 interceptor flag so future 401s are handled normally
+      resetAuthInterceptorFlag();
 
       set({
         user,

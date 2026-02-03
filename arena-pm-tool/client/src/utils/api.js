@@ -56,6 +56,17 @@ api.interceptors.request.use(
   }
 );
 
+// Debounce flag to prevent cascading 401 handlers from clearing token multiple times
+let isHandling401 = false;
+
+// Auth endpoints that should NOT trigger the global 401 handler
+// (wrong password is not a session expiry)
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/logout'];
+
+export const resetAuthInterceptorFlag = () => {
+  isHandling401 = false;
+};
+
 // Response interceptor - handle errors globally
 api.interceptors.response.use(
   (response) => {
@@ -65,10 +76,22 @@ api.interceptors.response.use(
     if (error.response) {
       // Server responded with error status
       if (error.response.status === 401) {
-        // Unauthorized - clear token and redirect to login
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        const requestUrl = error.config?.url || '';
+        const isAuthEndpoint = AUTH_ENDPOINTS.some((ep) => requestUrl.includes(ep));
+
+        if (!isAuthEndpoint && !isHandling401) {
+          isHandling401 = true;
+          // Unauthorized - clear token and redirect to login
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+
+          // Preserve current URL so user can return after login
+          const currentPath = window.location.pathname + window.location.search;
+          const returnParam = currentPath && currentPath !== '/login'
+            ? `?returnUrl=${encodeURIComponent(currentPath)}`
+            : '';
+          window.location.href = `/login${returnParam}`;
+        }
       }
     }
     return Promise.reject(error);
