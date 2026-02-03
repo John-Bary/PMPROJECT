@@ -475,22 +475,27 @@ const inviteToWorkspace = async (req, res) => {
       [id]
     );
 
-    // Send invitation email (fire-and-forget, don't block response)
+    // Send invitation email - must await before responding so the Resend API call
+    // completes before Vercel terminates the serverless function
     const clientUrl = (process.env.CLIENT_URL || 'https://www.todoria.com').replace(/\/+$/, '');
     const inviteUrl = `${clientUrl}/invite/${encodeURIComponent(invitation.token)}`;
 
-    sendWorkspaceInvite({
-      to: email.toLowerCase(),
-      inviterName: req.user.name,
-      workspaceName: workspaceResult.rows[0]?.name || 'a workspace',
-      inviteUrl
-    }).catch(err => {
+    let emailSent = false;
+    try {
+      const emailResult = await sendWorkspaceInvite({
+        to: email.toLowerCase(),
+        inviterName: req.user.name,
+        workspaceName: workspaceResult.rows[0]?.name || 'a workspace',
+        inviteUrl
+      });
+      emailSent = emailResult?.success || false;
+    } catch (err) {
       console.error(`Failed to send invite email to ${email}:`, err.message);
-    });
+    }
 
     res.status(201).json({
       status: 'success',
-      message: `Invitation sent to ${email}`,
+      message: emailSent ? `Invitation sent to ${email}` : `Invitation created for ${email} (email delivery pending)`,
       data: {
         invitation: {
           id: invitation.id,
