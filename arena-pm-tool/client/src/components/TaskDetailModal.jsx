@@ -8,6 +8,7 @@ import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
 import useWorkspaceStore from '../store/workspaceStore';
+import { toLocalDate, toUTCISOString, formatDueDateLong } from '../utils/dateUtils';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
@@ -50,27 +51,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   const moreMenuRef = useRef(null);
   const modalRef = useRef(null);
 
-  const toLocalDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  };
-
-  const toUTCISOString = (date) =>
-    date ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString() : null;
-
-  const formatDueDate = (date) => {
-    if (!date) return null;
-    try {
-      const localDate = toLocalDate(date);
-      return localDate ? format(localDate, 'MMM d, yyyy') : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
   const dueDateObj = toLocalDate(task?.dueDate);
-  const formattedDueDate = formatDueDate(task?.dueDate);
+  const formattedDueDate = formatDueDateLong(task?.dueDate);
   const today = new Date();
   const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const isOverdue = dueDateObj && dueDateObj < todayLocal && task?.status !== 'completed';

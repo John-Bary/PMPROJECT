@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye } from 'lucide-react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
@@ -47,7 +47,10 @@ function TaskList() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const searchDebounceRef = useRef(null);
+  const searchInputRef = useRef(null);
   const [togglingTaskIds, setTogglingTaskIds] = useState(new Set());
   const [filters, setFilters] = useState({
     assignees: [],
@@ -61,6 +64,33 @@ function TaskList() {
     fetchTasks();
     fetchCategories();
   }, [fetchTasks, fetchCategories]);
+
+  // Cmd/Ctrl+K keyboard shortcut to focus search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Debounce search query - update filter value 300ms after user stops typing
+  useEffect(() => {
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(searchInput);
+    }, 300);
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [searchInput]);
 
   const handleOpenDetail = (task) => {
     setSelectedTaskId(task.id);
@@ -251,10 +281,12 @@ function TaskList() {
   };
 
   const clearSearch = () => {
+    setSearchInput('');
     setSearchQuery('');
   };
 
   const clearSearchAndFilters = () => {
+    setSearchInput('');
     setSearchQuery('');
     setFilters({
       assignees: [],
@@ -267,7 +299,7 @@ function TaskList() {
   const isLoadingData = isTasksLoading || isCategoriesLoading || isFetching;
   const disableControls = isLoadingData;
   const disablePrimaryAction = isLoadingData || isMutating || !userCanEdit;
-  const hasActiveFilters = Boolean(searchQuery.trim()) ||
+  const hasActiveFilters = Boolean(searchInput.trim() || searchQuery.trim()) ||
     filters.assignees.length > 0 ||
     filters.priorities.length > 0 ||
     filters.categories.length > 0 ||
@@ -332,14 +364,15 @@ function TaskList() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
             <input
+              ref={searchInputRef}
               type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search tasks... (⌘K)"
               className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 disabled:bg-neutral-50 transition-all duration-150"
               disabled={disableControls}
             />
-            {searchQuery && (
+            {searchInput && (
               <button
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-all duration-150"

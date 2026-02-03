@@ -20,6 +20,8 @@ import TaskDetailModal from '../components/TaskDetailModal';
 import DatePicker from '../components/DatePicker';
 import AssigneeDropdown from '../components/AssigneeDropdown';
 import { InlineSpinner, TaskRowSkeleton, ButtonSpinner } from '../components/Loader';
+import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
+import { getPriorityColor } from '../utils/priorityStyles';
 
 function ListView() {
   const {
@@ -275,44 +277,7 @@ function ListView() {
     return tasks.filter(task => task.parentTaskId === parentTaskId);
   };
 
-  // Get priority color - muted Apple-like colors
-  const getPriorityColor = (priority) => {
-    const colors = {
-      urgent: 'bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]',
-      high: 'bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]',
-      medium: 'bg-[#fefce8] text-[#a16207] border-[#fef08a]',
-      low: 'bg-[#f8fafc] text-[#64748b] border-[#e2e8f0]',
-    };
-    return colors[priority] || colors.medium;
-  };
-
-  const toLocalDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  };
-
-  const toUTCISOString = (date) =>
-    date ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString() : null;
-
-  const formatDueDate = (value) => {
-    const localDate = toLocalDate(value);
-    return localDate
-      ? localDate.toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-        })
-      : null;
-  };
-
-  const isTaskOverdue = (task) => {
-    if (!task.dueDate || task.status === 'completed') return false;
-    const localDate = toLocalDate(task.dueDate);
-    if (!localDate) return false;
-    const today = new Date();
-    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return localDate < todayLocal;
-  };
+  const isTaskOverdue = (task) => isOverdue(task.dueDate, task.status);
 
   // Inline editing handlers
   const toggleDropdown = (taskId, dropdownType) => {
@@ -751,15 +716,21 @@ function ListView() {
                                         <button
                                           ref={el => dropdownRefs.current[`date-${task.id}`] = el}
                                           onClick={() => toggleDropdown(task.id, 'date')}
-                                          className="flex items-center gap-1 px-2 py-1 -mx-2 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-xs"
+                                          className={`flex items-center gap-1 px-2 py-1 -mx-2 rounded-lg transition-all duration-150 text-xs ${
+                                            isTaskOverdue(task)
+                                              ? 'bg-red-50 border border-red-200'
+                                              : 'hover:bg-neutral-100'
+                                          }`}
                                         >
                                           {task.dueDate ? (() => {
                                             const overdue = isTaskOverdue(task);
                                             const label = formatDueDate(task.dueDate);
                                             return (
                                               <>
-                                                {overdue && '⚠️ '}
-                                                <span className={overdue ? 'text-red-500 font-medium' : 'text-neutral-700'}>
+                                                <Calendar size={12} className={overdue ? 'text-red-500' : ''} />
+                                                {overdue && <span className="text-red-600 font-semibold">Overdue</span>}
+                                                {overdue && <span className="text-red-400 mx-0.5">·</span>}
+                                                <span className={overdue ? 'text-red-600 font-medium' : 'text-neutral-700'}>
                                                   {label}
                                                 </span>
                                               </>
@@ -930,9 +901,14 @@ function ListView() {
 
                                     {/* Due Date */}
                                     {task.dueDate && (
-                                      <span className={`text-xs flex items-center gap-1 ${isTaskOverdue(task) ? 'text-red-500 font-medium' : 'text-neutral-500'}`}>
-                                        {isTaskOverdue(task) && '⚠️'}
+                                      <span className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded ${
+                                        isTaskOverdue(task)
+                                          ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                                          : 'text-neutral-500'
+                                      }`}>
                                         <Calendar size={12} />
+                                        {isTaskOverdue(task) && <span className="font-semibold">Overdue</span>}
+                                        {isTaskOverdue(task) && <span className="mx-0.5">·</span>}
                                         {formatDueDate(task.dueDate)}
                                       </span>
                                     )}
