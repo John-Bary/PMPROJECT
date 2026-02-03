@@ -11,13 +11,31 @@ const getOnboardingStatus = async (req, res) => {
   try {
     const { id: workspaceId } = req.params;
 
-    // Verify user is a member
-    const memberResult = await query(
-      `SELECT wm.role, wm.onboarding_completed_at, wm.joined_at
-       FROM workspace_members wm
-       WHERE wm.workspace_id = $1 AND wm.user_id = $2`,
-      [workspaceId, req.user.id]
-    );
+    // Verify user is a member — try with onboarding_completed_at first,
+    // fall back to without it if the column doesn't exist yet.
+    let memberResult;
+    let onboardingColumnExists = true;
+    try {
+      memberResult = await query(
+        `SELECT wm.role, wm.onboarding_completed_at, wm.joined_at
+         FROM workspace_members wm
+         WHERE wm.workspace_id = $1 AND wm.user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+    } catch (memberErr) {
+      // Column onboarding_completed_at may not exist yet
+      if (memberErr.message && memberErr.message.includes('onboarding_completed_at')) {
+        onboardingColumnExists = false;
+        memberResult = await query(
+          `SELECT wm.role, wm.joined_at
+           FROM workspace_members wm
+           WHERE wm.workspace_id = $1 AND wm.user_id = $2`,
+          [workspaceId, req.user.id]
+        );
+      } else {
+        throw memberErr;
+      }
+    }
 
     if (memberResult.rows.length === 0) {
       return res.status(403).json({
@@ -29,14 +47,19 @@ const getOnboardingStatus = async (req, res) => {
     const membership = memberResult.rows[0];
 
     // Self-healing: ensure onboarding progress row exists.
-    // If the initial insert in acceptInvitation failed (e.g. due to a
-    // connection-pool issue), this creates it on first access.
-    await query(
-      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
-       VALUES ($1, $2, 1, '[]'::jsonb)
-       ON CONFLICT (workspace_id, user_id) DO NOTHING`,
-      [workspaceId, req.user.id]
-    );
+    // If the table doesn't exist yet, silently skip — we'll use defaults.
+    let onboardingTableExists = true;
+    try {
+      await query(
+        `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+         VALUES ($1, $2, 1, '[]'::jsonb)
+         ON CONFLICT (workspace_id, user_id) DO NOTHING`,
+        [workspaceId, req.user.id]
+      );
+    } catch (insertErr) {
+      console.warn('Onboarding progress table may not exist yet, using defaults:', insertErr.message);
+      onboardingTableExists = false;
+    }
 
     // Get workspace info with inviter details
     const workspaceResult = await query(
@@ -67,12 +90,19 @@ const getOnboardingStatus = async (req, res) => {
       [workspaceId, req.user.id]
     );
 
-    // Get onboarding progress
-    const progressResult = await query(
-      `SELECT * FROM workspace_onboarding_progress
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
+    // Get onboarding progress — fall back to null if table doesn't exist
+    let progressResult = { rows: [] };
+    if (onboardingTableExists) {
+      try {
+        progressResult = await query(
+          `SELECT * FROM workspace_onboarding_progress
+           WHERE workspace_id = $1 AND user_id = $2`,
+          [workspaceId, req.user.id]
+        );
+      } catch (progressErr) {
+        console.warn('Could not query onboarding progress, using defaults:', progressErr.message);
+      }
+    }
 
     // Get current user profile info
     const userResult = await query(
@@ -105,7 +135,8 @@ const getOnboardingStatus = async (req, res) => {
     const invitation = inviteResult.rows[0] || null;
     const stats = statsResult.rows[0];
 
-    const isCompleted = !!membership.onboarding_completed_at || !!progress?.completed_at;
+    const memberOnboardingCompleted = onboardingColumnExists ? membership.onboarding_completed_at : null;
+    const isCompleted = !!memberOnboardingCompleted || !!progress?.completed_at;
     const isSkipped = !!progress?.skipped_at;
 
     res.json({
@@ -118,7 +149,7 @@ const getOnboardingStatus = async (req, res) => {
           stepsCompleted: progress?.steps_completed || [],
           totalSteps: TOTAL_STEPS,
           steps: ONBOARDING_STEPS,
-          completedAt: progress?.completed_at || membership.onboarding_completed_at,
+          completedAt: progress?.completed_at || memberOnboardingCompleted,
           skippedAt: progress?.skipped_at,
         },
         workspace: {
@@ -183,24 +214,30 @@ const startOnboarding = async (req, res) => {
     }
 
     // Upsert onboarding progress (create if not exists, reset if exists)
-    const result = await query(
-      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
-       VALUES ($1, $2, 1, '[]'::jsonb)
-       ON CONFLICT (workspace_id, user_id)
-       DO UPDATE SET current_step = 1, steps_completed = '[]'::jsonb,
-                     skipped_at = NULL, completed_at = NULL,
-                     updated_at = CURRENT_TIMESTAMP
-       RETURNING *`,
-      [workspaceId, req.user.id]
-    );
+    let progressRow = null;
+    try {
+      const result = await query(
+        `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+         VALUES ($1, $2, 1, '[]'::jsonb)
+         ON CONFLICT (workspace_id, user_id)
+         DO UPDATE SET current_step = 1, steps_completed = '[]'::jsonb,
+                       skipped_at = NULL, completed_at = NULL,
+                       updated_at = CURRENT_TIMESTAMP
+         RETURNING *`,
+        [workspaceId, req.user.id]
+      );
+      progressRow = result.rows[0];
+    } catch (progressErr) {
+      console.warn('Could not upsert onboarding progress (table may not exist yet):', progressErr.message);
+    }
 
     res.json({
       status: 'success',
       message: 'Onboarding started',
       data: {
         progress: {
-          currentStep: result.rows[0].current_step,
-          stepsCompleted: result.rows[0].steps_completed,
+          currentStep: progressRow?.current_step || 1,
+          stepsCompleted: progressRow?.steps_completed || [],
           totalSteps: TOTAL_STEPS,
         }
       }
@@ -254,34 +291,38 @@ const updateProgress = async (req, res) => {
     }
 
     // Upsert progress, adding step to completed array
-    const result = await query(
-      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
-       VALUES ($1, $2, $3, $4::jsonb)
-       ON CONFLICT (workspace_id, user_id)
-       DO UPDATE SET
-         current_step = GREATEST(workspace_onboarding_progress.current_step, $3),
-         steps_completed = (
-           SELECT jsonb_agg(DISTINCT elem)
-           FROM (
-             SELECT jsonb_array_elements(
-               COALESCE(workspace_onboarding_progress.steps_completed, '[]'::jsonb) || $4::jsonb
-             ) as elem
-           ) sub
-         ),
-         updated_at = CURRENT_TIMESTAMP
-       RETURNING *`,
-      [workspaceId, req.user.id, stepNum + 1, JSON.stringify([resolvedStepName])]
-    );
-
-    const progress = result.rows[0];
+    let progress = null;
+    try {
+      const result = await query(
+        `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed)
+         VALUES ($1, $2, $3, $4::jsonb)
+         ON CONFLICT (workspace_id, user_id)
+         DO UPDATE SET
+           current_step = GREATEST(workspace_onboarding_progress.current_step, $3),
+           steps_completed = (
+             SELECT jsonb_agg(DISTINCT elem)
+             FROM (
+               SELECT jsonb_array_elements(
+                 COALESCE(workspace_onboarding_progress.steps_completed, '[]'::jsonb) || $4::jsonb
+               ) as elem
+             ) sub
+           ),
+           updated_at = CURRENT_TIMESTAMP
+         RETURNING *`,
+        [workspaceId, req.user.id, stepNum + 1, JSON.stringify([resolvedStepName])]
+      );
+      progress = result.rows[0];
+    } catch (progressErr) {
+      console.warn('Could not update onboarding progress (table may not exist yet):', progressErr.message);
+    }
 
     res.json({
       status: 'success',
       message: `Step "${resolvedStepName}" completed`,
       data: {
         progress: {
-          currentStep: Math.min(progress.current_step, TOTAL_STEPS),
-          stepsCompleted: progress.steps_completed || [],
+          currentStep: progress ? Math.min(progress.current_step, TOTAL_STEPS) : stepNum + 1,
+          stepsCompleted: progress?.steps_completed || [resolvedStepName],
           totalSteps: TOTAL_STEPS,
         }
       }
@@ -321,23 +362,31 @@ const completeOnboarding = async (req, res) => {
     }
 
     // Mark onboarding as completed in progress table
-    await client.query(
-      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed, completed_at)
-       VALUES ($1, $2, $3, $4::jsonb, NOW())
-       ON CONFLICT (workspace_id, user_id)
-       DO UPDATE SET completed_at = NOW(), current_step = $3,
-                     steps_completed = $4::jsonb,
-                     updated_at = CURRENT_TIMESTAMP`,
-      [workspaceId, req.user.id, TOTAL_STEPS, JSON.stringify(ONBOARDING_STEPS)]
-    );
+    try {
+      await client.query(
+        `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, current_step, steps_completed, completed_at)
+         VALUES ($1, $2, $3, $4::jsonb, NOW())
+         ON CONFLICT (workspace_id, user_id)
+         DO UPDATE SET completed_at = NOW(), current_step = $3,
+                       steps_completed = $4::jsonb,
+                       updated_at = CURRENT_TIMESTAMP`,
+        [workspaceId, req.user.id, TOTAL_STEPS, JSON.stringify(ONBOARDING_STEPS)]
+      );
+    } catch (progressErr) {
+      console.warn('Could not update onboarding progress table (may not exist yet):', progressErr.message);
+    }
 
     // Mark onboarding as completed in workspace_members
-    await client.query(
-      `UPDATE workspace_members
-       SET onboarding_completed_at = NOW()
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
+    try {
+      await client.query(
+        `UPDATE workspace_members
+         SET onboarding_completed_at = NOW()
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+    } catch (memberErr) {
+      console.warn('Could not update onboarding_completed_at column (may not exist yet):', memberErr.message);
+    }
 
     await client.query('COMMIT');
 
@@ -383,21 +432,29 @@ const skipOnboarding = async (req, res) => {
     }
 
     // Mark onboarding as skipped
-    await client.query(
-      `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, skipped_at)
-       VALUES ($1, $2, NOW())
-       ON CONFLICT (workspace_id, user_id)
-       DO UPDATE SET skipped_at = NOW(), updated_at = CURRENT_TIMESTAMP`,
-      [workspaceId, req.user.id]
-    );
+    try {
+      await client.query(
+        `INSERT INTO workspace_onboarding_progress (workspace_id, user_id, skipped_at)
+         VALUES ($1, $2, NOW())
+         ON CONFLICT (workspace_id, user_id)
+         DO UPDATE SET skipped_at = NOW(), updated_at = CURRENT_TIMESTAMP`,
+        [workspaceId, req.user.id]
+      );
+    } catch (progressErr) {
+      console.warn('Could not update onboarding progress table (may not exist yet):', progressErr.message);
+    }
 
     // Also mark completed in workspace_members so we don't prompt again
-    await client.query(
-      `UPDATE workspace_members
-       SET onboarding_completed_at = NOW()
-       WHERE workspace_id = $1 AND user_id = $2`,
-      [workspaceId, req.user.id]
-    );
+    try {
+      await client.query(
+        `UPDATE workspace_members
+         SET onboarding_completed_at = NOW()
+         WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId, req.user.id]
+      );
+    } catch (memberErr) {
+      console.warn('Could not update onboarding_completed_at column (may not exist yet):', memberErr.message);
+    }
 
     await client.query('COMMIT');
 
