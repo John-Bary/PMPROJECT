@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { format } from 'date-fns';
 import { Pencil, Trash2, Check, ChevronDown, Calendar } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
+import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue } from '../utils/dateUtils';
+import { getPriorityColor } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
@@ -22,41 +23,9 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
   const { currentWorkspaceId } = useWorkspaceStore();
-  const toLocalDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  };
-
-  const toUTCISOString = (date) =>
-    date ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString() : null;
-
-  const formatDueDate = (date) => {
-    if (!date) return null;
-    try {
-      const localDate = toLocalDate(date);
-      return localDate ? format(localDate, 'MMM d') : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  // Get priority color - muted Apple-like colors
-  const getPriorityColor = (priority) => {
-    const colors = {
-      urgent: 'bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]',
-      high: 'bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]',
-      medium: 'bg-[#fefce8] text-[#a16207] border-[#fef08a]',
-      low: 'bg-[#f8fafc] text-[#64748b] border-[#e2e8f0]',
-    };
-    return colors[priority] || colors.medium;
-  };
-
   const dueDateObj = toLocalDate(task.dueDate);
   const dueDate = formatDueDate(task.dueDate);
-  const today = new Date();
-  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const isOverdue = dueDateObj && dueDateObj < todayLocal && task.status !== 'completed';
+  const isOverdue = checkIsOverdue(task.dueDate, task.status);
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -363,21 +332,22 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         <div className="relative" ref={datePickerRef}>
           <button
             onClick={handleDateClick}
-            className={`flex items-center gap-1 px-2 py-0.5 sm:py-1 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-xs ${
-              isOverdue ? 'text-red-500 font-medium' : 'text-neutral-500'
+            className={`flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg transition-all duration-150 text-xs ${
+              isOverdue
+                ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                : 'text-neutral-500 hover:bg-neutral-100'
             }`}
-            title="Change due date"
+            title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
           >
+            <Calendar size={12} />
             {dueDate ? (
               <>
-                {isOverdue && '⚠️ '}
+                {isOverdue && <span className="font-semibold">Overdue</span>}
+                {isOverdue && <span className="mx-0.5">·</span>}
                 {dueDate}
               </>
             ) : (
-              <>
-                <Calendar size={12} />
-                <span className="hidden sm:inline">Set date</span>
-              </>
+              <span className="hidden sm:inline">Set date</span>
             )}
           </button>
 

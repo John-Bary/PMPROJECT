@@ -1,28 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { format } from 'date-fns';
 import { Check, Calendar, ListTodo } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
+import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue } from '../utils/dateUtils';
+import { priorityStyles, priorityDotColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
 import { getAvatarColor } from './AssigneeListItem';
-
-const priorityStyles = {
-  urgent: 'bg-red-100 text-red-700 border-red-200',
-  high: 'bg-orange-100 text-orange-700 border-orange-200',
-  medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  low: 'bg-gray-100 text-gray-600 border-gray-200',
-};
-
-const priorityDotColors = {
-  urgent: 'bg-red-500',
-  high: 'bg-orange-500',
-  medium: 'bg-yellow-500',
-  low: 'bg-gray-400',
-};
 
 function TaskCard({
   task,
@@ -44,30 +31,9 @@ function TaskCard({
   const { updateTask } = useTaskStore();
   const { currentWorkspaceId } = useWorkspaceStore();
 
-  const toLocalDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  };
-
-  const toUTCISOString = (date) =>
-    date ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString() : null;
-
-  const formatDueDate = (date) => {
-    if (!date) return null;
-    try {
-      const localDate = toLocalDate(date);
-      return localDate ? format(localDate, 'MMM d') : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
   const dueDateObj = toLocalDate(task.dueDate);
   const dueDate = formatDueDate(task.dueDate);
-  const today = new Date();
-  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const isOverdue = dueDateObj && dueDateObj < todayLocal && task.status !== 'completed';
+  const isOverdue = checkIsOverdue(task.dueDate, task.status);
   const isCompleted = task.status === 'completed';
 
   const completedSubtasks = task.completedSubtaskCount || 0;
@@ -295,12 +261,16 @@ function TaskCard({
                   onClick={handleDateClick}
                   className={`
                     flex items-center gap-1 px-1.5 py-0.5
-                    hover:bg-gray-100 rounded transition text-xs
-                    ${isOverdue ? 'text-red-600 font-medium bg-red-50' : 'text-gray-500'}
+                    rounded transition text-xs
+                    ${isOverdue
+                      ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                      : 'text-gray-500 hover:bg-gray-100'}
                   `}
-                  title="Change due date"
+                  title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                 >
                   <Calendar size={12} />
+                  {isOverdue && <span className="font-semibold">Overdue</span>}
+                  {isOverdue && dueDate && <span className="mx-0.5">·</span>}
                   {dueDate || 'No date'}
                 </button>
               </div>

@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Plus, Check, Trash2, Calendar, ChevronDown } from 'lucide-react';
-import { format } from 'date-fns';
 import useTaskStore from '../store/taskStore';
 import useUserStore from '../store/userStore';
 import useWorkspaceStore from '../store/workspaceStore';
 import { tasksAPI } from '../utils/api';
+import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkOverdue } from '../utils/dateUtils';
+import { getPriorityColor } from '../utils/priorityStyles';
 import { InlineSpinner } from './Loader';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
@@ -46,44 +47,6 @@ function SubtaskList({ taskId, categoryId }) {
   // Priority options
   const priorities = ['low', 'medium', 'high', 'urgent'];
 
-  // Get priority color - muted Apple-like colors
-  const getPriorityColor = (priority) => {
-    const colors = {
-      urgent: 'bg-[#fef2f2] text-[#b91c1c] border-[#fecaca]',
-      high: 'bg-[#fff7ed] text-[#c2410c] border-[#fed7aa]',
-      medium: 'bg-[#fefce8] text-[#a16207] border-[#fef08a]',
-      low: 'bg-[#f8fafc] text-[#64748b] border-[#e2e8f0]',
-    };
-    return colors[priority] || colors.medium;
-  };
-
-  // Date utility functions
-  const toLocalDate = (value) => {
-    if (!value) return null;
-    const d = new Date(value);
-    return new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
-  };
-
-  const toUTCISOString = (date) =>
-    date ? new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString() : null;
-
-  const formatDueDate = (date) => {
-    if (!date) return null;
-    try {
-      const localDate = toLocalDate(date);
-      return localDate ? format(localDate, 'MMM d') : null;
-    } catch (error) {
-      return null;
-    }
-  };
-
-  const isOverdue = (dueDate, status) => {
-    if (!dueDate || status === 'completed') return false;
-    const dueDateObj = toLocalDate(dueDate);
-    const today = new Date();
-    const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    return dueDateObj && dueDateObj < todayLocal;
-  };
 
   // Fetch subtasks
   const fetchSubtasks = useCallback(async () => {
@@ -337,7 +300,7 @@ function SubtaskList({ taskId, categoryId }) {
         <div className="space-y-1">
           {subtasks.map((subtask) => {
             const dueDateFormatted = formatDueDate(subtask.dueDate);
-            const subtaskIsOverdue = isOverdue(subtask.dueDate, subtask.status);
+            const subtaskIsOverdue = checkOverdue(subtask.dueDate, subtask.status);
             const dueDateObj = toLocalDate(subtask.dueDate);
 
             return (
@@ -456,21 +419,22 @@ function SubtaskList({ taskId, categoryId }) {
                 <div className="relative" ref={el => datePickerRefs.current[subtask.id] = el}>
                   <button
                     onClick={() => setActiveDatePicker(activeDatePicker === subtask.id ? null : subtask.id)}
-                    className={`flex items-center gap-1 px-1.5 py-0.5 hover:bg-neutral-100 rounded transition text-xs ${
-                      subtaskIsOverdue ? 'text-red-500 font-medium' : 'text-neutral-500'
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition text-xs ${
+                      subtaskIsOverdue
+                        ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                        : 'text-neutral-500 hover:bg-neutral-100'
                     }`}
-                    title="Change due date"
+                    title={subtaskIsOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                   >
+                    <Calendar size={10} />
                     {dueDateFormatted ? (
                       <>
-                        {subtaskIsOverdue && <span>!</span>}
+                        {subtaskIsOverdue && <span className="font-semibold">Overdue</span>}
+                        {subtaskIsOverdue && <span className="mx-0.5">·</span>}
                         {dueDateFormatted}
                       </>
                     ) : (
-                      <>
-                        <Calendar size={10} />
-                        <span>Date</span>
-                      </>
+                      <span>Date</span>
                     )}
                   </button>
 
