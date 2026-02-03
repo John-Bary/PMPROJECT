@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye } from 'lucide-react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
