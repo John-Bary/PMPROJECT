@@ -36,8 +36,8 @@ function WorkspaceOnboarding() {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
 
-  // Fetch onboarding data
-  const fetchOnboarding = useCallback(async () => {
+  // Fetch onboarding data with a single auto-retry for transient errors
+  const fetchOnboarding = useCallback(async (retryAttempt = 0) => {
     if (!workspaceId) {
       setError('No workspace specified');
       setIsLoading(false);
@@ -46,6 +46,7 @@ function WorkspaceOnboarding() {
 
     try {
       setIsLoading(true);
+      setError(null);
       const response = await workspacesAPI.getOnboardingStatus(workspaceId);
       const data = response.data.data;
       setOnboardingData(data);
@@ -74,7 +75,17 @@ function WorkspaceOnboarding() {
         const returnPath = `/onboarding${workspaceId ? `?workspaceId=${workspaceId}` : ''}`;
         navigate(`/login?returnUrl=${encodeURIComponent(returnPath)}`, { replace: true });
         return;
-      } else if (err.response?.status === 403) {
+      }
+
+      // Auto-retry once after a short delay for transient server errors
+      // (e.g. connection pool contention right after invite acceptance)
+      const isServerError = err.response?.status >= 500 || !err.response;
+      if (isServerError && retryAttempt === 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+        return fetchOnboarding(1);
+      }
+
+      if (err.response?.status === 403) {
         setError('You are not a member of this workspace. Please try again in a moment.');
       } else if (err.response?.data?.message) {
         setError(err.response.data.message);

@@ -80,15 +80,20 @@ const getOnboardingStatus = async (req, res) => {
     const workspace = workspaceResult.rows[0];
 
     // Get invitation info to find who invited them
-    const inviteResult = await query(
-      `SELECT wi.role as invited_role, u.name as inviter_name, u.email as inviter_email
-       FROM workspace_invitations wi
-       LEFT JOIN users u ON wi.invited_by = u.id
-       WHERE wi.workspace_id = $1 AND wi.email = (SELECT email FROM users WHERE id = $2)
-       ORDER BY wi.accepted_at DESC NULLS LAST
-       LIMIT 1`,
-      [workspaceId, req.user.id]
-    );
+    let inviteResult = { rows: [] };
+    try {
+      inviteResult = await query(
+        `SELECT wi.role as invited_role, u.name as inviter_name, u.email as inviter_email
+         FROM workspace_invitations wi
+         LEFT JOIN users u ON wi.invited_by = u.id
+         WHERE wi.workspace_id = $1 AND wi.email = (SELECT email FROM users WHERE id = $2)
+         ORDER BY wi.accepted_at DESC NULLS LAST
+         LIMIT 1`,
+        [workspaceId, req.user.id]
+      );
+    } catch (inviteErr) {
+      console.warn('Could not query invitation info for onboarding:', inviteErr.message);
+    }
 
     // Get onboarding progress — fall back to null if table doesn't exist
     let progressResult = { rows: [] };
@@ -104,32 +109,57 @@ const getOnboardingStatus = async (req, res) => {
       }
     }
 
-    // Get current user profile info
-    const userResult = await query(
-      `SELECT id, name, first_name, last_name, email, avatar_url, avatar_color
-       FROM users WHERE id = $1`,
-      [req.user.id]
-    );
+    // Get current user profile info — fall back gracefully if columns
+    // like first_name / last_name don't exist yet on the deployed DB.
+    let userResult = { rows: [] };
+    try {
+      userResult = await query(
+        `SELECT id, name, first_name, last_name, email, avatar_url, avatar_color
+         FROM users WHERE id = $1`,
+        [req.user.id]
+      );
+    } catch (userErr) {
+      console.warn('Could not query full user profile, falling back:', userErr.message);
+      try {
+        userResult = await query(
+          `SELECT id, name, email, avatar_color FROM users WHERE id = $1`,
+          [req.user.id]
+        );
+      } catch (fallbackErr) {
+        console.warn('User profile fallback also failed:', fallbackErr.message);
+      }
+    }
 
     // Get workspace members for the tour step
-    const membersResult = await query(
-      `SELECT u.id, u.name, u.avatar_url, u.avatar_color, wm.role
-       FROM workspace_members wm
-       JOIN users u ON wm.user_id = u.id
-       WHERE wm.workspace_id = $1
-       ORDER BY wm.role, u.name
-       LIMIT 10`,
-      [workspaceId]
-    );
+    let membersResult = { rows: [] };
+    try {
+      membersResult = await query(
+        `SELECT u.id, u.name, u.avatar_url, u.avatar_color, wm.role
+         FROM workspace_members wm
+         JOIN users u ON wm.user_id = u.id
+         WHERE wm.workspace_id = $1
+         ORDER BY wm.role, u.name
+         LIMIT 10`,
+        [workspaceId]
+      );
+    } catch (membersErr) {
+      console.warn('Could not query workspace members for onboarding:', membersErr.message);
+    }
 
-    // Get workspace stats
-    const statsResult = await query(
-      `SELECT
-         (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $1) as member_count,
-         (SELECT COUNT(*) FROM categories WHERE workspace_id = $1) as category_count,
-         (SELECT COUNT(*) FROM tasks WHERE workspace_id = $1) as task_count`,
-      [workspaceId]
-    );
+    // Get workspace stats — each sub-select is safe on its own but the
+    // query can fail if workspace_id column doesn't exist on a table.
+    let statsResult = { rows: [{ member_count: '0', category_count: '0', task_count: '0' }] };
+    try {
+      statsResult = await query(
+        `SELECT
+           (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $1) as member_count,
+           (SELECT COUNT(*) FROM categories WHERE workspace_id = $1) as category_count,
+           (SELECT COUNT(*) FROM tasks WHERE workspace_id = $1) as task_count`,
+        [workspaceId]
+      );
+    } catch (statsErr) {
+      console.warn('Could not query workspace stats for onboarding:', statsErr.message);
+    }
 
     const progress = progressResult.rows[0] || null;
     const invitation = inviteResult.rows[0] || null;

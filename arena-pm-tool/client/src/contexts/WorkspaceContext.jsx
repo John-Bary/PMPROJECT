@@ -78,14 +78,16 @@ export function WorkspaceProvider({ children }) {
     }
   }, [isAuthenticated, isInitialized, clear, clearTasks, clearCategories]);
 
-  // Refetch data when workspace changes (skip during onboarding to reduce concurrent requests)
+  // Refetch data when workspace changes (skip during onboarding/invite flows to reduce concurrent requests)
   useEffect(() => {
     if (currentWorkspaceId && currentWorkspaceId !== prevWorkspaceIdRef.current) {
-      const isOnboarding = location.pathname === '/onboarding';
+      const skipFetch = location.pathname === '/onboarding'
+        || location.pathname === '/accept-invite'
+        || location.pathname.startsWith('/invite/');
       // Clear and refetch data for new workspace
       clearTasks();
       clearCategories();
-      if (!isOnboarding) {
+      if (!skipFetch) {
         fetchTasks();
         fetchCategories();
       }

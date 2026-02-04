@@ -325,7 +325,11 @@ const useWorkspaceStore = create((set, get) => ({
             currentWorkspace: joinedWorkspace,
             currentWorkspaceId: data.workspaceId,
           });
-          get().fetchMembers(data.workspaceId);
+          // Only fetch members now if we're NOT going through onboarding
+          // (avoids unnecessary concurrent requests that contend for DB connections)
+          if (!data.needsOnboarding) {
+            get().fetchMembers(data.workspaceId);
+          }
         }
       }
 
