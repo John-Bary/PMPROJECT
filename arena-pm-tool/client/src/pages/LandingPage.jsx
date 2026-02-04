@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Kanban, List, CalendarDays } from 'lucide-react';
 
 function LandingPage() {
   return (
@@ -47,8 +48,44 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Features — placeholder */}
-      <section id="features" className="max-w-6xl mx-auto px-6 py-20" />
+      {/* Features */}
+      <section id="features" className="max-w-6xl mx-auto px-6 py-20">
+        <h2 className="text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          Three views. That&apos;s all you need.
+        </h2>
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="rounded-xl border border-neutral-150 p-8">
+            <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+              <Kanban className="w-5 h-5 text-teal-600" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold text-neutral-900">Board View</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              Drag, drop, done. See your tasks as cards on a visual board.
+              Move them across columns as work progresses.
+            </p>
+          </div>
+          <div className="rounded-xl border border-neutral-150 p-8">
+            <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+              <List className="w-5 h-5 text-teal-600" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold text-neutral-900">List View</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              Everything in one clean list. Sort, filter, and check off
+              tasks without the clutter.
+            </p>
+          </div>
+          <div className="rounded-xl border border-neutral-150 p-8">
+            <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center">
+              <CalendarDays className="w-5 h-5 text-teal-600" />
+            </div>
+            <h3 className="mt-5 text-lg font-semibold text-neutral-900">Calendar View</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              See deadlines at a glance. Plan your week with tasks
+              mapped to dates.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Philosophy — placeholder */}
       <section id="philosophy" className="max-w-6xl mx-auto px-6 py-20" />
