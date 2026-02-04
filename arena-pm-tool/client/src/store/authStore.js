@@ -3,6 +3,17 @@ import { create } from 'zustand';
 import { authAPI, meAPI, resetAuthInterceptorFlag } from '../utils/api';
 import toast from 'react-hot-toast';
 
+// DATA-01: Only store minimal user fields in localStorage to reduce exposure
+const sanitizeUserForStorage = (user) => {
+  if (!user) return null;
+  return {
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    avatarUrl: user.avatarUrl,
+  };
+};
+
 const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
   token: localStorage.getItem('token') || null,
@@ -18,7 +29,7 @@ const useAuthStore = create((set) => ({
       const { user, token } = response.data.data;
 
       // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
       localStorage.setItem('token', token);
 
       // Reset the 401 interceptor flag so future 401s are handled normally
@@ -53,7 +64,7 @@ const useAuthStore = create((set) => ({
       const { user, token } = response.data.data;
 
       // Store in localStorage
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
       localStorage.setItem('token', token);
 
       // Reset the 401 interceptor flag so future 401s are handled normally
@@ -110,7 +121,7 @@ const useAuthStore = create((set) => ({
       const response = await authAPI.getCurrentUser();
       const user = response.data.data.user;
 
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
 
       set({
         user,
@@ -142,7 +153,7 @@ const useAuthStore = create((set) => ({
       const response = await meAPI.updateProfile(profileData);
       const user = response.data.data.user;
 
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
 
       set({
         user,
@@ -177,7 +188,7 @@ const useAuthStore = create((set) => ({
           language: preferences.language,
           timezone: preferences.timezone,
         };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(updatedUser)));
         return {
           user: updatedUser,
           isLoading: false,
@@ -212,7 +223,7 @@ const useAuthStore = create((set) => ({
           emailNotificationsEnabled: notifications.emailNotificationsEnabled,
           emailDigestMode: notifications.emailDigestMode,
         };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(updatedUser)));
         return {
           user: updatedUser,
           isLoading: false,
@@ -246,7 +257,7 @@ const useAuthStore = create((set) => ({
           ...state.user,
           avatarUrl,
         };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(updatedUser)));
         return {
           user: updatedUser,
           isLoading: false,
@@ -279,7 +290,7 @@ const useAuthStore = create((set) => ({
           ...state.user,
           avatarUrl: null,
         };
-        localStorage.setItem('user', JSON.stringify(updatedUser));
+        localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(updatedUser)));
         return {
           user: updatedUser,
           isLoading: false,
@@ -307,7 +318,7 @@ const useAuthStore = create((set) => ({
       const response = await meAPI.getProfile();
       const user = response.data.data.user;
 
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
 
       set({
         user,

@@ -6,6 +6,9 @@ const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
 const { sendWelcomeEmail } = require('../utils/emailService');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 // Generate JWT token
 const generateToken = (userId, email, role) => {
   return jwt.sign(
@@ -41,12 +44,19 @@ const register = async (req, res) => {
       });
     }
 
-    // Validate password length
-    if (password.length < 6) {
+    // AUTH-02: Validate password complexity (min 8 chars, uppercase, lowercase, digit)
+    if (password.length < 8) {
       client.release();
       return res.status(400).json({
         status: 'error',
-        message: 'Password must be at least 6 characters long.'
+        message: 'Password must be at least 8 characters long.'
+      });
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      client.release();
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one digit.'
       });
     }
 
@@ -56,11 +66,12 @@ const register = async (req, res) => {
       [email.toLowerCase()]
     );
 
+    // BIZ-05: Use generic message to prevent account enumeration
     if (existingUser.rows.length > 0) {
       client.release();
       return res.status(400).json({
         status: 'error',
-        message: 'User with this email already exists.'
+        message: 'Registration failed. Please check your details and try again.'
       });
     }
 
@@ -153,7 +164,7 @@ const register = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error registering user',
-      error: error.message
+      error: safeError(error)
     });
   } finally {
     client.release();
@@ -229,7 +240,7 @@ const login = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error logging in',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -249,7 +260,7 @@ const logout = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error logging out',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -290,17 +301,33 @@ const getCurrentUser = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching user data',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
 // Get all users (protected route)
+// AUTHZ-10: Scope to workspace when workspace_id query param is provided
 const getAllUsers = async (req, res) => {
   try {
-    const result = await query(
-      'SELECT id, email, name, role, avatar_url, created_at FROM users ORDER BY created_at ASC'
-    );
+    const { workspace_id } = req.query;
+
+    let result;
+    if (workspace_id) {
+      // Scoped to workspace members only
+      result = await query(
+        `SELECT u.id, u.email, u.name, u.role, u.avatar_url, u.created_at
+         FROM users u
+         JOIN workspace_members wm ON u.id = wm.user_id
+         WHERE wm.workspace_id = $1
+         ORDER BY u.created_at ASC`,
+        [workspace_id]
+      );
+    } else {
+      result = await query(
+        'SELECT id, email, name, role, avatar_url, created_at FROM users ORDER BY created_at ASC'
+      );
+    }
 
     res.json({
       status: 'success',
@@ -320,7 +347,7 @@ const getAllUsers = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching users',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

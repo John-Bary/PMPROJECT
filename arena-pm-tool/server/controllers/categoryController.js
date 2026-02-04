@@ -4,6 +4,9 @@
 const { query } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 // Get all categories
 const getAllCategories = async (req, res) => {
   try {
@@ -68,19 +71,19 @@ const getAllCategories = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching categories',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Get single category by ID
+// Get single category by ID (AUTHZ-01: workspace authorization added)
 const getCategoryById = async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await query(`
       SELECT
-        c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at,
+        c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at, c.workspace_id,
         u.name as created_by_name
       FROM categories c
       LEFT JOIN users u ON c.created_by = u.id
@@ -96,6 +99,17 @@ const getCategoryById = async (req, res) => {
 
     const cat = result.rows[0];
 
+    // Verify user has access to this category's workspace
+    if (cat.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, cat.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+    }
+
     res.json({
       status: 'success',
       data: {
@@ -104,6 +118,7 @@ const getCategoryById = async (req, res) => {
           name: cat.name,
           color: cat.color,
           position: cat.position,
+          workspaceId: cat.workspace_id,
           createdBy: cat.created_by,
           createdByName: cat.created_by_name,
           createdAt: cat.created_at,
@@ -116,7 +131,7 @@ const getCategoryById = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching category',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -156,6 +171,14 @@ const createCategory = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'Category name is required'
+      });
+    }
+
+    // Validate name length (INJ-05)
+    if (name.length > 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Category name must be 100 characters or less'
       });
     }
 
@@ -221,12 +244,12 @@ const createCategory = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error creating category',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Update category
+// Update category (AUTHZ-07: name collision check now workspace-scoped)
 const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
@@ -268,12 +291,24 @@ const updateCategory = async (req, res) => {
       });
     }
 
-    // Check if new name conflicts with existing category
+    // Validate name length (INJ-05)
+    if (name && name.length > 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Category name must be 100 characters or less'
+      });
+    }
+
+    // Check if new name conflicts with existing category (AUTHZ-07: workspace-scoped)
     if (name) {
-      const existingCategory = await query(
-        'SELECT id FROM categories WHERE LOWER(name) = LOWER($1) AND id != $2',
-        [name, id]
-      );
+      const nameCheckQuery = category.workspace_id
+        ? 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1) AND id != $2 AND workspace_id = $3'
+        : 'SELECT id FROM categories WHERE LOWER(name) = LOWER($1) AND id != $2';
+      const nameCheckParams = category.workspace_id
+        ? [name, id, category.workspace_id]
+        : [name, id];
+
+      const existingCategory = await query(nameCheckQuery, nameCheckParams);
 
       if (existingCategory.rows.length > 0) {
         return res.status(400).json({
@@ -341,15 +376,15 @@ const updateCategory = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating category',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Reorder categories
+// Reorder categories (AUTHZ-06: workspace verification added)
 const reorderCategories = async (req, res) => {
   try {
-    const { categoryIds } = req.body;
+    const { categoryIds, workspace_id } = req.body;
 
     // Validate input
     if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
@@ -359,9 +394,9 @@ const reorderCategories = async (req, res) => {
       });
     }
 
-    // Verify all category IDs exist
+    // Verify all category IDs exist and belong to the same workspace
     const existingCategories = await query(
-      'SELECT id FROM categories WHERE id = ANY($1)',
+      'SELECT id, workspace_id FROM categories WHERE id = ANY($1)',
       [categoryIds]
     );
 
@@ -372,8 +407,34 @@ const reorderCategories = async (req, res) => {
       });
     }
 
+    // Verify all categories belong to the same workspace
+    const workspaceIds = [...new Set(existingCategories.rows.map(c => c.workspace_id).filter(Boolean))];
+    if (workspaceIds.length > 1) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'All categories must belong to the same workspace'
+      });
+    }
+
+    // Verify user has access to the workspace
+    const targetWorkspaceId = workspace_id || workspaceIds[0];
+    if (targetWorkspaceId) {
+      const membership = await verifyWorkspaceAccess(req.user.id, targetWorkspaceId);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+      if (membership.role === 'viewer') {
+        return res.status(403).json({
+          status: 'error',
+          message: 'Viewers cannot reorder categories'
+        });
+      }
+    }
+
     // Update positions for each category in a transaction
-    // Using a simple loop since pg doesn't support native transactions without a pool
     for (let i = 0; i < categoryIds.length; i++) {
       await query(
         'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
@@ -381,8 +442,8 @@ const reorderCategories = async (req, res) => {
       );
     }
 
-    // Fetch and return updated categories
-    const result = await query(`
+    // Fetch and return updated categories (scoped to workspace)
+    let fetchQuery = `
       SELECT
         c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at,
         u.name as created_by_name,
@@ -390,9 +451,20 @@ const reorderCategories = async (req, res) => {
       FROM categories c
       LEFT JOIN users u ON c.created_by = u.id
       LEFT JOIN tasks t ON c.id = t.category_id
+    `;
+    const fetchParams = [];
+
+    if (targetWorkspaceId) {
+      fetchQuery += ' WHERE c.workspace_id = $1';
+      fetchParams.push(targetWorkspaceId);
+    }
+
+    fetchQuery += `
       GROUP BY c.id, u.name
       ORDER BY c.position ASC
-    `);
+    `;
+
+    const result = await query(fetchQuery, fetchParams);
 
     res.json({
       status: 'success',
@@ -416,7 +488,7 @@ const reorderCategories = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error reordering categories',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -488,7 +560,7 @@ const deleteCategory = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error deleting category',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

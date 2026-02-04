@@ -5,6 +5,9 @@ const { query } = require('../config/database');
 const { sendTaskAssignmentNotification } = require('../utils/emailService');
 const { verifyWorkspaceAccess, canUserEdit } = require('../middleware/workspaceAuth');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 // Helper function to format date for client - just return YYYY-MM-DD string
 const formatDueDateForClient = (dbDate) => {
   if (!dbDate) return null;
@@ -159,12 +162,12 @@ const getAllTasks = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching tasks',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Get single task by ID
+// Get single task by ID (AUTHZ-02: workspace authorization added)
 const getTaskById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -173,7 +176,7 @@ const getTaskById = async (req, res) => {
       SELECT
         t.id, t.title, t.description, t.category_id,
         t.priority, t.status, t.due_date, t.completed_at, t.position,
-        t.parent_task_id,
+        t.parent_task_id, t.workspace_id,
         t.created_by, t.created_at, t.updated_at,
         c.name as category_name, c.color as category_color,
         creator.name as created_by_name,
@@ -201,6 +204,17 @@ const getTaskById = async (req, res) => {
 
     const task = result.rows[0];
 
+    // Verify user has access to this task's workspace
+    if (task.workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, task.workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+    }
+
     res.json({
       status: 'success',
       data: {
@@ -218,6 +232,7 @@ const getTaskById = async (req, res) => {
           completedAt: task.completed_at,
           position: task.position,
           parentTaskId: task.parent_task_id,
+          workspaceId: task.workspace_id,
           subtaskCount: parseInt(task.subtask_count || 0),
           completedSubtaskCount: parseInt(task.completed_subtask_count || 0),
           createdBy: task.created_by,
@@ -232,19 +247,19 @@ const getTaskById = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching task',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Create new task
+// Create new task (INJ-05: input length validation added)
 const createTask = async (req, res) => {
   try {
     const {
       title,
       description,
       category_id,
-      assignee_ids = [], // Changed from assignee_id to support multiple
+      assignee_ids = [],
       priority = 'medium',
       status = 'todo',
       due_date,
@@ -282,6 +297,21 @@ const createTask = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'Task title is required'
+      });
+    }
+
+    // Validate input lengths (INJ-05)
+    if (title.length > 500) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Task title must be 500 characters or less'
+      });
+    }
+
+    if (description && description.length > 10000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Task description must be 10,000 characters or less'
       });
     }
 
@@ -383,14 +413,12 @@ const createTask = async (req, res) => {
 
     // Send email notifications to assignees (async, don't block response)
     if (assigneeArray.length > 0 && newTask.assignees && newTask.assignees.length > 0) {
-      // Get assignees with their notification preferences
       const assigneesWithPrefs = await query(`
         SELECT u.id, u.email, u.name, u.email_notifications_enabled
         FROM users u
         WHERE u.id = ANY($1::int[])
       `, [assigneeArray]);
 
-      // Send notifications to each assignee who has notifications enabled
       assigneesWithPrefs.rows.forEach(assignee => {
         if (assignee.email_notifications_enabled !== false) {
           sendTaskAssignmentNotification({
@@ -442,12 +470,12 @@ const createTask = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error creating task',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Update task
+// Update task (INJ-05: input length validation added)
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
@@ -455,7 +483,7 @@ const updateTask = async (req, res) => {
       title,
       description,
       category_id,
-      assignee_ids, // Changed from assignee_id to support multiple
+      assignee_ids,
       priority,
       status,
       due_date
@@ -487,6 +515,21 @@ const updateTask = async (req, res) => {
           message: 'Viewers cannot edit tasks. Contact an admin to request edit permissions.'
         });
       }
+    }
+
+    // Validate input lengths (INJ-05)
+    if (title !== undefined && title && title.length > 500) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Task title must be 500 characters or less'
+      });
+    }
+
+    if (description !== undefined && description && description.length > 10000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Task description must be 10,000 characters or less'
+      });
     }
 
     // Validate priority if provided
@@ -553,7 +596,6 @@ const updateTask = async (req, res) => {
       paramCount++;
     }
     if (due_date !== undefined) {
-      // Just use the date string directly (YYYY-MM-DD format)
       const processedDueDate = due_date ? due_date.split('T')[0] : null;
       updates.push(`due_date = $${paramCount}`);
       values.push(processedDueDate);
@@ -573,17 +615,14 @@ const updateTask = async (req, res) => {
     // Handle assignee updates via task_assignments table
     let newlyAddedAssigneeIds = [];
     if (assignee_ids !== undefined) {
-      // Get current assignees before clearing
       const currentAssigneesResult = await query(
         'SELECT user_id FROM task_assignments WHERE task_id = $1',
         [id]
       );
       const currentAssigneeIds = currentAssigneesResult.rows.map(row => row.user_id);
 
-      // Clear existing assignments
       await query('DELETE FROM task_assignments WHERE task_id = $1', [id]);
 
-      // Insert new assignments
       const assigneeArray = Array.isArray(assignee_ids) ? assignee_ids : [];
       if (assigneeArray.length > 0) {
         const assigneeValues = assigneeArray.map((_, idx) => `($1, $${idx + 2})`).join(', ');
@@ -592,14 +631,12 @@ const updateTask = async (req, res) => {
           [id, ...assigneeArray]
         );
 
-        // Find newly added assignees (not in previous list)
         newlyAddedAssigneeIds = assigneeArray.filter(
           newId => !currentAssigneeIds.includes(newId)
         );
       }
     }
 
-    // If no fields to update and no assignee changes
     if (updates.length === 0 && assignee_ids === undefined) {
       return res.status(400).json({
         status: 'error',
@@ -635,18 +672,15 @@ const updateTask = async (req, res) => {
 
     // Send email notifications to newly added assignees
     if (newlyAddedAssigneeIds.length > 0) {
-      // Get the name of the user making the update
       const updaterResult = await query('SELECT name FROM users WHERE id = $1', [req.user.id]);
       const updaterName = updaterResult.rows[0]?.name || 'A team member';
 
-      // Get assignees with their notification preferences
       const newAssigneesWithPrefs = await query(`
         SELECT u.id, u.email, u.name, u.email_notifications_enabled
         FROM users u
         WHERE u.id = ANY($1::int[])
       `, [newlyAddedAssigneeIds]);
 
-      // Send notifications to each newly added assignee who has notifications enabled
       newAssigneesWithPrefs.rows.forEach(assignee => {
         if (assignee.email_notifications_enabled !== false) {
           sendTaskAssignmentNotification({
@@ -697,7 +731,7 @@ const updateTask = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating task',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -775,7 +809,7 @@ const updateTaskPosition = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating task position',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -834,15 +868,35 @@ const deleteTask = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error deleting task',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Get subtasks for a specific task
+// Get subtasks for a specific task (AUTHZ-03: workspace authorization added)
 const getSubtasks = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // First verify the parent task exists and check workspace access
+    const parentTask = await query('SELECT workspace_id FROM tasks WHERE id = $1', [id]);
+    if (parentTask.rows.length === 0) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Parent task not found'
+      });
+    }
+
+    // Verify user has access to the parent task's workspace
+    if (parentTask.rows[0].workspace_id) {
+      const membership = await verifyWorkspaceAccess(req.user.id, parentTask.rows[0].workspace_id);
+      if (!membership) {
+        return res.status(403).json({
+          status: 'error',
+          message: 'You do not have access to this workspace'
+        });
+      }
+    }
 
     const result = await query(`
       SELECT
@@ -896,7 +950,7 @@ const getSubtasks = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching subtasks',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

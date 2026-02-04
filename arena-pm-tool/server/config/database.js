@@ -18,18 +18,21 @@ const poolConfig = {
   connectionTimeoutMillis: isServerless ? 5000 : 2000,
 };
 
-// Enable SSL for production databases (Supabase, Railway, RDS, etc.)
+// DATA-02: Enable SSL for production databases with proper cert validation
+// Use DB_CA_CERT env var to provide CA certificate for full validation
 if (process.env.DB_SSL === 'true') {
-  poolConfig.ssl = {
-    rejectUnauthorized: false // Required for most managed databases
-  };
+  poolConfig.ssl = process.env.DB_CA_CERT
+    ? { rejectUnauthorized: true, ca: process.env.DB_CA_CERT }
+    : { rejectUnauthorized: false }; // Fallback for managed databases that don't provide CA
 }
 
 // Alternative: Use DATABASE_URL if provided (common for Railway, Heroku)
 if (process.env.DATABASE_URL) {
   poolConfig.connectionString = process.env.DATABASE_URL;
   if (process.env.NODE_ENV === 'production') {
-    poolConfig.ssl = { rejectUnauthorized: false };
+    poolConfig.ssl = process.env.DB_CA_CERT
+      ? { rejectUnauthorized: true, ca: process.env.DB_CA_CERT }
+      : { rejectUnauthorized: false };
   }
 }
 

@@ -1,18 +1,59 @@
 // Comment Controller
 // Handles all comment-related operations
+// AUTHZ-04/05: workspace scope checks added to all endpoints
+// DATA-06: author_email removed from responses
 
 const { query } = require('../config/database');
+const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 
-// Get comments for a task
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
+// Helper: verify user has access to the task's workspace
+const verifyTaskWorkspaceAccess = async (taskId, userId) => {
+  const taskResult = await query(
+    'SELECT workspace_id FROM tasks WHERE id = $1',
+    [taskId]
+  );
+  if (taskResult.rows.length === 0) {
+    return { exists: false };
+  }
+  const task = taskResult.rows[0];
+  if (task.workspace_id) {
+    const membership = await verifyWorkspaceAccess(userId, task.workspace_id);
+    if (!membership) {
+      return { exists: true, authorized: false };
+    }
+    return { exists: true, authorized: true, membership };
+  }
+  return { exists: true, authorized: true };
+};
+
+// Get comments for a task (AUTHZ-04: workspace scope added)
 const getCommentsByTaskId = async (req, res) => {
   try {
     const { taskId } = req.params;
+
+    // Verify user has access to the task's workspace
+    const access = await verifyTaskWorkspaceAccess(taskId, req.user.id);
+    if (!access.exists) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Task not found'
+      });
+    }
+    if (!access.authorized) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
 
     const result = await query(`
       SELECT
         c.id, c.task_id, c.author_id, c.content,
         c.created_at, c.updated_at,
-        u.name as author_name, u.email as author_email
+        u.name as author_name
       FROM comments c
       LEFT JOIN users u ON c.author_id = u.id
       WHERE c.task_id = $1
@@ -27,7 +68,6 @@ const getCommentsByTaskId = async (req, res) => {
           taskId: comment.task_id,
           authorId: comment.author_id,
           authorName: comment.author_name,
-          authorEmail: comment.author_email,
           content: comment.content,
           createdAt: comment.created_at,
           updatedAt: comment.updated_at
@@ -40,12 +80,12 @@ const getCommentsByTaskId = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching comments',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Create a new comment
+// Create a new comment (AUTHZ-04: workspace scope added, INJ-05: length validation)
 const createComment = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -60,12 +100,26 @@ const createComment = async (req, res) => {
       });
     }
 
-    // Check if task exists
-    const taskCheck = await query('SELECT id FROM tasks WHERE id = $1', [taskId]);
-    if (taskCheck.rows.length === 0) {
+    // Validate content length (INJ-05)
+    if (content.length > 5000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Comment content must be 5,000 characters or less'
+      });
+    }
+
+    // Verify user has access to the task's workspace
+    const access = await verifyTaskWorkspaceAccess(taskId, req.user.id);
+    if (!access.exists) {
       return res.status(404).json({
         status: 'error',
         message: 'Task not found'
+      });
+    }
+    if (!access.authorized) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
       });
     }
 
@@ -83,7 +137,7 @@ const createComment = async (req, res) => {
       SELECT
         c.id, c.task_id, c.author_id, c.content,
         c.created_at, c.updated_at,
-        u.name as author_name, u.email as author_email
+        u.name as author_name
       FROM comments c
       LEFT JOIN users u ON c.author_id = u.id
       WHERE c.id = $1
@@ -100,7 +154,6 @@ const createComment = async (req, res) => {
           taskId: fullComment.task_id,
           authorId: fullComment.author_id,
           authorName: fullComment.author_name,
-          authorEmail: fullComment.author_email,
           content: fullComment.content,
           createdAt: fullComment.created_at,
           updatedAt: fullComment.updated_at
@@ -112,12 +165,12 @@ const createComment = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error creating comment',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Update a comment
+// Update a comment (AUTHZ-05: workspace verification added)
 const updateComment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -132,6 +185,14 @@ const updateComment = async (req, res) => {
       });
     }
 
+    // Validate content length (INJ-05)
+    if (content.length > 5000) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Comment content must be 5,000 characters or less'
+      });
+    }
+
     // Check if comment exists and belongs to user
     const checkResult = await query('SELECT * FROM comments WHERE id = $1', [id]);
     if (checkResult.rows.length === 0) {
@@ -142,6 +203,16 @@ const updateComment = async (req, res) => {
     }
 
     const comment = checkResult.rows[0];
+
+    // Verify workspace access via the comment's task
+    const access = await verifyTaskWorkspaceAccess(comment.task_id, userId);
+    if (!access.authorized) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
+
     if (comment.author_id !== userId) {
       return res.status(403).json({
         status: 'error',
@@ -161,7 +232,7 @@ const updateComment = async (req, res) => {
       SELECT
         c.id, c.task_id, c.author_id, c.content,
         c.created_at, c.updated_at,
-        u.name as author_name, u.email as author_email
+        u.name as author_name
       FROM comments c
       LEFT JOIN users u ON c.author_id = u.id
       WHERE c.id = $1
@@ -178,7 +249,6 @@ const updateComment = async (req, res) => {
           taskId: updatedComment.task_id,
           authorId: updatedComment.author_id,
           authorName: updatedComment.author_name,
-          authorEmail: updatedComment.author_email,
           content: updatedComment.content,
           createdAt: updatedComment.created_at,
           updatedAt: updatedComment.updated_at
@@ -190,12 +260,12 @@ const updateComment = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating comment',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
 
-// Delete a comment
+// Delete a comment (AUTHZ-05: workspace verification added)
 const deleteComment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -211,6 +281,16 @@ const deleteComment = async (req, res) => {
     }
 
     const comment = checkResult.rows[0];
+
+    // Verify workspace access via the comment's task
+    const access = await verifyTaskWorkspaceAccess(comment.task_id, userId);
+    if (!access.authorized) {
+      return res.status(403).json({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    }
+
     if (comment.author_id !== userId) {
       return res.status(403).json({
         status: 'error',
@@ -230,7 +310,7 @@ const deleteComment = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error deleting comment',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

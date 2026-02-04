@@ -102,8 +102,12 @@ const allowedOrigins = getAllowedOrigins();
 // CORS configuration
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // API-06: In production, reject requests with no origin (null origin attacks)
+    // In development, allow no-origin for tools like curl/Postman
     if (!origin) {
+      if (process.env.NODE_ENV === 'production') {
+        return callback(null, false);
+      }
       return callback(null, true);
     }
     // Check if origin is allowed
@@ -127,68 +131,58 @@ app.use(cors(corsOptions));
 // Rate limiting for API routes
 app.use('/api', apiLimiter);
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// API-05: Explicit body size limits to prevent large payload attacks
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(cookieParser());
 
-// Serve static files for uploads (avatars, etc.)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// INJ-07: Serve static files for uploads with Content-Disposition to prevent browser execution
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  setHeaders: (res) => {
+    res.set('Content-Disposition', 'attachment');
+  }
+}));
 
-// Health check route with optional database verification
+// API-02: Health check - reduced info disclosure in production
 app.get('/api/health', async (req, res) => {
+  const isProd = process.env.NODE_ENV === 'production';
+
   const health = {
     status: 'OK',
-    message: 'Todorio API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    serverless: !!process.env.VERCEL
+    timestamp: new Date().toISOString()
   };
+
+  // Only expose extra details in non-production
+  if (!isProd) {
+    health.message = 'Todorio API is running';
+    health.environment = process.env.NODE_ENV || 'development';
+  }
 
   // Optional: Check database connectivity (add ?db=true to URL)
   if (req.query.db === 'true') {
     try {
-      const result = await pool.query('SELECT 1 as connected');
-      health.database = {
-        status: 'connected',
-        // Don't expose connection details, just confirm it works
-        pooler: process.env.DATABASE_URL?.includes('pooler') ? 'yes' : 'no'
-      };
+      await pool.query('SELECT 1 as connected');
+      health.database = { status: 'connected' };
     } catch (error) {
       health.database = {
         status: 'error',
-        message: error.message.replace(/password=\S+/gi, 'password=***')
+        message: isProd ? 'Database unavailable' : error.message.replace(/password=\S+/gi, 'password=***')
       };
       health.status = 'DEGRADED';
     }
   }
 
-  // Check if critical env vars are set (without exposing values)
-  health.config = {
-    database_url: !!process.env.DATABASE_URL,
-    jwt_secret: !!process.env.JWT_SECRET,
-    allowed_origins: !!process.env.ALLOWED_ORIGINS
-  };
+  // Only expose config checks in non-production
+  if (!isProd) {
+    health.config = {
+      database_url: !!process.env.DATABASE_URL,
+      jwt_secret: !!process.env.JWT_SECRET,
+      allowed_origins: !!process.env.ALLOWED_ORIGINS
+    };
+  }
 
   const statusCode = health.status === 'OK' ? 200 : 503;
   res.status(statusCode).json(health);
-});
-
-// Database test route
-app.get('/api/db-test', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT NOW() as current_time, version() as postgres_version');
-    res.json({
-      status: 'OK',
-      message: 'Database connection successful',
-      data: result.rows[0]
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'ERROR',
-      message: 'Database connection failed',
-      error: error.message
-    });
-  }
 });
 
 // API Routes
@@ -214,6 +208,14 @@ app.use((req, res) => {
 
 // Start server (only in non-serverless environment)
 const PORT = process.env.PORT || 5001;
+
+// AUTH-05: Validate JWT_SECRET at startup
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('FATAL: JWT_SECRET must be set and at least 32 characters long.');
+  if (process.env.NODE_ENV === 'production') {
+    process.exit(1);
+  }
+}
 
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
