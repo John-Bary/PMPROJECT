@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
@@ -11,6 +11,7 @@ import AcceptInvite from './pages/AcceptInvite';
 import InviteLanding from './pages/InviteLanding';
 import WorkspaceOnboarding from './pages/WorkspaceOnboarding';
 import ErrorPage from './pages/ErrorPage';
+import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -104,8 +105,8 @@ function App() {
               }
             />
 
-            {/* Default Route */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Landing Page (public) */}
+            <Route path="/" element={<LandingPage />} />
 
             {/* Error Routes */}
             <Route path="/error" element={<ErrorPage statusCode={500} />} />
