@@ -12,6 +12,7 @@ import InviteLanding from './pages/InviteLanding';
 import WorkspaceOnboarding from './pages/WorkspaceOnboarding';
 import ErrorPage from './pages/ErrorPage';
 import LandingPage from './pages/LandingPage';
+import DemoRedirect from './pages/DemoRedirect';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -63,6 +64,9 @@ function App() {
 
             {/* Invite Landing Page (public - shows invite details and auth choices) */}
             <Route path="/invite/:token" element={<InviteLanding />} />
+
+            {/* Demo Route (public - creates demo account and redirects) */}
+            <Route path="/demo" element={<DemoRedirect />} />
 
             {/* Invitation Accept Route (handles its own auth) */}
             <Route path="/accept-invite" element={<AcceptInvite />} />

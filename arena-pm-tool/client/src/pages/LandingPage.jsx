@@ -17,6 +17,12 @@ function LandingPage() {
           {/* Desktop nav */}
           <div className="hidden sm:flex items-center gap-4">
             <Link
+              to="/demo"
+              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200"
+            >
+              Try Demo
+            </Link>
+            <Link
               to="/login"
               className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200"
             >
@@ -43,6 +49,13 @@ function LandingPage() {
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-neutral-100 bg-white/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3 animate-fade-in">
+            <Link
+              to="/demo"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200 py-1"
+            >
+              Try Demo
+            </Link>
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
@@ -72,12 +85,18 @@ function LandingPage() {
           Todoria is the project management tool that does three things
           perfectly: boards, lists, and calendars. Nothing more. Nothing less.
         </p>
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             to="/register"
             className="btn-primary text-base px-8 py-3"
           >
             Start for free
+          </Link>
+          <Link
+            to="/demo"
+            className="text-base font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200 px-8 py-3 rounded-lg border border-neutral-200 hover:border-neutral-300"
+          >
+            Try the demo
           </Link>
         </div>
       </section>
@@ -200,6 +219,12 @@ function LandingPage() {
         <div className="py-8 flex items-center justify-between border-t border-neutral-100">
           <span className="text-sm text-neutral-400">&copy; 2026 Todoria</span>
           <div className="flex items-center gap-6">
+            <Link
+              to="/demo"
+              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
+            >
+              Demo
+            </Link>
             <Link
               to="/login"
               className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"

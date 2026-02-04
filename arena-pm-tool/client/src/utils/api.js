@@ -61,7 +61,7 @@ let isHandling401 = false;
 
 // Auth endpoints that should NOT trigger the global 401 handler
 // (wrong password is not a session expiry)
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/logout'];
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/logout', '/auth/demo'];
 
 export const resetAuthInterceptorFlag = () => {
   isHandling401 = false;
@@ -105,6 +105,7 @@ export const authAPI = {
   logout: () => safeApiCall(() => api.post('/auth/logout')),
   getCurrentUser: () => safeApiCall(() => api.get('/auth/me')),
   getAllUsers: () => safeApiCall(() => api.get('/auth/users')),
+  startDemo: () => safeApiCall(() => api.post('/auth/demo')),
 };
 
 // Tasks API

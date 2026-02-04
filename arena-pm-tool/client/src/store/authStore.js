@@ -91,6 +91,37 @@ const useAuthStore = create((set) => ({
     }
   },
 
+  // Start demo session
+  startDemo: async () => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await authAPI.startDemo();
+      const { user, token } = response.data.data;
+
+      localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
+      localStorage.setItem('token', token);
+
+      resetAuthInterceptorFlag();
+
+      set({
+        user,
+        token,
+        isAuthenticated: true,
+        isLoading: false,
+        error: null,
+      });
+
+      return { success: true };
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to start demo';
+      set({
+        error: errorMessage,
+        isLoading: false,
+      });
+      return { success: false, error: errorMessage };
+    }
+  },
+
   // Logout action
   logout: async () => {
     try {

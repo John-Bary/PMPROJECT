@@ -10,13 +10,15 @@ const {
   login,
   logout,
   getCurrentUser,
-  getAllUsers
+  getAllUsers,
+  startDemo
 } = require('../controllers/authController');
 
 // Public routes (no authentication required)
 // Rate limited to prevent brute-force attacks
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+router.post('/demo', authLimiter, startDemo);
 
 // Protected routes (authentication required)
 router.post('/logout', authMiddleware, logout);
