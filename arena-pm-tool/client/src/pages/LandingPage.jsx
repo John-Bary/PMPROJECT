@@ -87,8 +87,32 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* Philosophy — placeholder */}
-      <section id="philosophy" className="max-w-6xl mx-auto px-6 py-20" />
+      {/* Philosophy */}
+      <section id="philosophy" className="max-w-6xl mx-auto px-6 py-20">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl font-bold text-neutral-900 tracking-tight">
+            We don&apos;t have integrations — and that&apos;s the point.
+          </h2>
+          <div className="mt-8 space-y-6 text-neutral-500 text-lg leading-relaxed">
+            <p>
+              Most tools want to be the center of your universe. They pile on
+              integrations, plugins, and dashboards until you spend more time
+              configuring work than doing it. Todoria takes the opposite approach.
+              We connect you to your work, not to everything else.
+            </p>
+            <p>
+              There are no setup wizards. No API keys. No decisions about which
+              Slack channel gets notifications. You sign up, create a workspace,
+              and start working. That&apos;s the whole onboarding.
+            </p>
+            <p>
+              We built Todoria for teams that are tired of tools that do a hundred
+              things badly. Todoria does three things well: boards, lists, and
+              calendars. That focus is a feature, not a limitation.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* How It Works — placeholder */}
       <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-20" />
