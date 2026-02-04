@@ -1,4 +1,4 @@
--- Todorio - Accept Invitation RPC Function
+-- Todoria - Accept Invitation RPC Function
 -- Migration: 20240107000000_accept_invitation_function.sql
 -- Description: Creates an RPC function to accept workspace invitations
 

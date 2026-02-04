@@ -69,7 +69,7 @@ const renderTemplate = (templateName, data = {}) => {
 const stripHtml = (html = '') => html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 
 const getFromAddress = () => {
-  const fromName = process.env.EMAIL_FROM_NAME || 'Todorio';
+  const fromName = process.env.EMAIL_FROM_NAME || 'Todoria';
   const fromEmail = process.env.EMAIL_FROM;
   return `${fromName} <${fromEmail}>`;
 };
@@ -239,7 +239,7 @@ const formatDate = (date) => {
 
 // Send workspace invitation email
 const sendWorkspaceInvite = async ({ to, inviterName, workspaceName, inviteUrl }) => {
-  const subject = `You're invited to join ${workspaceName} on Todorio`;
+  const subject = `You're invited to join ${workspaceName} on Todoria`;
 
   const html = renderTemplate('workspaceInvite.html', {
     inviterName: inviterName || 'A team member',
@@ -252,7 +252,7 @@ const sendWorkspaceInvite = async ({ to, inviterName, workspaceName, inviteUrl }
 
 // Send welcome email to newly registered user
 const sendWelcomeEmail = async ({ to, userName }) => {
-  const subject = 'Welcome to Todorio!';
+  const subject = 'Welcome to Todoria!';
 
   const html = renderTemplate('welcome.html', {
     userName: userName || 'there'

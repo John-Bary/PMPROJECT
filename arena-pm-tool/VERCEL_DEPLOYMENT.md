@@ -1,6 +1,6 @@
-# Vercel Deployment Guide - Todorio Monorepo
+# Vercel Deployment Guide - Todoria Monorepo
 
-This guide explains how to deploy the Todorio monorepo to Vercel with the frontend (CRA) served as static files and the backend (Express) running as serverless functions.
+This guide explains how to deploy the Todoria monorepo to Vercel with the frontend (CRA) served as static files and the backend (Express) running as serverless functions.
 
 ## Architecture Overview
 
@@ -41,7 +41,7 @@ todorio/
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key | `eyJ...` |
 | `RESEND_API_KEY` | Resend API key | `re_your_api_key` |
 | `EMAIL_FROM` | Sender email address | `noreply@yourapp.com` |
-| `EMAIL_FROM_NAME` | Sender display name | `Todorio` |
+| `EMAIL_FROM_NAME` | Sender display name | `Todoria` |
 | `CRON_SECRET` | Secret for cron job authentication | `your-cron-secret` |
 | `ABSTRACT_API_KEY` | Holiday API key | `your-api-key` |
 | `RATE_LIMIT_WINDOW_MS` | Rate limit window | `900000` |
@@ -96,7 +96,7 @@ After deployment, verify these endpoints:
   ```json
   {
     "status": "OK",
-    "message": "Todorio API is running",
+    "message": "Todoria API is running",
     "timestamp": "..."
   }
   ```

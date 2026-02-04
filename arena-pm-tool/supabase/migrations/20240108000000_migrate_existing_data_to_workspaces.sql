@@ -1,4 +1,4 @@
--- Todorio - Migrate Existing Data to Workspaces
+-- Todoria - Migrate Existing Data to Workspaces
 -- Migration: 20240108000000_migrate_existing_data_to_workspaces.sql
 -- Description: Assigns orphaned categories and tasks to their owner's workspace
 --

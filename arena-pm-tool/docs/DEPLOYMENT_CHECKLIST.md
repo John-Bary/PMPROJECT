@@ -1,4 +1,4 @@
-# Todorio - Deployment Checklist
+# Todoria - Deployment Checklist
 
 Complete guide for publishing to GitHub, connecting Supabase, and deploying on Vercel.
 
@@ -241,7 +241,7 @@ Add these variables for **Production** (and optionally Preview):
 | `CRON_SECRET` | `[your generated secret]` | From Step 4.1 |
 | `RESEND_API_KEY` | `re_your_api_key` | For email reminders (optional) |
 | `EMAIL_FROM` | `noreply@yourdomain.com` | Sender email address |
-| `EMAIL_FROM_NAME` | `Todorio` | Sender display name |
+| `EMAIL_FROM_NAME` | `Todoria` | Sender display name |
 
 ### Step 4.4: Configure Vercel Cron Job
 

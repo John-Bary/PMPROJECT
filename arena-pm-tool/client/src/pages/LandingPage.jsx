@@ -198,7 +198,7 @@ function LandingPage() {
       {/* Footer */}
       <footer id="footer" className="max-w-6xl mx-auto px-5 sm:px-6">
         <div className="py-8 flex items-center justify-between border-t border-neutral-100">
-          <span className="text-sm text-neutral-400">&copy; 2025 Todoria</span>
+          <span className="text-sm text-neutral-400">&copy; 2026 Todoria</span>
           <div className="flex items-center gap-6">
             <Link
               to="/login"

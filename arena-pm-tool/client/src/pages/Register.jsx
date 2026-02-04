@@ -96,7 +96,7 @@ function Register() {
 
           {/* Logo/Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Todorio</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Todoria</h1>
             <p className="text-gray-600 mt-2">Create your account</p>
           </div>
 
@@ -133,7 +133,7 @@ function Register() {
                 className={`w-full px-4 py-2 border ${
                   errors.email ? 'border-red-500' : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
-                placeholder="john@todorio.com"
+                placeholder="your@email.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
@@ -151,7 +151,7 @@ function Register() {
                 className={`w-full px-4 py-2 border ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
-                placeholder="At least 6 characters"
+                placeholder="Must include uppercase, lowercase, and a digit"
               />
               {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>

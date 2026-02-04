@@ -1,4 +1,4 @@
--- Todorio - Add Onboarding Tables
+-- Todoria - Add Onboarding Tables
 -- Migration: 20240109000000_add_onboarding_tables.sql
 -- Description: Creates workspace_onboarding_progress table and adds
 --              onboarding_completed_at column to workspace_members

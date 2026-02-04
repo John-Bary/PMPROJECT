@@ -1,4 +1,4 @@
-# Todorio - API Documentation
+# Todoria - API Documentation
 
 Base URL: `http://localhost:5001/api`
 
@@ -21,7 +21,7 @@ Check if API is running.
 ```json
 {
   "status": "OK",
-  "message": "Todorio API is running",
+  "message": "Todoria API is running",
   "timestamp": "2026-01-20T..."
 }
 ```

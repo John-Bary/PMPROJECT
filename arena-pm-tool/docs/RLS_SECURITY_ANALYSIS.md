@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document analyzes the Todorio database access patterns and provides Row Level Security (RLS) policy recommendations.
+This document analyzes the Todoria database access patterns and provides Row Level Security (RLS) policy recommendations.
 
 ---
 

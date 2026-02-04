@@ -1,6 +1,6 @@
 # Database Deployment Guide
 
-This guide covers deploying the Todorio database to various production platforms.
+This guide covers deploying the Todoria database to various production platforms.
 
 ## Quick Start
 

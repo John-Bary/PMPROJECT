@@ -11,7 +11,7 @@ const { verifyConnection, sendTaskReminder, sendMultipleTasksReminder } = requir
 const TEST_EMAIL = process.argv[2] || process.env.EMAIL_FROM;
 
 async function testEmailService() {
-  console.log('\n📧 Testing Todorio Email Service (Resend)\n');
+  console.log('\n📧 Testing Todoria Email Service (Resend)\n');
   console.log('=' .repeat(50));
 
   // Check if Resend config exists
@@ -20,7 +20,7 @@ async function testEmailService() {
     console.log('\nExample .env configuration:');
     console.log('  RESEND_API_KEY=re_your_api_key_here');
     console.log('  EMAIL_FROM=noreply@yourdomain.com');
-    console.log('  EMAIL_FROM_NAME=Todorio');
+    console.log('  EMAIL_FROM_NAME=Todoria');
     console.log('\nGet your API key at: https://resend.com/api-keys\n');
     process.exit(1);
   }
@@ -40,7 +40,7 @@ async function testEmailService() {
     userName: 'Test User',
     taskName: 'Complete project documentation',
     dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow
-    taskDescription: 'Write comprehensive documentation for the Todorio project including API endpoints and user guide.',
+    taskDescription: 'Write comprehensive documentation for the Todoria project including API endpoints and user guide.',
     priority: 'high'
   });
 

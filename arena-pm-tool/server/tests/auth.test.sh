@@ -2,7 +2,7 @@
 # Authentication API Test Script
 # Tests all auth endpoints
 
-echo "🧪 Testing Todorio Authentication API"
+echo "🧪 Testing Todoria Authentication API"
 echo "============================================"
 echo ""
 
