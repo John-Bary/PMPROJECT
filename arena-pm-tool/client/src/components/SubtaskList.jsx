@@ -52,12 +52,8 @@ function SubtaskList({ taskId, categoryId }) {
   const fetchSubtasks = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await tasksAPI.getAll({ parent_task_id: taskId });
-      // Filter to only include subtasks of this task
-      const taskSubtasks = response.data.data.tasks.filter(
-        t => t.parentTaskId === taskId
-      );
-      setSubtasks(taskSubtasks);
+      const response = await tasksAPI.getSubtasks(taskId);
+      setSubtasks(response.data.data.subtasks);
     } catch (error) {
       console.error('Failed to fetch subtasks:', error);
     } finally {

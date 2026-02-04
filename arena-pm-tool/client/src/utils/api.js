@@ -124,6 +124,7 @@ export const tasksAPI = {
   updatePosition: (id, positionData) =>
     safeApiCall(() => api.patch(`/tasks/${id}/position`, positionData)),
   delete: (id) => safeApiCall(() => api.delete(`/tasks/${id}`)),
+  getSubtasks: (taskId) => safeApiCall(() => api.get(`/tasks/${taskId}/subtasks`)),
 };
 
 // Categories API
