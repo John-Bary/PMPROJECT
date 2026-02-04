@@ -114,14 +114,73 @@ function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works — placeholder */}
-      <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-20" />
+      {/* How It Works */}
+      <section id="how-it-works" className="max-w-6xl mx-auto px-6 py-20">
+        <h2 className="text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          Up and running in under a minute.
+        </h2>
+        <div className="mt-14 grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+          <div>
+            <span className="text-5xl font-bold text-teal-500">1</span>
+            <h3 className="mt-4 text-lg font-semibold text-neutral-900">Create a workspace</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              One click. Give it a name. You&apos;re in.
+            </p>
+          </div>
+          <div>
+            <span className="text-5xl font-bold text-teal-500">2</span>
+            <h3 className="mt-4 text-lg font-semibold text-neutral-900">Invite your team</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              Share a link. They join. No permission spreadsheets.
+            </p>
+          </div>
+          <div>
+            <span className="text-5xl font-bold text-teal-500">3</span>
+            <h3 className="mt-4 text-lg font-semibold text-neutral-900">Start working</h3>
+            <p className="mt-2 text-neutral-500 leading-relaxed">
+              Board, list, or calendar. Pick a view and go.
+            </p>
+          </div>
+        </div>
+      </section>
 
-      {/* Final CTA — placeholder */}
-      <section id="final-cta" className="max-w-6xl mx-auto px-6 py-20" />
+      {/* Final CTA */}
+      <section id="final-cta" className="bg-neutral-50 border-y border-neutral-100">
+        <div className="max-w-6xl mx-auto px-6 py-24 text-center">
+          <h2 className="text-3xl font-bold text-neutral-900 tracking-tight">
+            Ready to get things done without the bloat?
+          </h2>
+          <div className="mt-8">
+            <Link
+              to="/register"
+              className="btn-primary text-base px-8 py-3"
+            >
+              Get started for free
+            </Link>
+          </div>
+        </div>
+      </section>
 
-      {/* Footer — placeholder */}
-      <footer id="footer" className="max-w-6xl mx-auto px-6 py-20" />
+      {/* Footer */}
+      <footer id="footer" className="max-w-6xl mx-auto px-6">
+        <div className="py-8 flex items-center justify-between border-t border-neutral-100">
+          <span className="text-sm text-neutral-400">&copy; 2025 Todoria</span>
+          <div className="flex items-center gap-6">
+            <Link
+              to="/login"
+              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
+            >
+              Sign In
+            </Link>
+            <Link
+              to="/register"
+              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
