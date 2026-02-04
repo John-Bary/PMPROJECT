@@ -154,7 +154,7 @@ app.get('/api/health', async (req, res) => {
 
   // Only expose extra details in non-production
   if (!isProd) {
-    health.message = 'Todorio API is running';
+    health.message = 'Todoria API is running';
     health.environment = process.env.NODE_ENV || 'development';
   }
 

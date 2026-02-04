@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Database Backup Script for Todorio
+ * Database Backup Script for Todoria
  *
  * Creates a timestamped pg_dump backup of the database.
  * Can be run manually or scheduled via cron.

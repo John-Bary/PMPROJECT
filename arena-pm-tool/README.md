@@ -1,4 +1,4 @@
-# Todorio - Simple To Do App
+# Todoria - Simple To Do App
 
 A simple to do app built with React, Node.js, and PostgreSQL.
 

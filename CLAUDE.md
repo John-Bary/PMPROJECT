@@ -1,8 +1,8 @@
-# CLAUDE.md - Todorio
+# CLAUDE.md - Todoria
 
 ## Project Overview
 
-Todorio is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
+Todoria is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
 
 ## Tech Stack
 
@@ -120,7 +120,7 @@ JWT_SECRET=your-secret-key
 JWT_EXPIRES_IN=7d
 RESEND_API_KEY=re_your_api_key_here
 EMAIL_FROM=noreply@example.com
-EMAIL_FROM_NAME=Todorio
+EMAIL_FROM_NAME=Todoria
 ```
 
 ### Client (`client/.env`)

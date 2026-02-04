@@ -61,7 +61,7 @@ const dbHost = process.env.DATABASE_URL
 
 async function deployDatabase() {
   console.log('==========================================');
-  console.log('Todorio - Production Database Deploy');
+  console.log('Todoria - Production Database Deploy');
   console.log('==========================================\n');
 
   console.log(`Database: ${dbName}`);

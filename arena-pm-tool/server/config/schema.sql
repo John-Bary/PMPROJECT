@@ -1,4 +1,4 @@
--- Todorio - Database Schema
+-- Todoria - Database Schema
 -- This file is used by initDatabase.js and deployDatabase.js
 -- For migrations, see: /supabase/migrations/
 

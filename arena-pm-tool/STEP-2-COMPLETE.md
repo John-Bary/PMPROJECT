@@ -2,7 +2,7 @@
 
 ## What We Built
 
-Created a complete PostgreSQL database schema with tables, indexes, triggers, and initialization scripts for Todorio.
+Created a complete PostgreSQL database schema with tables, indexes, triggers, and initialization scripts for Todoria.
 
 ## Files Created
 

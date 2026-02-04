@@ -1,4 +1,4 @@
--- Todorio - Comprehensive Workspace RLS Policies
+-- Todoria - Comprehensive Workspace RLS Policies
 -- Migration: 20240106000000_workspace_rls_policies.sql
 -- Description: Implements workspace-scoped Row Level Security policies for all tables
 --

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Database Restore Script for Todorio
+ * Database Restore Script for Todoria
  *
  * Restores database from a backup file.
  *

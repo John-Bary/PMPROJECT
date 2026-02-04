@@ -72,7 +72,7 @@ function InviteLanding() {
         <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
           {/* Logo */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todorio</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todoria</h1>
           </div>
 
           {/* Loading State */}
