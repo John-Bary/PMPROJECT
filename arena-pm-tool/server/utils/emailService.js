@@ -34,6 +34,20 @@ const loadTemplate = (templateName) => {
   }
 };
 
+// INJ-02: HTML-escape user-supplied values to prevent XSS in emails
+const escapeHtml = (str) => {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+// Keys that contain pre-built HTML and must NOT be escaped
+const HTML_SAFE_KEYS = new Set(['taskRows', 'taskUrl', 'inviteUrl', 'priorityColor']);
+
 // Simple templating: supports {{variable}} and {{#if variable}}...{{/if}}
 const renderTemplate = (templateName, data = {}) => {
   let template = loadTemplate(templateName);
@@ -43,7 +57,10 @@ const renderTemplate = (templateName, data = {}) => {
   });
 
   template = template.replace(/{{(\w+)}}/g, (match, key) => {
-    return data[key] !== undefined ? data[key] : '';
+    if (data[key] === undefined) return '';
+    // Skip escaping for keys that contain trusted HTML (URLs, pre-built HTML rows)
+    if (HTML_SAFE_KEYS.has(key)) return data[key];
+    return escapeHtml(String(data[key]));
   });
 
   return template;

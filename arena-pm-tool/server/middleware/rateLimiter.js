@@ -22,6 +22,7 @@ const apiLimiter = rateLimit({
 });
 
 // Stricter rate limiter for authentication endpoints
+// AUTH-04: Removed skipSuccessfulRequests to prevent brute-force counter reset
 // 5 attempts per 15 minutes per IP (prevents brute-force)
 const authLimiter = rateLimit({
   windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
@@ -32,8 +33,7 @@ const authLimiter = rateLimit({
     status: 'error',
     message: 'Too many authentication attempts. Please try again in 15 minutes.',
     retryAfter: Math.ceil((parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000) / 1000)
-  },
-  skipSuccessfulRequests: true
+  }
 });
 
 module.exports = {

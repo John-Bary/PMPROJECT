@@ -17,21 +17,34 @@ const adminPool = new Pool({
 
 async function initializeDatabase() {
   try {
+    // DATA-03: Prevent running with demo seeds in production
+    if (process.env.NODE_ENV === 'production') {
+      console.error('ERROR: initDatabase.js should not be run in production. Use proper migrations instead.');
+      process.exit(1);
+    }
+
     console.log('🔧 Starting database initialization...\n');
+
+    // INJ-01: Validate DB_NAME to prevent SQL injection (only allow alphanumeric, underscores, hyphens)
+    const dbName = process.env.DB_NAME;
+    if (!dbName || !/^[a-zA-Z0-9_-]+$/.test(dbName)) {
+      console.error('ERROR: DB_NAME must only contain alphanumeric characters, underscores, and hyphens.');
+      process.exit(1);
+    }
 
     // Step 1: Create database if it doesn't exist
     console.log('1️⃣ Creating database if not exists...');
-    await adminPool.query(`
-      SELECT 'CREATE DATABASE ${process.env.DB_NAME}'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${process.env.DB_NAME}')
-    `).then(async (result) => {
-      if (result.rows.length > 0) {
-        await adminPool.query(`CREATE DATABASE ${process.env.DB_NAME}`);
-        console.log(`   ✅ Database '${process.env.DB_NAME}' created`);
-      } else {
-        console.log(`   ℹ️  Database '${process.env.DB_NAME}' already exists`);
-      }
-    });
+    const checkResult = await adminPool.query(
+      'SELECT 1 FROM pg_database WHERE datname = $1',
+      [dbName]
+    );
+    if (checkResult.rows.length === 0) {
+      // DB_NAME is validated above to be safe for identifier interpolation
+      await adminPool.query(`CREATE DATABASE "${dbName}"`);
+      console.log(`   ✅ Database '${dbName}' created`);
+    } else {
+      console.log(`   ℹ️  Database '${dbName}' already exists`);
+    }
 
     // Close admin connection
     await adminPool.end();
@@ -41,7 +54,7 @@ async function initializeDatabase() {
     const appPool = new Pool({
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
-      database: process.env.DB_NAME,
+      database: dbName,
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
     });

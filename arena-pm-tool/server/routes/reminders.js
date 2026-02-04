@@ -4,24 +4,28 @@
 const express = require('express');
 const router = express.Router();
 const { runReminderJob } = require('../jobs/reminderJob');
+const { authMiddleware } = require('../middleware/auth');
 
 // POST /api/reminders/trigger
 // This endpoint is called by Vercel Cron to trigger reminder emails
-// In production, it verifies the request is from Vercel using CRON_SECRET
+// API-03: CRON_SECRET is now enforced in ALL environments (not just Vercel)
 router.post('/trigger', async (req, res) => {
-  // Verify the request is from Vercel Cron (in production)
-  // Vercel sends the CRON_SECRET in the Authorization header when calling cron endpoints
-  if (process.env.VERCEL) {
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret) {
-      const authHeader = req.headers.authorization;
-      if (authHeader !== `Bearer ${cronSecret}`) {
-        return res.status(401).json({
-          status: 'error',
-          message: 'Unauthorized - Invalid cron secret'
-        });
-      }
+  // Verify the request using CRON_SECRET in all environments
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers.authorization;
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Unauthorized - Invalid cron secret'
+      });
     }
+  } else if (process.env.NODE_ENV === 'production') {
+    // In production, CRON_SECRET must be configured
+    return res.status(500).json({
+      status: 'error',
+      message: 'CRON_SECRET is not configured'
+    });
   }
 
   try {
@@ -36,19 +40,17 @@ router.post('/trigger', async (req, res) => {
     console.error('Reminder trigger error:', error);
     res.status(500).json({
       status: 'error',
-      message: 'Failed to run reminder job',
-      error: error.message
+      message: 'Failed to run reminder job'
     });
   }
 });
 
 // GET /api/reminders/status
-// Health check for the reminder system
-router.get('/status', (req, res) => {
+// Health check for the reminder system (API-07: now requires authentication)
+router.get('/status', authMiddleware, (req, res) => {
   res.json({
     status: 'OK',
-    enabled: process.env.REMINDER_JOB_ENABLED !== 'false',
-    environment: process.env.VERCEL ? 'vercel' : 'local'
+    enabled: process.env.REMINDER_JOB_ENABLED !== 'false'
   });
 });
 

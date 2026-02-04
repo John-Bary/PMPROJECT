@@ -5,6 +5,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const APP_URL = (Deno.env.get("APP_URL") || "https://www.todoria.com").replace(/\/+$/, '');
+// DEP-02: Shared secret for authenticating requests to this Edge Function
+const EDGE_FUNCTION_SECRET = Deno.env.get("EDGE_FUNCTION_SECRET");
 
 interface InviteRequest {
   email: string;
@@ -13,10 +15,22 @@ interface InviteRequest {
   inviterName: string;
 }
 
+// DEP-01: Restrict CORS to configured allowed origin (not wildcard)
+const allowedOrigin = Deno.env.get("ALLOWED_ORIGIN") || "https://www.todoria.com";
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Origin": allowedOrigin,
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
+};
+
+// INJ-03: HTML-escape user-supplied values before interpolation into email HTML
+const escapeHtml = (str: string): string => {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 };
 
 serve(async (req: Request) => {
@@ -26,6 +40,20 @@ serve(async (req: Request) => {
   }
 
   try {
+    // DEP-02: Verify shared secret authentication
+    if (EDGE_FUNCTION_SECRET) {
+      const authHeader = req.headers.get("authorization");
+      if (authHeader !== `Bearer ${EDGE_FUNCTION_SECRET}`) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+
     // Validate API key is configured
     if (!RESEND_API_KEY) {
       console.error("RESEND_API_KEY is not configured");
@@ -93,7 +121,7 @@ serve(async (req: Request) => {
     <h2 style="color: #1f2937; margin-top: 0;">You're Invited!</h2>
 
     <p style="color: #4b5563; font-size: 16px;">
-      <strong>${inviterName}</strong> has invited you to join <strong>${workspaceName}</strong> on Todorio.
+      <strong>${escapeHtml(inviterName)}</strong> has invited you to join <strong>${escapeHtml(workspaceName)}</strong> on Todorio.
     </p>
 
     <p style="color: #4b5563; font-size: 16px;">
@@ -148,7 +176,7 @@ If you didn't expect this invitation, you can safely ignore this email.
       body: JSON.stringify({
         from: "Todorio <noreply@todorio.com>",
         to: [email],
-        subject: `You're invited to join ${workspaceName} on Todorio`,
+        subject: `You're invited to join ${escapeHtml(workspaceName)} on Todorio`,
         html: emailHtml,
         text: emailText,
       }),

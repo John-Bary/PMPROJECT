@@ -5,6 +5,9 @@ const { query, getClient } = require('../config/database');
 const crypto = require('crypto');
 const { sendWorkspaceInvite } = require('../utils/emailService');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 // Helper: Generate secure random token
 const generateToken = () => crypto.randomBytes(32).toString('hex');
 
@@ -55,7 +58,7 @@ const getMyWorkspaces = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspaces',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -112,7 +115,7 @@ const getWorkspaceById = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -125,9 +128,23 @@ const createWorkspace = async (req, res) => {
     const { name } = req.body;
 
     if (!name || !name.trim()) {
+      client.release();
       return res.status(400).json({
         status: 'error',
         message: 'Workspace name is required'
+      });
+    }
+
+    // BIZ-01: Limit workspace creation per user (max 10)
+    const workspaceCount = await client.query(
+      'SELECT COUNT(*) FROM workspaces WHERE owner_id = $1',
+      [req.user.id]
+    );
+    if (parseInt(workspaceCount.rows[0].count) >= 10) {
+      client.release();
+      return res.status(400).json({
+        status: 'error',
+        message: 'Maximum number of workspaces (10) reached. Delete an existing workspace first.'
       });
     }
 
@@ -169,7 +186,7 @@ const createWorkspace = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error creating workspace',
-      error: error.message
+      error: safeError(error)
     });
   } finally {
     client.release();
@@ -231,7 +248,7 @@ const updateWorkspace = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating workspace',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -273,7 +290,7 @@ const deleteWorkspace = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error deleting workspace',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -326,7 +343,7 @@ const getWorkspaceMembers = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace members',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -380,7 +397,7 @@ const getWorkspaceUsers = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace users',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -513,7 +530,7 @@ const inviteToWorkspace = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error creating invitation',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -660,7 +677,7 @@ const acceptInvitation = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error accepting invitation',
-      error: error.message
+      error: safeError(error)
     });
   } finally {
     if (client) {
@@ -713,7 +730,7 @@ const getWorkspaceInvitations = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching invitations',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -753,7 +770,7 @@ const cancelInvitation = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error cancelling invitation',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -832,7 +849,7 @@ const updateMemberRole = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating member role',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -896,7 +913,7 @@ const removeMember = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error removing member',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -978,7 +995,7 @@ const getInviteInfo = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching invitation info',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

@@ -1,6 +1,9 @@
 // Holiday Controller
 // Proxies requests to Abstract API with caching for Lithuanian holidays
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 const ABSTRACT_API_KEY = process.env.ABSTRACT_API_KEY;
 const ABSTRACT_API_URL = 'https://holidays.abstractapi.com/v1/';
 const COUNTRY_CODE = 'LT';
@@ -89,7 +92,7 @@ const getHolidays = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching holidays',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
