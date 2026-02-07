@@ -8,6 +8,8 @@ const { inviteLimiter } = require('../middleware/rateLimiter');
 const { requireActiveSubscription } = require('../middleware/billingGuard');
 const { checkMemberLimit, checkWorkspaceLimit } = require('../middleware/planLimits');
 const withErrorHandling = require('../lib/withErrorHandling');
+const validate = require('../middleware/validate');
+const { createWorkspaceSchema, updateWorkspaceSchema, inviteToWorkspaceSchema } = require('../middleware/schemas');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
 
@@ -29,7 +31,7 @@ router.use(authMiddleware);
 router.get('/', withErrorHandling(workspaceController.getMyWorkspaces));
 
 // POST /api/workspaces - Create new workspace (plan limit enforced)
-router.post('/', checkWorkspaceLimit, workspaceController.createWorkspace);
+router.post('/', checkWorkspaceLimit, validate(createWorkspaceSchema), workspaceController.createWorkspace);
 
 // GET /api/workspaces/users - Get users for workspace (for assignee dropdown)
 router.get('/users', withErrorHandling(workspaceController.getWorkspaceUsers));
@@ -38,7 +40,7 @@ router.get('/users', withErrorHandling(workspaceController.getWorkspaceUsers));
 router.get('/:id', withErrorHandling(workspaceController.getWorkspaceById));
 
 // PUT /api/workspaces/:id - Update workspace
-router.put('/:id', withErrorHandling(workspaceController.updateWorkspace));
+router.put('/:id', validate(updateWorkspaceSchema), withErrorHandling(workspaceController.updateWorkspace));
 
 // DELETE /api/workspaces/:id - Delete workspace
 router.delete('/:id', withErrorHandling(workspaceController.deleteWorkspace));
@@ -65,7 +67,7 @@ router.delete('/:id/members/:memberId', withErrorHandling(workspaceController.re
 router.post('/accept-invite/:token', withErrorHandling(workspaceController.acceptInvitation));
 
 // POST /api/workspaces/:id/invite - Invite user to workspace (rate + plan limited)
-router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, workspaceController.inviteToWorkspace);
+router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, validate(inviteToWorkspaceSchema), workspaceController.inviteToWorkspace);
 
 // GET /api/workspaces/:id/invitations - Get pending invitations for workspace
 router.get('/:id/invitations', withErrorHandling(workspaceController.getWorkspaceInvitations));
