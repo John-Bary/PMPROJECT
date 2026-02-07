@@ -1,10 +1,11 @@
 // Authentication Controller
 // Handles user registration, login, and authentication logic
 
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
-const { sendWelcomeEmail } = require('../utils/emailService');
+const { sendWelcomeEmail, sendPasswordResetEmail, sendVerificationEmail } = require('../utils/emailService');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -123,9 +124,16 @@ const register = async (req, res) => {
     const isFirstUser = parseInt(userCount.rows[0].count) === 0;
     const role = isFirstUser ? 'admin' : 'member';
 
+    // Generate email verification token
+    const verificationToken = crypto.randomBytes(48).toString('hex');
+    const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const verificationExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     const result = await client.query(
-      'INSERT INTO users (email, password, name, role) VALUES ($1, $2, $3, $4) RETURNING id, email, name, role, created_at',
-      [email.toLowerCase(), hashedPassword, name, role]
+      `INSERT INTO users (email, password, name, role, email_verified, email_verification_token, email_verification_expires_at)
+       VALUES ($1, $2, $3, $4, false, $5, $6)
+       RETURNING id, email, name, role, email_verified, created_at`,
+      [email.toLowerCase(), hashedPassword, name, role, hashedVerificationToken, verificationExpiresAt]
     );
 
     const newUser = result.rows[0];
@@ -154,24 +162,29 @@ const register = async (req, res) => {
     // Set httpOnly cookies
     setAuthCookies(res, token, refreshToken);
 
-    // Send welcome email (async, don't block response)
-    sendWelcomeEmail({
+    // Send verification email (async, don't block response)
+    const clientUrl = (process.env.CLIENT_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || 'https://www.todoria.com').replace(/\/+$/, '');
+    const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
+
+    sendVerificationEmail({
       to: newUser.email,
-      userName: newUser.name
+      userName: newUser.name,
+      verificationUrl
     }).catch(err => {
-      console.error(`Failed to send welcome email to ${newUser.email}:`, err.message);
+      console.error(`Failed to send verification email to ${newUser.email}:`, err.message);
     });
 
     // Return user data (without password) - token still returned for backward compat
     res.status(201).json({
       status: 'success',
-      message: 'User registered successfully',
+      message: 'User registered successfully. Please check your email to verify your account.',
       data: {
         user: {
           id: newUser.id,
           email: newUser.email,
           name: newUser.name,
           role: newUser.role,
+          emailVerified: newUser.email_verified,
           createdAt: newUser.created_at
         },
         workspace: {
@@ -209,7 +222,7 @@ const login = async (req, res) => {
 
     // Find user by email
     const result = await query(
-      'SELECT id, email, password, name, role, avatar_url FROM users WHERE email = $1',
+      'SELECT id, email, password, name, role, avatar_url, email_verified FROM users WHERE email = $1',
       [email.toLowerCase()]
     );
 
@@ -249,7 +262,8 @@ const login = async (req, res) => {
           email: user.email,
           name: user.name,
           role: user.role,
-          avatarUrl: user.avatar_url
+          avatarUrl: user.avatar_url,
+          emailVerified: user.email_verified
         },
         token
       }
@@ -290,7 +304,7 @@ const getCurrentUser = async (req, res) => {
   try {
     // req.user is set by authMiddleware
     const result = await query(
-      'SELECT id, email, name, role, avatar_url, created_at FROM users WHERE id = $1',
+      'SELECT id, email, name, role, avatar_url, email_verified, created_at FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -312,6 +326,7 @@ const getCurrentUser = async (req, res) => {
           name: user.name,
           role: user.role,
           avatarUrl: user.avatar_url,
+          emailVerified: user.email_verified,
           createdAt: user.created_at
         }
       }
@@ -439,11 +454,255 @@ const refreshAccessToken = async (req, res) => {
   }
 };
 
+// Forgot password - send reset email
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Please provide your email address.'
+      });
+    }
+
+    // Always return success to prevent email enumeration
+    const successResponse = {
+      status: 'success',
+      message: 'If an account with that email exists, we sent a password reset link.'
+    };
+
+    const result = await query(
+      'SELECT id, email, name FROM users WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (result.rows.length === 0) {
+      return res.json(successResponse);
+    }
+
+    const user = result.rows[0];
+
+    // Generate a secure random token
+    const resetToken = crypto.randomBytes(48).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store hashed token in DB (don't store plaintext)
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+    await query(
+      'UPDATE users SET password_reset_token = $1, password_reset_expires_at = $2 WHERE id = $3',
+      [hashedToken, expiresAt, user.id]
+    );
+
+    // Build reset URL
+    const clientUrl = (process.env.CLIENT_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || 'https://www.todoria.com').replace(/\/+$/, '');
+    const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
+
+    // Send email (async, don't block response)
+    sendPasswordResetEmail({
+      to: user.email,
+      userName: user.name || user.email,
+      resetUrl
+    }).catch(err => {
+      console.error(`Failed to send password reset email to ${user.email}:`, err.message);
+    });
+
+    res.json(successResponse);
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error processing password reset request',
+      error: safeError(error)
+    });
+  }
+};
+
+// Reset password with token
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Token and new password are required.'
+      });
+    }
+
+    // Validate password complexity
+    if (password.length < 8) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password must be at least 8 characters long.'
+      });
+    }
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one digit.'
+      });
+    }
+
+    // Hash the provided token to compare with stored hash
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const result = await query(
+      'SELECT id, email, name FROM users WHERE password_reset_token = $1 AND password_reset_expires_at > NOW()',
+      [hashedToken]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid or expired reset link. Please request a new one.'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Update password and clear reset token
+    await query(
+      'UPDATE users SET password = $1, password_reset_token = NULL, password_reset_expires_at = NULL WHERE id = $2',
+      [hashedPassword, user.id]
+    );
+
+    res.json({
+      status: 'success',
+      message: 'Password has been reset successfully. You can now log in with your new password.'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error resetting password',
+      error: safeError(error)
+    });
+  }
+};
+
+// Verify email with token
+const verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Verification token is required.'
+      });
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+    const result = await query(
+      'SELECT id, email, name FROM users WHERE email_verification_token = $1 AND email_verification_expires_at > NOW()',
+      [hashedToken]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid or expired verification link. Please request a new one.'
+      });
+    }
+
+    const user = result.rows[0];
+
+    await query(
+      'UPDATE users SET email_verified = true, email_verification_token = NULL, email_verification_expires_at = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    // Send welcome email now that they're verified
+    sendWelcomeEmail({
+      to: user.email,
+      userName: user.name
+    }).catch(err => {
+      console.error(`Failed to send welcome email to ${user.email}:`, err.message);
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Email verified successfully!'
+    });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error verifying email',
+      error: safeError(error)
+    });
+  }
+};
+
+// Resend verification email (requires auth)
+const resendVerificationEmail = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const result = await query(
+      'SELECT id, email, name, email_verified FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    if (user.email_verified) {
+      return res.json({ status: 'success', message: 'Email is already verified.' });
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(48).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await query(
+      'UPDATE users SET email_verification_token = $1, email_verification_expires_at = $2 WHERE id = $3',
+      [hashedToken, expiresAt, user.id]
+    );
+
+    const clientUrl = (process.env.CLIENT_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || 'https://www.todoria.com').replace(/\/+$/, '');
+    const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
+
+    await sendVerificationEmail({
+      to: user.email,
+      userName: user.name,
+      verificationUrl
+    });
+
+    res.json({
+      status: 'success',
+      message: 'Verification email sent. Please check your inbox.'
+    });
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error sending verification email',
+      error: safeError(error)
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   getCurrentUser,
   getAllUsers,
-  refreshAccessToken
+  refreshAccessToken,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  resendVerificationEmail
 };

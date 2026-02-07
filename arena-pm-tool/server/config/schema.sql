@@ -38,11 +38,18 @@ CREATE TABLE users (
     timezone VARCHAR(50) DEFAULT 'UTC',
     email_notifications_enabled BOOLEAN DEFAULT true,
     email_digest_mode VARCHAR(20) DEFAULT 'immediate' CHECK (email_digest_mode IN ('immediate', 'daily', 'weekly', 'none')),
+    password_reset_token VARCHAR(128),
+    password_reset_expires_at TIMESTAMP WITH TIME ZONE,
+    email_verified BOOLEAN DEFAULT false,
+    email_verification_token VARCHAR(128),
+    email_verification_expires_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_password_reset_token ON users(password_reset_token) WHERE password_reset_token IS NOT NULL;
+CREATE INDEX idx_users_email_verification_token ON users(email_verification_token) WHERE email_verification_token IS NOT NULL;
 
 -- ============================================================================
 -- WORKSPACES TABLE

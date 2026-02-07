@@ -12,19 +12,27 @@ const {
   logout,
   getCurrentUser,
   getAllUsers,
-  refreshAccessToken
+  refreshAccessToken,
+  forgotPassword,
+  resetPassword,
+  verifyEmail,
+  resendVerificationEmail
 } = require('../controllers/authController');
 
 // Public routes (no authentication required)
 // Rate limited to prevent brute-force attacks
 router.post('/register', authLimiter, withErrorHandling(register));
 router.post('/login', authLimiter, withErrorHandling(login));
+router.post('/forgot-password', authLimiter, withErrorHandling(forgotPassword));
+router.post('/reset-password', authLimiter, withErrorHandling(resetPassword));
+router.post('/verify-email', authLimiter, withErrorHandling(verifyEmail));
 
 // Token refresh (uses httpOnly refresh cookie, no auth middleware needed)
 router.post('/refresh', withErrorHandling(refreshAccessToken));
 
 // Protected routes (authentication required)
 router.post('/logout', authMiddleware, withErrorHandling(logout));
+router.post('/resend-verification', authMiddleware, withErrorHandling(resendVerificationEmail));
 router.get('/me', authMiddleware, withErrorHandling(getCurrentUser));
 router.get('/users', authMiddleware, withErrorHandling(getAllUsers));
 

@@ -5,6 +5,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
+import VerifyEmailPending from './pages/VerifyEmailPending';
 import Dashboard from './pages/Dashboard';
 import AcceptInvite from './pages/AcceptInvite';
 import InviteLanding from './pages/InviteLanding';
@@ -66,6 +70,17 @@ function App() {
               {/* Public Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route
+                path="/verify-email-pending"
+                element={
+                  <ProtectedRoute skipEmailCheck>
+                    <VerifyEmailPending />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Invite Landing Page (public - shows invite details and auth choices) */}
               <Route path="/invite/:token" element={<InviteLanding />} />

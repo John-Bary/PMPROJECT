@@ -176,6 +176,10 @@ export const authAPI = {
   refresh: () => safeApiCall(() => api.post('/auth/refresh')),
   getCurrentUser: () => safeApiCall(() => api.get('/auth/me')),
   getAllUsers: () => safeApiCall(() => api.get('/auth/users')),
+  forgotPassword: (email) => safeApiCall(() => api.post('/auth/forgot-password', { email })),
+  resetPassword: (token, password) => safeApiCall(() => api.post('/auth/reset-password', { token, password })),
+  verifyEmail: (token) => safeApiCall(() => api.post('/auth/verify-email', { token })),
+  resendVerification: () => safeApiCall(() => api.post('/auth/resend-verification')),
 };
 
 // Tasks API

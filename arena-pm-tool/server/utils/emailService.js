@@ -47,7 +47,7 @@ const escapeHtml = (str) => {
 };
 
 // Keys that contain pre-built HTML and must NOT be escaped
-const HTML_SAFE_KEYS = new Set(['taskRows', 'taskUrl', 'inviteUrl', 'priorityColor']);
+const HTML_SAFE_KEYS = new Set(['taskRows', 'taskUrl', 'inviteUrl', 'priorityColor', 'resetUrl', 'verificationUrl']);
 
 // Simple templating: supports {{variable}} and {{#if variable}}...{{/if}}
 const renderTemplate = (templateName, data = {}) => {
@@ -262,6 +262,30 @@ const sendWelcomeEmail = async ({ to, userName }) => {
   return sendEmail({ to, subject, html });
 };
 
+// Send password reset email
+const sendPasswordResetEmail = async ({ to, userName, resetUrl }) => {
+  const subject = 'Reset Your Password — Todoria';
+
+  const html = renderTemplate('passwordReset.html', {
+    userName: userName || 'there',
+    resetUrl
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
+// Send email verification email
+const sendVerificationEmail = async ({ to, userName, verificationUrl }) => {
+  const subject = 'Verify Your Email — Todoria';
+
+  const html = renderTemplate('emailVerification.html', {
+    userName: userName || 'there',
+    verificationUrl
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
 module.exports = {
   verifyConnection,
   sendEmail,
@@ -269,5 +293,7 @@ module.exports = {
   sendMultipleTasksReminder,
   sendTaskAssignmentNotification,
   sendWorkspaceInvite,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendPasswordResetEmail,
+  sendVerificationEmail
 };

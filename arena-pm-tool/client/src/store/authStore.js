@@ -11,6 +11,7 @@ const sanitizeUserForStorage = (user) => {
     name: user.name,
     role: user.role,
     avatarUrl: user.avatarUrl,
+    emailVerified: user.emailVerified,
   };
 };
 
@@ -74,7 +75,7 @@ const useAuthStore = create((set) => ({
         error: null,
       });
 
-      toast.success('Account created successfully!');
+      toast.success('Account created! Please check your email to verify.');
       return { success: true };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Registration failed';
