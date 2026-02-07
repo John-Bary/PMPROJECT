@@ -36,7 +36,35 @@ const authLimiter = rateLimit({
   }
 });
 
+// Rate limiter for invitation endpoints
+// 10 invitations per hour per IP
+const inviteLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 'error',
+    message: 'Too many invitation requests. Please try again later.'
+  }
+});
+
+// Rate limiter for file uploads
+// 20 uploads per hour per IP
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    status: 'error',
+    message: 'Too many upload requests. Please try again later.'
+  }
+});
+
 module.exports = {
   apiLimiter,
-  authLimiter
+  authLimiter,
+  inviteLimiter,
+  uploadLimiter
 };

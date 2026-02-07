@@ -1,7 +1,7 @@
 // Task Controller
 // Handles all task-related operations
 
-const { query } = require('../config/database');
+const { query, getClient } = require('../config/database');
 const { sendTaskAssignmentNotification } = require('../utils/emailService');
 const { verifyWorkspaceAccess, canUserEdit } = require('../middleware/workspaceAuth');
 
@@ -612,28 +612,40 @@ const updateTask = async (req, res) => {
       `, values);
     }
 
-    // Handle assignee updates via task_assignments table
+    // Handle assignee updates via task_assignments table (wrapped in transaction)
     let newlyAddedAssigneeIds = [];
     if (assignee_ids !== undefined) {
-      const currentAssigneesResult = await query(
-        'SELECT user_id FROM task_assignments WHERE task_id = $1',
-        [id]
-      );
-      const currentAssigneeIds = currentAssigneesResult.rows.map(row => row.user_id);
+      const client = await getClient();
+      try {
+        await client.query('BEGIN');
 
-      await query('DELETE FROM task_assignments WHERE task_id = $1', [id]);
-
-      const assigneeArray = Array.isArray(assignee_ids) ? assignee_ids : [];
-      if (assigneeArray.length > 0) {
-        const assigneeValues = assigneeArray.map((_, idx) => `($1, $${idx + 2})`).join(', ');
-        await query(
-          `INSERT INTO task_assignments (task_id, user_id) VALUES ${assigneeValues}`,
-          [id, ...assigneeArray]
+        const currentAssigneesResult = await client.query(
+          'SELECT user_id FROM task_assignments WHERE task_id = $1',
+          [id]
         );
+        const currentAssigneeIds = currentAssigneesResult.rows.map(row => row.user_id);
 
-        newlyAddedAssigneeIds = assigneeArray.filter(
-          newId => !currentAssigneeIds.includes(newId)
-        );
+        await client.query('DELETE FROM task_assignments WHERE task_id = $1', [id]);
+
+        const assigneeArray = Array.isArray(assignee_ids) ? assignee_ids : [];
+        if (assigneeArray.length > 0) {
+          const assigneeValues = assigneeArray.map((_, idx) => `($1, $${idx + 2})`).join(', ');
+          await client.query(
+            `INSERT INTO task_assignments (task_id, user_id) VALUES ${assigneeValues}`,
+            [id, ...assigneeArray]
+          );
+
+          newlyAddedAssigneeIds = assigneeArray.filter(
+            newId => !currentAssigneeIds.includes(newId)
+          );
+        }
+
+        await client.query('COMMIT');
+      } catch (txError) {
+        await client.query('ROLLBACK');
+        throw txError;
+      } finally {
+        client.release();
       }
     }
 
@@ -762,30 +774,43 @@ const updateTaskPosition = async (req, res) => {
     const oldCategoryId = currentTask.category_id;
     const newCategoryId = category_id !== undefined ? category_id : oldCategoryId;
 
-    // Update the task's category and position
-    await query(`
-      UPDATE tasks
-      SET category_id = $1, position = $2
-      WHERE id = $3
-    `, [newCategoryId, position, id]);
+    // Wrap position updates in a transaction to prevent corruption from concurrent drags
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
 
-    // Reorder other tasks in the new category
-    await query(`
-      UPDATE tasks
-      SET position = position + 1
-      WHERE category_id = $1
-        AND id != $2
-        AND position >= $3
-    `, [newCategoryId, id, position]);
-
-    // If category changed, reorder old category
-    if (oldCategoryId !== newCategoryId && oldCategoryId !== null) {
-      await query(`
+      // Update the task's category and position
+      await client.query(`
         UPDATE tasks
-        SET position = position - 1
+        SET category_id = $1, position = $2
+        WHERE id = $3
+      `, [newCategoryId, position, id]);
+
+      // Reorder other tasks in the new category
+      await client.query(`
+        UPDATE tasks
+        SET position = position + 1
         WHERE category_id = $1
-          AND position > $2
-      `, [oldCategoryId, currentTask.position]);
+          AND id != $2
+          AND position >= $3
+      `, [newCategoryId, id, position]);
+
+      // If category changed, reorder old category
+      if (oldCategoryId !== newCategoryId && oldCategoryId !== null) {
+        await client.query(`
+          UPDATE tasks
+          SET position = position - 1
+          WHERE category_id = $1
+            AND position > $2
+        `, [oldCategoryId, currentTask.position]);
+      }
+
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK');
+      throw txError;
+    } finally {
+      client.release();
     }
 
     // Get updated task

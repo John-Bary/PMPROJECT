@@ -84,7 +84,8 @@ function DatePicker({ selected, onSelect, onClose, triggerRef }) {
   // Handle click outside to close the picker
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const clickedInPortal = portalRef.current && portalRef.current.contains(event.target);
+      if (!portalRef.current) return;
+      const clickedInPortal = portalRef.current.contains(event.target);
       const clickedInTrigger = triggerRef?.current && triggerRef.current.contains(event.target);
 
       if (!clickedInPortal && !clickedInTrigger) {

@@ -60,8 +60,7 @@ const authMiddleware = async (req, res, next) => {
     // Other errors
     return res.status(500).json({
       status: 'error',
-      message: 'Authentication error',
-      error: error.message
+      message: 'Authentication error'
     });
   }
 };

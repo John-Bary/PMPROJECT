@@ -135,6 +135,14 @@ const createWorkspace = async (req, res) => {
       });
     }
 
+    if (name.trim().length > 100) {
+      client.release();
+      return res.status(400).json({
+        status: 'error',
+        message: 'Workspace name must be 100 characters or less'
+      });
+    }
+
     // BIZ-01: Limit workspace creation per user (max 10)
     const workspaceCount = await client.query(
       'SELECT COUNT(*) FROM workspaces WHERE owner_id = $1',
@@ -212,6 +220,13 @@ const updateWorkspace = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'Workspace name is required'
+      });
+    }
+
+    if (name.trim().length > 100) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Workspace name must be 100 characters or less'
       });
     }
 

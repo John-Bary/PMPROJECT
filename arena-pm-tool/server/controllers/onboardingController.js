@@ -3,6 +3,9 @@
 
 const { query, getClient } = require('../config/database');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 const ONBOARDING_STEPS = ['welcome', 'profile', 'tour', 'roles', 'getting-started'];
 const TOTAL_STEPS = ONBOARDING_STEPS.length;
 
@@ -219,7 +222,7 @@ const getOnboardingStatus = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching onboarding status',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -277,7 +280,7 @@ const startOnboarding = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error starting onboarding',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -362,7 +365,7 @@ const updateProgress = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating onboarding progress',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -430,7 +433,7 @@ const completeOnboarding = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error completing onboarding',
-      error: error.message
+      error: safeError(error)
     });
   } finally {
     client.release();
@@ -498,7 +501,7 @@ const skipOnboarding = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error skipping onboarding',
-      error: error.message
+      error: safeError(error)
     });
   } finally {
     client.release();

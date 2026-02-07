@@ -5,6 +5,9 @@ const { query } = require('../config/database');
 const path = require('path');
 const fs = require('fs');
 
+// Helper: sanitize error for response (hide internals in production)
+const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
+
 // Valid options for preferences
 const VALID_LANGUAGES = ['en', 'es', 'fr', 'de', 'pt', 'it'];
 const VALID_DIGEST_MODES = ['immediate', 'daily_digest'];
@@ -54,7 +57,7 @@ const getProfile = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching profile',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -132,7 +135,7 @@ const updateProfile = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating profile',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -210,7 +213,7 @@ const updatePreferences = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating preferences',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -288,7 +291,7 @@ const updateNotifications = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error updating notification settings',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -337,7 +340,7 @@ const uploadAvatar = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error uploading avatar',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -377,7 +380,7 @@ const deleteAvatar = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error removing avatar',
-      error: error.message
+      error: safeError(error)
     });
   }
 };
@@ -385,9 +388,9 @@ const deleteAvatar = async (req, res) => {
 // Get tasks assigned to the current user
 const getMyTasks = async (req, res) => {
   try {
-    const { status, sort = 'due_date', order = 'asc' } = req.query;
+    const { status, sort = 'due_date', order = 'asc', workspace_id } = req.query;
 
-    // Build query
+    // Build query - use task_assignments table and scope to workspace
     let queryText = `
       SELECT
         t.id,
@@ -404,11 +407,19 @@ const getMyTasks = async (req, res) => {
         t.updated_at
       FROM tasks t
       LEFT JOIN categories c ON c.id = t.category_id
-      WHERE t.assignee_id = $1
+      JOIN task_assignments ta ON ta.task_id = t.id
+      WHERE ta.user_id = $1
     `;
 
     const values = [req.user.id];
     let paramIndex = 2;
+
+    // Scope to workspace if provided
+    if (workspace_id) {
+      queryText += ` AND t.workspace_id = $${paramIndex}`;
+      values.push(workspace_id);
+      paramIndex++;
+    }
 
     // Filter by status
     if (status) {
@@ -419,16 +430,21 @@ const getMyTasks = async (req, res) => {
       }
     }
 
-    // Sorting
-    const validSortFields = ['due_date', 'created_at', 'title', 'priority'];
-    const sortField = validSortFields.includes(sort) ? sort : 'due_date';
+    // Sorting - use a lookup map to prevent ORDER BY injection
+    const SORT_COLUMNS = {
+      due_date: 't.due_date',
+      created_at: 't.created_at',
+      title: 't.title',
+      priority: 't.priority'
+    };
+    const sortColumn = SORT_COLUMNS[sort] || SORT_COLUMNS.due_date;
     const sortOrder = order === 'desc' ? 'DESC' : 'ASC';
 
     // Handle null due_dates - put them at the end
-    if (sortField === 'due_date') {
-      queryText += ` ORDER BY t.due_date IS NULL, t.due_date ${sortOrder}`;
+    if (sort === 'due_date' || !SORT_COLUMNS[sort]) {
+      queryText += ` ORDER BY t.due_date IS NULL, ${sortColumn} ${sortOrder}`;
     } else {
-      queryText += ` ORDER BY t.${sortField} ${sortOrder}`;
+      queryText += ` ORDER BY ${sortColumn} ${sortOrder}`;
     }
 
     const result = await query(queryText, values);
@@ -458,7 +474,7 @@ const getMyTasks = async (req, res) => {
     res.status(500).json({
       status: 'error',
       message: 'Error fetching tasks',
-      error: error.message
+      error: safeError(error)
     });
   }
 };

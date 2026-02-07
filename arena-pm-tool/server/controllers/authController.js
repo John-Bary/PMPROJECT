@@ -9,13 +9,40 @@ const { sendWelcomeEmail } = require('../utils/emailService');
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
 
-// Generate JWT token
+// Generate short-lived access token (15 minutes)
 const generateToken = (userId, email, role) => {
   return jwt.sign(
     { userId, email, role },
     process.env.JWT_SECRET,
-    { expiresIn: '7d' } // Token expires in 7 days
+    { expiresIn: '15m' }
   );
+};
+
+// Generate long-lived refresh token (7 days)
+const generateRefreshToken = (userId) => {
+  return jwt.sign(
+    { userId, type: 'refresh' },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
+// Helper to set auth cookies
+const setAuthCookies = (res, accessToken, refreshToken) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  res.cookie('token', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    maxAge: 15 * 60 * 1000 // 15 minutes
+  });
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/api/auth/refresh',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  });
 };
 
 // Register new user
@@ -120,16 +147,12 @@ const register = async (req, res) => {
 
     await client.query('COMMIT');
 
-    // Generate JWT token
+    // Generate tokens
     const token = generateToken(newUser.id, newUser.email, newUser.role);
+    const refreshToken = generateRefreshToken(newUser.id);
 
-    // Set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // Set httpOnly cookies
+    setAuthCookies(res, token, refreshToken);
 
     // Send welcome email (async, don't block response)
     sendWelcomeEmail({
@@ -139,7 +162,7 @@ const register = async (req, res) => {
       console.error(`Failed to send welcome email to ${newUser.email}:`, err.message);
     });
 
-    // Return user data (without password)
+    // Return user data (without password) - token still returned for backward compat
     res.status(201).json({
       status: 'success',
       message: 'User registered successfully',
@@ -209,18 +232,14 @@ const login = async (req, res) => {
       });
     }
 
-    // Generate JWT token
+    // Generate tokens
     const token = generateToken(user.id, user.email, user.role);
+    const refreshToken = generateRefreshToken(user.id);
 
-    // Set cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    // Set httpOnly cookies
+    setAuthCookies(res, token, refreshToken);
 
-    // Return user data (without password)
+    // Return user data (without password) - token still returned for backward compat
     res.json({
       status: 'success',
       message: 'Login successful',
@@ -248,8 +267,9 @@ const login = async (req, res) => {
 // Logout user
 const logout = async (req, res) => {
   try {
-    // Clear the token cookie
+    // Clear both auth cookies
     res.clearCookie('token');
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
 
     res.json({
       status: 'success',
@@ -352,10 +372,78 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// Refresh access token using refresh token cookie
+const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'No refresh token provided'
+      });
+    }
+
+    // Verify refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid token type'
+      });
+    }
+
+    // Fetch current user data
+    const result = await query(
+      'SELECT id, email, name, role FROM users WHERE id = $1',
+      [decoded.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'User not found'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Issue new access token
+    const newAccessToken = generateToken(user.id, user.email, user.role);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('token', newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000
+    });
+
+    res.json({
+      status: 'success',
+      data: { token: newAccessToken }
+    });
+  } catch (error) {
+    if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Invalid or expired refresh token. Please login again.'
+      });
+    }
+    console.error('Refresh token error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error refreshing token'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   getCurrentUser,
-  getAllUsers
+  getAllUsers,
+  refreshAccessToken
 };
