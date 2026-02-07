@@ -45,6 +45,48 @@ const api = axios.create({
 // Auth relies on httpOnly cookies (set by the server) — no localStorage token needed.
 // The request interceptor no longer injects an Authorization header.
 
+// CSRF token management: fetch once and attach to all state-changing requests
+let csrfToken = null;
+let csrfFetchPromise = null;
+
+const fetchCsrfToken = async () => {
+  // Deduplicate concurrent fetches
+  if (csrfFetchPromise) return csrfFetchPromise;
+  csrfFetchPromise = axios
+    .get(`${API_BASE_URL}/csrf-token`, { withCredentials: true })
+    .then((res) => {
+      csrfToken = res.data.csrfToken;
+      return csrfToken;
+    })
+    .catch((err) => {
+      console.error('Failed to fetch CSRF token:', err.message);
+      return null;
+    })
+    .finally(() => {
+      csrfFetchPromise = null;
+    });
+  return csrfFetchPromise;
+};
+
+// Eagerly fetch CSRF token on module load
+fetchCsrfToken();
+
+// Methods that require CSRF protection
+const CSRF_METHODS = ['post', 'put', 'patch', 'delete'];
+
+// Request interceptor: attach CSRF token to state-changing requests
+api.interceptors.request.use(async (config) => {
+  if (CSRF_METHODS.includes(config.method)) {
+    if (!csrfToken) {
+      await fetchCsrfToken();
+    }
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+    }
+  }
+  return config;
+});
+
 // Debounce flag to prevent cascading 401 handlers from clearing state multiple times
 let isHandling401 = false;
 // Flag: are we currently trying to refresh the access token?
@@ -59,11 +101,22 @@ export const resetAuthInterceptorFlag = () => {
   isHandling401 = false;
 };
 
-// Response interceptor - handle 401 by attempting a silent refresh
+// Response interceptor - handle CSRF 403 retry and 401 token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Handle CSRF token rejection: fetch a new token and retry once
+    if (error.response?.status === 403 && !originalRequest._csrfRetry) {
+      originalRequest._csrfRetry = true;
+      csrfToken = null;
+      await fetchCsrfToken();
+      if (csrfToken) {
+        originalRequest.headers['X-CSRF-Token'] = csrfToken;
+        return api(originalRequest);
+      }
+    }
 
     if (error.response?.status === 401) {
       const requestUrl = originalRequest?.url || '';
@@ -82,7 +135,8 @@ api.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+          const refreshHeaders = csrfToken ? { 'X-CSRF-Token': csrfToken } : {};
+          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true, headers: refreshHeaders });
 
           // Refresh succeeded — replay queued requests
           refreshQueue.forEach(({ resolve, config }) => resolve(api(config)));
