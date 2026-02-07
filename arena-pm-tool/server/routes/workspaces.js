@@ -5,7 +5,8 @@ const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
 const { inviteLimiter } = require('../middleware/rateLimiter');
-const withErrorHandling = require('../lib/withErrorHandling');
+const { requireActiveSubscription } = require('../middleware/billingGuard');
+const { checkMemberLimit, checkWorkspaceLimit } = require('../middleware/planLimits');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
 
@@ -26,8 +27,8 @@ router.use(authMiddleware);
 // GET /api/workspaces - Get all workspaces for current user
 router.get('/', withErrorHandling(workspaceController.getMyWorkspaces));
 
-// POST /api/workspaces - Create new workspace
-router.post('/', withErrorHandling(workspaceController.createWorkspace));
+// POST /api/workspaces - Create new workspace (plan limit enforced)
+router.post('/', checkWorkspaceLimit, workspaceController.createWorkspace);
 
 // GET /api/workspaces/users - Get users for workspace (for assignee dropdown)
 router.get('/users', withErrorHandling(workspaceController.getWorkspaceUsers));
@@ -62,8 +63,8 @@ router.delete('/:id/members/:memberId', withErrorHandling(workspaceController.re
 // Defined before /:id routes to prevent parameterized route conflicts
 router.post('/accept-invite/:token', withErrorHandling(workspaceController.acceptInvitation));
 
-// POST /api/workspaces/:id/invite - Invite user to workspace (rate limited)
-router.post('/:id/invite', inviteLimiter, withErrorHandling(workspaceController.inviteToWorkspace));
+// POST /api/workspaces/:id/invite - Invite user to workspace (rate + plan limited)
+router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, workspaceController.inviteToWorkspace);
 
 // GET /api/workspaces/:id/invitations - Get pending invitations for workspace
 router.get('/:id/invitations', withErrorHandling(workspaceController.getWorkspaceInvitations));

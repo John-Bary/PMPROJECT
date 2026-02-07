@@ -189,6 +189,75 @@ CREATE INDEX idx_comments_task_id ON comments(task_id);
 CREATE INDEX idx_comments_author_id ON comments(author_id);
 
 -- ============================================================================
+-- BILLING TABLES (Phase 2 - SaaS Launch)
+-- ============================================================================
+
+-- Plans: Defines pricing tiers
+CREATE TABLE IF NOT EXISTS plans (
+    id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price_per_seat_cents INTEGER NOT NULL,
+    max_members INTEGER,                     -- NULL = unlimited
+    max_tasks_per_workspace INTEGER,          -- NULL = unlimited
+    features JSONB DEFAULT '{}'::jsonb,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Subscriptions: Each workspace has a subscription
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL UNIQUE REFERENCES workspaces(id) ON DELETE CASCADE,
+    plan_id VARCHAR(50) NOT NULL REFERENCES plans(id),
+    stripe_customer_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255),
+    status VARCHAR(20) NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'past_due', 'canceled', 'trialing')),
+    trial_ends_at TIMESTAMP WITH TIME ZONE,
+    current_period_start TIMESTAMP WITH TIME ZONE,
+    current_period_end TIMESTAMP WITH TIME ZONE,
+    seat_count INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_subscriptions_workspace_id ON subscriptions(workspace_id);
+CREATE INDEX idx_subscriptions_stripe_customer_id ON subscriptions(stripe_customer_id);
+CREATE INDEX idx_subscriptions_stripe_subscription_id ON subscriptions(stripe_subscription_id);
+CREATE INDEX idx_subscriptions_status ON subscriptions(status);
+
+-- Invoices: Billing history
+CREATE TABLE IF NOT EXISTS invoices (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id),
+    stripe_invoice_id VARCHAR(255),
+    amount_cents INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    period_start TIMESTAMP WITH TIME ZONE,
+    period_end TIMESTAMP WITH TIME ZONE,
+    pdf_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_invoices_workspace_id ON invoices(workspace_id);
+CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
+
+-- Composite indexes for performance
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace_due ON tasks(workspace_id, due_date);
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace_status ON tasks(workspace_id, status);
+CREATE INDEX IF NOT EXISTS idx_tasks_workspace_category ON tasks(workspace_id, category_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_members_role ON workspace_members(workspace_id, role);
+CREATE INDEX IF NOT EXISTS idx_invitations_workspace_email ON workspace_invitations(workspace_id, email)
+    WHERE accepted_at IS NULL;
+
+-- Seed default plans
+INSERT INTO plans (id, name, price_per_seat_cents, max_members, max_tasks_per_workspace, features, active)
+VALUES
+    ('free', 'Free', 0, 3, 50, '{"email_reminders": false}'::jsonb, true),
+    ('pro', 'Pro', 300, 50, NULL, '{"email_reminders": true, "priority_support": false}'::jsonb, true)
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================================
 -- TRIGGERS FOR AUTO-UPDATING updated_at
 -- ============================================================================
 
@@ -222,5 +291,10 @@ CREATE TRIGGER update_comments_updated_at
 
 CREATE TRIGGER update_onboarding_progress_updated_at
     BEFORE UPDATE ON workspace_onboarding_progress
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_subscriptions_updated_at
+    BEFORE UPDATE ON subscriptions
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();

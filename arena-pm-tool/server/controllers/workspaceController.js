@@ -334,10 +334,14 @@ const deleteWorkspace = async (req, res) => {
   }
 };
 
-// Get workspace members
+// Get workspace members (paginated)
 const getWorkspaceMembers = async (req, res) => {
   try {
     const { id } = req.params;
+    const { cursor, limit: limitParam } = req.query;
+
+    // Pagination defaults
+    const limit = Math.min(Math.max(parseInt(limitParam) || 50, 1), 200);
 
     // Verify user has access
     const membership = await verifyWorkspaceAccess(req.user.id, id);
@@ -348,7 +352,10 @@ const getWorkspaceMembers = async (req, res) => {
       });
     }
 
-    const result = await query(`
+    const params = [id];
+    let paramCount = 2;
+
+    let queryText = `
       SELECT
         wm.id as member_id,
         wm.user_id,
@@ -360,13 +367,27 @@ const getWorkspaceMembers = async (req, res) => {
       FROM workspace_members wm
       JOIN users u ON wm.user_id = u.id
       WHERE wm.workspace_id = $1
-      ORDER BY wm.role, u.name
-    `, [id]);
+    `;
+
+    if (cursor) {
+      queryText += ` AND wm.id > $${paramCount}`;
+      params.push(parseInt(cursor));
+      paramCount++;
+    }
+
+    queryText += ` ORDER BY wm.role, u.name, wm.id ASC LIMIT $${paramCount}`;
+    params.push(limit + 1);
+
+    const result = await query(queryText, params);
+
+    const hasMore = result.rows.length > limit;
+    const members = hasMore ? result.rows.slice(0, limit) : result.rows;
+    const nextCursor = hasMore ? members[members.length - 1].member_id : null;
 
     res.json({
       status: 'success',
       data: {
-        members: result.rows.map(m => ({
+        members: members.map(m => ({
           memberId: m.member_id,
           userId: m.user_id,
           role: m.role,
@@ -374,7 +395,9 @@ const getWorkspaceMembers = async (req, res) => {
           name: m.name,
           email: m.email,
           avatarUrl: m.avatar_url
-        }))
+        })),
+        nextCursor,
+        hasMore,
       }
     });
   } catch (error) {

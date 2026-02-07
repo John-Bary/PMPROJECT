@@ -29,6 +29,8 @@ const meRoutes = require('./routes/me');
 const holidayRoutes = require('./routes/holidays');
 const reminderRoutes = require('./routes/reminders');
 const workspaceRoutes = require('./routes/workspaces');
+const billingRoutes = require('./routes/billing');
+const { handleWebhook } = require('./controllers/billingController');
 
 // Initialize Express app
 const app = express();
@@ -138,6 +140,9 @@ app.use(cors(corsOptions));
 // Rate limiting for API routes
 app.use('/api', apiLimiter);
 
+// Stripe webhook needs raw body for signature verification — must be before express.json()
+app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), handleWebhook);
+
 // API-05: Explicit body size limits to prevent large payload attacks
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
@@ -215,6 +220,7 @@ app.use('/api/me', meRoutes);
 app.use('/api/holidays', holidayRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/billing', billingRoutes);
 
 // Sentry error handler (must be before other error handlers)
 Sentry.setupExpressErrorHandler(app);
