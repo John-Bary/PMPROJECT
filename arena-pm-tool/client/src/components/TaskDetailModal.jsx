@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { format } from 'date-fns';
 import {
   X, Check, Calendar, User, FolderOpen, Flag,
-  ChevronDown, MoreHorizontal, Trash2
+  ChevronDown, MoreHorizontal, Trash2, AlertCircle
 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -277,6 +277,9 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
     <div
       className="fixed inset-0 z-50 overflow-y-auto"
       onClick={handleBackdropClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="task-detail-title"
     >
       {/* Backdrop */}
       <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
@@ -322,6 +325,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 <button
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
                   className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  aria-label="More actions"
+                  aria-expanded={showMoreMenu}
                 >
                   <MoreHorizontal size={20} />
                 </button>
@@ -342,6 +347,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               <button
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                aria-label="Close task details"
               >
                 <X size={20} />
               </button>
@@ -372,6 +378,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                   />
                 ) : (
                   <h2
+                    id="task-detail-title"
                     onClick={() => setIsEditingTitle(true)}
                     className={`
                       text-xl font-semibold cursor-text hover:bg-gray-50 rounded px-2 py-1 -mx-2
@@ -457,8 +464,10 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                     <button
                       onClick={() => setShowDatePicker(!showDatePicker)}
                       className={`flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition text-sm ${isOverdue ? 'text-red-600' : ''}`}
+                      aria-label={isOverdue ? `Due date: ${formattedDueDate} (overdue)` : `Due date: ${formattedDueDate || 'none'}`}
                     >
-                      <Calendar size={16} className={isOverdue ? 'text-red-500' : 'text-gray-400'} />
+                      {isOverdue ? <AlertCircle size={16} className="text-red-500" aria-hidden="true" /> : <Calendar size={16} className="text-gray-400" />}
+                      {isOverdue && <span className="text-red-600 font-semibold text-xs">Overdue</span>}
                       <span className={formattedDueDate ? (isOverdue ? 'text-red-600 font-medium' : 'text-gray-900') : 'text-gray-400'}>
                         {formattedDueDate || 'Add due date'}
                       </span>
