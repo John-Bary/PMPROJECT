@@ -16,7 +16,7 @@ exports.up = (pgm) => {
     price_per_seat_cents: { type: 'integer', notNull: true },
     max_members: { type: 'integer' },           // NULL = unlimited
     max_tasks_per_workspace: { type: 'integer' }, // NULL = unlimited
-    features: { type: 'jsonb', default: "'{}'::jsonb" },
+    features: { type: 'jsonb', default: pgm.func("'{}'::jsonb") },
     active: { type: 'boolean', default: true },
     created_at: { type: 'timestamptz', default: pgm.func('CURRENT_TIMESTAMP') },
   });
