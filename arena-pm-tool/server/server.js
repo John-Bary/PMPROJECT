@@ -232,13 +232,16 @@ const AppError = require('./lib/AppError');
 app.use((err, req, res, _next) => {
   const requestId = req.id || 'unknown';
   const isAppError = err instanceof AppError;
-  const statusCode = isAppError ? err.statusCode : 500;
+  // Respect status from AppError, http-errors (csrf-csrf), or default to 500
+  const statusCode = isAppError ? err.statusCode : (err.status || err.statusCode || 500);
+  // http-errors sets expose=true for 4xx (safe to show to client)
+  const message = isAppError ? err.message : (err.expose ? err.message : 'Internal server error');
 
   logger.error({ requestId, method: req.method, url: req.originalUrl, err }, 'Unhandled error');
 
   res.status(statusCode).json({
     status: 'error',
-    message: isAppError ? err.message : 'Internal server error',
+    message,
     requestId,
   });
 });
