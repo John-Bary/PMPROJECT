@@ -6,6 +6,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const { authMiddleware } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/rateLimiter');
 const {
   getProfile,
   updateProfile,
@@ -16,22 +17,29 @@ const {
   getMyTasks
 } = require('../controllers/meController');
 
+// Allowed file extensions for avatar uploads (whitelist)
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+
 // Configure multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.join(__dirname, '../uploads/avatars'));
   },
   filename: (req, file, cb) => {
-    // Generate unique filename: userId-timestamp.ext
+    // Whitelist extension to prevent path traversal / double-extension attacks
     const ext = path.extname(file.originalname).toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      return cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
+    }
     cb(null, `${req.user.id}-${Date.now()}${ext}`);
   }
 });
 
-// File filter for avatar uploads
+// File filter for avatar uploads (checks both mimetype and extension)
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  if (allowedTypes.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowedTypes.includes(file.mimetype) && ALLOWED_EXTENSIONS.includes(ext)) {
     cb(null, true);
   } else {
     cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'), false);
@@ -60,8 +68,8 @@ router.patch('/preferences', updatePreferences);
 // Notification routes
 router.patch('/notifications', updateNotifications);
 
-// Avatar routes
-router.post('/avatar', upload.single('avatar'), uploadAvatar);
+// Avatar routes (rate limited)
+router.post('/avatar', uploadLimiter, upload.single('avatar'), uploadAvatar);
 router.delete('/avatar', deleteAvatar);
 
 // My tasks route

@@ -15,6 +15,7 @@ const path = require('path');
 const { pool } = require('./config/database');
 const { startReminderScheduler } = require('./jobs/reminderJob');
 const { apiLimiter } = require('./middleware/rateLimiter');
+const { doubleCsrfProtection, csrfTokenRoute } = require('./middleware/csrf');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -121,7 +122,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
   optionsSuccessStatus: 200
 };
 
@@ -135,6 +136,10 @@ app.use('/api', apiLimiter);
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(cookieParser());
+
+// CSRF protection: token endpoint + guard on mutating methods
+app.get('/api/csrf-token', csrfTokenRoute);
+app.use('/api', doubleCsrfProtection);
 
 // INJ-07: Serve static files for uploads with Content-Disposition to prevent browser execution
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {

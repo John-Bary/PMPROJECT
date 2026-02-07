@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
+const { inviteLimiter } = require('../middleware/rateLimiter');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
 
@@ -60,8 +61,8 @@ router.delete('/:id/members/:memberId', workspaceController.removeMember);
 // Defined before /:id routes to prevent parameterized route conflicts
 router.post('/accept-invite/:token', workspaceController.acceptInvitation);
 
-// POST /api/workspaces/:id/invite - Invite user to workspace
-router.post('/:id/invite', workspaceController.inviteToWorkspace);
+// POST /api/workspaces/:id/invite - Invite user to workspace (rate limited)
+router.post('/:id/invite', inviteLimiter, workspaceController.inviteToWorkspace);
 
 // GET /api/workspaces/:id/invitations - Get pending invitations for workspace
 router.get('/:id/invitations', workspaceController.getWorkspaceInvitations);

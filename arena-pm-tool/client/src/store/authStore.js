@@ -16,8 +16,8 @@ const sanitizeUserForStorage = (user) => {
 
 const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
-  token: localStorage.getItem('token') || null,
-  isAuthenticated: !!localStorage.getItem('token'),
+  token: null, // Token is now managed via httpOnly cookies only
+  isAuthenticated: !!localStorage.getItem('user'),
   isLoading: false,
   error: null,
 
@@ -26,18 +26,16 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authAPI.login(credentials);
-      const { user, token } = response.data.data;
+      const { user } = response.data.data;
 
-      // Store in localStorage
+      // Store only user profile in localStorage (no token)
       localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
-      localStorage.setItem('token', token);
 
       // Reset the 401 interceptor flag so future 401s are handled normally
       resetAuthInterceptorFlag();
 
       set({
         user,
-        token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -61,18 +59,16 @@ const useAuthStore = create((set) => ({
     set({ isLoading: true, error: null });
     try {
       const response = await authAPI.register(userData);
-      const { user, token } = response.data.data;
+      const { user } = response.data.data;
 
-      // Store in localStorage
+      // Store only user profile in localStorage (no token)
       localStorage.setItem('user', JSON.stringify(sanitizeUserForStorage(user)));
-      localStorage.setItem('token', token);
 
       // Reset the 401 interceptor flag so future 401s are handled normally
       resetAuthInterceptorFlag();
 
       set({
         user,
-        token,
         isAuthenticated: true,
         isLoading: false,
         error: null,
@@ -100,9 +96,8 @@ const useAuthStore = create((set) => ({
       toast.error('Failed to log out from the server. Clearing local session.');
     }
 
-    // Clear localStorage
+    // Clear localStorage (no token to remove — cookies cleared by server)
     localStorage.removeItem('user');
-    localStorage.removeItem('token');
 
     set({
       user: null,
@@ -132,7 +127,6 @@ const useAuthStore = create((set) => ({
       console.error('Fetch user error:', error);
       // If fetching user fails, clear auth state
       localStorage.removeItem('user');
-      localStorage.removeItem('token');
       set({
         user: null,
         token: null,

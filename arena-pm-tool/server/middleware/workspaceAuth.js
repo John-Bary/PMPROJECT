@@ -49,7 +49,7 @@ const requireWorkspaceMember = async (req, res, next) => {
     res.status(500).json({
       status: 'error',
       message: 'Error verifying workspace access',
-      error: error.message
+      error: process.env.NODE_ENV === 'production' ? undefined : error.message
     });
   }
 };
@@ -102,7 +102,7 @@ const requireWorkspaceRole = (...allowedRoles) => {
       res.status(500).json({
         status: 'error',
         message: 'Error verifying workspace role',
-        error: error.message
+        error: process.env.NODE_ENV === 'production' ? undefined : error.message
       });
     }
   };

@@ -117,8 +117,8 @@ function ListView() {
       setIsDeletingTask(true);
       try {
         await deleteTask(deletingTask.id);
-        setDeletingTask(null);
       } finally {
+        setDeletingTask(null);
         setIsDeletingTask(false);
       }
     }

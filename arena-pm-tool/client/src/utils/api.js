@@ -42,55 +42,71 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - add auth token to headers
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Auth relies on httpOnly cookies (set by the server) — no localStorage token needed.
+// The request interceptor no longer injects an Authorization header.
 
-// Debounce flag to prevent cascading 401 handlers from clearing token multiple times
+// Debounce flag to prevent cascading 401 handlers from clearing state multiple times
 let isHandling401 = false;
+// Flag: are we currently trying to refresh the access token?
+let isRefreshing = false;
+// Queue of requests waiting for a token refresh
+let refreshQueue = [];
 
-// Auth endpoints that should NOT trigger the global 401 handler
-// (wrong password is not a session expiry)
-const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/logout'];
+// Auth endpoints that should NOT trigger the global 401 / refresh handler
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/logout', '/auth/refresh'];
 
 export const resetAuthInterceptorFlag = () => {
   isHandling401 = false;
 };
 
-// Response interceptor - handle errors globally
+// Response interceptor - handle 401 by attempting a silent refresh
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response) {
-      // Server responded with error status
-      if (error.response.status === 401) {
-        const requestUrl = error.config?.url || '';
-        const isAuthEndpoint = AUTH_ENDPOINTS.some((ep) => requestUrl.includes(ep));
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
-        if (!isAuthEndpoint && !isHandling401) {
-          isHandling401 = true;
-          // Unauthorized - clear token and redirect to login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+    if (error.response?.status === 401) {
+      const requestUrl = originalRequest?.url || '';
+      const isAuthEndpoint = AUTH_ENDPOINTS.some((ep) => requestUrl.includes(ep));
 
-          // Preserve current URL so user can return after login
-          const currentPath = window.location.pathname + window.location.search;
-          const returnParam = currentPath && currentPath !== '/login'
-            ? `?returnUrl=${encodeURIComponent(currentPath)}`
-            : '';
-          window.location.href = `/login${returnParam}`;
+      // Don't attempt refresh for auth endpoints or already-retried requests
+      if (!isAuthEndpoint && !originalRequest._retry) {
+        if (isRefreshing) {
+          // Wait for the in-flight refresh to finish, then replay
+          return new Promise((resolve, reject) => {
+            refreshQueue.push({ resolve, reject, config: originalRequest });
+          });
+        }
+
+        originalRequest._retry = true;
+        isRefreshing = true;
+
+        try {
+          await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+
+          // Refresh succeeded — replay queued requests
+          refreshQueue.forEach(({ resolve, config }) => resolve(api(config)));
+          refreshQueue = [];
+
+          // Replay the original request
+          return api(originalRequest);
+        } catch (refreshError) {
+          // Refresh failed — reject all queued requests and redirect to login
+          refreshQueue.forEach(({ reject }) => reject(refreshError));
+          refreshQueue = [];
+
+          if (!isHandling401) {
+            isHandling401 = true;
+            localStorage.removeItem('user');
+
+            const currentPath = window.location.pathname + window.location.search;
+            const returnParam = currentPath && currentPath !== '/login'
+              ? `?returnUrl=${encodeURIComponent(currentPath)}`
+              : '';
+            window.location.href = `/login${returnParam}`;
+          }
+        } finally {
+          isRefreshing = false;
         }
       }
     }
@@ -103,6 +119,7 @@ export const authAPI = {
   login: (credentials) => safeApiCall(() => api.post('/auth/login', credentials)),
   register: (userData) => safeApiCall(() => api.post('/auth/register', userData)),
   logout: () => safeApiCall(() => api.post('/auth/logout')),
+  refresh: () => safeApiCall(() => api.post('/auth/refresh')),
   getCurrentUser: () => safeApiCall(() => api.get('/auth/me')),
   getAllUsers: () => safeApiCall(() => api.get('/auth/users')),
 };

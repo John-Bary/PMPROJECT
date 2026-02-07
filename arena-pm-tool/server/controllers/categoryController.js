@@ -544,12 +544,12 @@ const deleteCategory = async (req, res) => {
     // Delete the category
     await query('DELETE FROM categories WHERE id = $1', [id]);
 
-    // Reorder remaining categories
+    // Reorder remaining categories (scoped to workspace)
     await query(`
       UPDATE categories
       SET position = position - 1
-      WHERE position > $1
-    `, [category.position]);
+      WHERE position > $1 AND workspace_id = $2
+    `, [category.position, category.workspace_id]);
 
     res.json({
       status: 'success',

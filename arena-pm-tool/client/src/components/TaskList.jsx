@@ -264,9 +264,9 @@ function TaskList() {
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // Filter by assignee
+      // Filter by assignee (check assignees array, not legacy assigneeId)
       const matchesAssignee = filters.assignees.length === 0 ||
-        filters.assignees.includes(task.assigneeId);
+        (task.assignees || []).some(assignee => filters.assignees.includes(assignee.id));
 
       // Filter by priority
       const matchesPriority = filters.priorities.length === 0 ||

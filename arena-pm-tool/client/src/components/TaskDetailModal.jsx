@@ -15,6 +15,7 @@ import SubtaskList from './SubtaskList';
 import CommentSection from './CommentSection';
 import { ButtonSpinner, InlineSpinner } from './Loader';
 import { getAvatarColor } from './AssigneeListItem';
+import toast from 'react-hot-toast';
 
 const priorityConfig = {
   urgent: { label: 'Urgent', color: 'text-red-600', bg: 'bg-red-100', dot: 'bg-red-500' },
@@ -149,6 +150,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
         await updateTask(task.id, { title: editedTitle.trim() });
       } catch (error) {
         setEditedTitle(task.title);
+        toast.error('Failed to save title');
       } finally {
         setIsSaving(false);
       }
@@ -163,6 +165,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
         await updateTask(task.id, { description: editedDescription });
       } catch (error) {
         setEditedDescription(task.description || '');
+        toast.error('Failed to save description');
       } finally {
         setIsSaving(false);
       }
@@ -193,6 +196,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
         completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
         category_id: newCategoryId,
       });
+    } catch (error) {
+      toast.error('Failed to update task status');
     } finally {
       setIsTogglingComplete(false);
     }
