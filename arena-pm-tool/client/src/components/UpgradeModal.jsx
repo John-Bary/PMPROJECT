@@ -1,65 +1,70 @@
-import { X, Check, Sparkles, Crown } from 'lucide-react';
+import { useState } from 'react';
+import { X, Check, Sparkles } from 'lucide-react';
+import useBillingStore from '../store/billingStore';
+import { ButtonSpinner } from './Loader';
 
 const plans = [
   {
     id: 'free',
     name: 'Free',
-    price: '$0',
-    period: 'forever',
+    price: '€0',
+    period: '/month',
     description: 'For individuals getting started',
     features: [
       'Up to 50 tasks',
       '1 workspace',
-      '3 categories',
-      'Basic task management',
+      'Up to 3 members',
+      'Board + List views',
     ],
-    cta: 'Current Plan',
-    disabled: true,
     className: 'border-neutral-200',
   },
   {
     id: 'pro',
     name: 'Pro',
-    price: '$9',
-    period: '/month',
-    description: 'For professionals and small teams',
+    price: '€5',
+    period: '/seat/month',
+    description: 'For small teams who need more',
     icon: Sparkles,
     features: [
       'Unlimited tasks',
-      'Up to 5 workspaces',
-      'Unlimited categories',
-      'Priority support',
-      'Calendar view',
-      'Advanced filters',
+      'Unlimited workspaces',
+      'Unlimited members',
+      'Board + List + Calendar views',
       'Email reminders',
+      'File attachments',
+      'Priority support',
     ],
     cta: 'Upgrade to Pro',
     popular: true,
     className: 'border-teal-300 ring-2 ring-teal-100',
   },
-  {
-    id: 'business',
-    name: 'Business',
-    price: '$24',
-    period: '/month',
-    description: 'For larger teams and organizations',
-    icon: Crown,
-    features: [
-      'Everything in Pro',
-      'Unlimited workspaces',
-      'Team collaboration',
-      'Admin controls',
-      'Audit log',
-      'Custom integrations',
-      'Dedicated support',
-    ],
-    cta: 'Upgrade to Business',
-    className: 'border-purple-200',
-  },
 ];
 
 function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
+  const { startCheckout, openPortal } = useBillingStore();
+  const [loadingPlan, setLoadingPlan] = useState(null);
+
   if (!isOpen) return null;
+
+  const handleUpgrade = async (planId) => {
+    if (planId === 'free' || planId === currentPlan) return;
+
+    setLoadingPlan(planId);
+    try {
+      await startCheckout();
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
+  const handleManage = async () => {
+    setLoadingPlan('manage');
+    try {
+      await openPortal();
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title">
@@ -69,7 +74,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
       />
 
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-scale-in">
+        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-scale-in">
           <div className="p-6 sm:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -78,7 +83,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                   Choose Your Plan
                 </h2>
                 <p className="text-neutral-500 mt-1">
-                  Upgrade to unlock more features for your team
+                  Simple pricing. No hidden fees. Cancel anytime.
                 </p>
               </div>
               <button
@@ -91,10 +96,11 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
             </div>
 
             {/* Plans Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {plans.map((plan) => {
                 const isCurrent = plan.id === currentPlan;
                 const Icon = plan.icon;
+                const isLoading = loadingPlan === plan.id;
 
                 return (
                   <div
@@ -113,7 +119,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
-                        {Icon && <Icon size={20} className={plan.id === 'pro' ? 'text-teal-500' : 'text-purple-500'} />}
+                        {Icon && <Icon size={20} className="text-teal-500" />}
                         <h3 className="text-lg font-semibold text-neutral-900">{plan.name}</h3>
                       </div>
                       <p className="text-sm text-neutral-500">{plan.description}</p>
@@ -133,22 +139,53 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                       ))}
                     </ul>
 
-                    <button
-                      className={`w-full py-2.5 rounded-lg font-medium text-sm transition-all ${
-                        isCurrent
-                          ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-                          : plan.popular
-                            ? 'bg-teal-500 text-white hover:bg-teal-600 shadow-sm'
-                            : 'bg-neutral-900 text-white hover:bg-neutral-800'
-                      }`}
-                      disabled={isCurrent || plan.disabled}
-                    >
-                      {isCurrent ? 'Current Plan' : plan.cta}
-                    </button>
+                    {isCurrent ? (
+                      <button
+                        className="w-full py-2.5 rounded-lg font-medium text-sm bg-neutral-100 text-neutral-400 cursor-not-allowed"
+                        disabled
+                      >
+                        Current Plan
+                      </button>
+                    ) : plan.id === 'free' ? (
+                      // For paid users viewing free plan
+                      currentPlan !== 'free' ? (
+                        <button
+                          onClick={handleManage}
+                          disabled={loadingPlan === 'manage'}
+                          className="w-full py-2.5 rounded-lg font-medium text-sm bg-neutral-200 text-neutral-700 hover:bg-neutral-300 transition-all flex items-center justify-center"
+                        >
+                          {loadingPlan === 'manage' && <ButtonSpinner />}
+                          Manage Subscription
+                        </button>
+                      ) : null
+                    ) : (
+                      <button
+                        onClick={() => handleUpgrade(plan.id)}
+                        disabled={isLoading}
+                        className="w-full py-2.5 rounded-lg font-medium text-sm bg-teal-500 text-white hover:bg-teal-600 shadow-sm transition-all disabled:opacity-50 flex items-center justify-center"
+                      >
+                        {isLoading && <ButtonSpinner />}
+                        {isLoading ? 'Redirecting...' : plan.cta}
+                      </button>
+                    )}
                   </div>
                 );
               })}
             </div>
+
+            {/* Manage existing subscription */}
+            {currentPlan !== 'free' && (
+              <div className="mt-6 text-center">
+                <button
+                  onClick={handleManage}
+                  disabled={loadingPlan === 'manage'}
+                  className="text-sm text-neutral-500 hover:text-neutral-700 underline transition-all flex items-center justify-center mx-auto gap-1"
+                >
+                  {loadingPlan === 'manage' && <ButtonSpinner />}
+                  Manage subscription & billing
+                </button>
+              </div>
+            )}
 
             <p className="text-center text-xs text-neutral-400 mt-6">
               All plans include SSL encryption and daily backups. Cancel anytime.
