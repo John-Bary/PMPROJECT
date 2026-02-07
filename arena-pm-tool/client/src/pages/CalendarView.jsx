@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useHolidayStore from '../store/holidayStore';
@@ -7,6 +7,7 @@ import { PageLoader } from '../components/Loader';
 
 function CalendarView() {
   const { tasks, isLoading: loading, fetchTasks, updateTask } = useTaskStore();
+  const holidayFetchRef = useRef(null);
   const { fetchHolidays, getHolidayByDate } = useHolidayStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('week'); // 'week' or 'month'
@@ -139,18 +140,30 @@ function CalendarView() {
     fetchTasks();
   }, [fetchTasks]);
 
-  // Fetch holidays for visible years
+  // Fetch holidays for visible years - debounced to avoid rapid API calls during navigation
   useEffect(() => {
-    // For month view, fetch current month's year
-    fetchHolidays(year);
-
-    // For week view, might span two years (December/January)
-    if (viewMode === 'week' && weekDays.length > 0) {
-      const weekStartYear = weekDays[0]?.year;
-      const weekEndYear = weekDays[6]?.year;
-      if (weekStartYear && weekStartYear !== year) fetchHolidays(weekStartYear);
-      if (weekEndYear && weekEndYear !== year) fetchHolidays(weekEndYear);
+    if (holidayFetchRef.current) {
+      clearTimeout(holidayFetchRef.current);
     }
+
+    holidayFetchRef.current = setTimeout(() => {
+      // For month view, fetch current month's year
+      fetchHolidays(year);
+
+      // For week view, might span two years (December/January)
+      if (viewMode === 'week' && weekDays.length > 0) {
+        const weekStartYear = weekDays[0]?.year;
+        const weekEndYear = weekDays[6]?.year;
+        if (weekStartYear && weekStartYear !== year) fetchHolidays(weekStartYear);
+        if (weekEndYear && weekEndYear !== year) fetchHolidays(weekEndYear);
+      }
+    }, 300);
+
+    return () => {
+      if (holidayFetchRef.current) {
+        clearTimeout(holidayFetchRef.current);
+      }
+    };
   }, [year, viewMode, weekDays, fetchHolidays]);
 
   // Group tasks by due date - memoized for performance
@@ -253,25 +266,25 @@ function CalendarView() {
     return getHolidayByDate(dateKey);
   };
 
-  // Drag and drop handlers
-  const handleDragStart = (e, task) => {
+  // Drag and drop handlers with optimistic UI and error recovery
+  const handleDragStart = useCallback((e, task) => {
     setIsDragging(true);
     setDraggedTask(task);
     e.dataTransfer.effectAllowed = 'move';
     e.stopPropagation(); // Prevent click event
-  };
+  }, []);
 
-  const handleDragOver = (e, day) => {
+  const handleDragOver = useCallback((e, day) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     setDragOverDay(day);
-  };
+  }, []);
 
-  const handleDragLeave = () => {
+  const handleDragLeave = useCallback(() => {
     setDragOverDay(null);
-  };
+  }, []);
 
-  const handleDrop = async (e, day) => {
+  const handleDrop = useCallback(async (e, day) => {
     e.preventDefault();
     setDragOverDay(null);
 
@@ -282,20 +295,25 @@ function CalendarView() {
     const dd = String(day).padStart(2, '0');
     const dateString = `${year}-${mm}-${dd}`;
 
-    // Update task with new due date using Zustand store
-    await updateTask(draggedTask.id, { due_date: dateString });
+    try {
+      // Update task with new due date using Zustand store
+      await updateTask(draggedTask.id, { due_date: dateString });
+    } catch (error) {
+      // Revert on failure - refetch to restore previous state
+      await fetchTasks();
+    }
 
     setDraggedTask(null);
     // Small delay before allowing clicks again
     setTimeout(() => setIsDragging(false), 100);
-  };
+  }, [draggedTask, month, year, updateTask, fetchTasks]);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     setDraggedTask(null);
     setDragOverDay(null);
     // Small delay before allowing clicks again
     setTimeout(() => setIsDragging(false), 100);
-  };
+  }, []);
 
   // Generate calendar days
   const calendarDays = [];
@@ -340,6 +358,7 @@ function CalendarView() {
               onClick={goToPrevious}
               className="p-1.5 sm:p-2 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Previous month' : 'Previous week'}
+              aria-label={viewMode === 'month' ? 'Previous month' : 'Previous week'}
             >
               <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
             </button>
@@ -347,6 +366,7 @@ function CalendarView() {
               onClick={goToNext}
               className="p-1.5 sm:p-2 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Next month' : 'Next week'}
+              aria-label={viewMode === 'month' ? 'Next month' : 'Next week'}
             >
               <ChevronRight size={18} className="sm:w-5 sm:h-5" />
             </button>

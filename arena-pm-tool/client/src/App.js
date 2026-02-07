@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -5,14 +6,18 @@ import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import WorkspaceSelectionPage from './pages/WorkspaceSelectionPage';
-import UserArea from './pages/UserArea/UserArea';
 import AcceptInvite from './pages/AcceptInvite';
 import InviteLanding from './pages/InviteLanding';
-import WorkspaceOnboarding from './pages/WorkspaceOnboarding';
 import ErrorPage from './pages/ErrorPage';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { PageLoader } from './components/Loader';
+
+// Lazy load less-frequently visited pages
+const WorkspaceSelectionPage = lazy(() => import('./pages/WorkspaceSelectionPage'));
+const UserArea = lazy(() => import('./pages/UserArea/UserArea'));
+const WorkspaceOnboarding = lazy(() => import('./pages/WorkspaceOnboarding'));
+const Billing = lazy(() => import('./pages/Billing'));
 
 function App() {
   const toastOptions = {
@@ -56,62 +61,74 @@ function App() {
 
       <ErrorBoundary>
         <WorkspaceProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Invite Landing Page (public - shows invite details and auth choices) */}
-            <Route path="/invite/:token" element={<InviteLanding />} />
+              {/* Invite Landing Page (public - shows invite details and auth choices) */}
+              <Route path="/invite/:token" element={<InviteLanding />} />
 
-            {/* Invitation Accept Route (handles its own auth) */}
-            <Route path="/accept-invite" element={<AcceptInvite />} />
+              {/* Invitation Accept Route (handles its own auth) */}
+              <Route path="/accept-invite" element={<AcceptInvite />} />
 
-            {/* Onboarding Route */}
-            <Route
-              path="/onboarding"
-              element={
-                <ProtectedRoute>
-                  <WorkspaceOnboarding />
-                </ProtectedRoute>
-              }
-            />
+              {/* Onboarding Route */}
+              <Route
+                path="/onboarding"
+                element={
+                  <ProtectedRoute>
+                    <WorkspaceOnboarding />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Protected Routes */}
-            <Route
-              path="/workspaces"
-              element={
-                <ProtectedRoute>
-                  <WorkspaceSelectionPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
-            />
+              {/* Protected Routes */}
+              <Route
+                path="/workspaces"
+                element={
+                  <ProtectedRoute>
+                    <WorkspaceSelectionPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* User Area Routes */}
-            <Route
-              path="/user/*"
-              element={
-                <ProtectedRoute>
-                  <UserArea />
-                </ProtectedRoute>
-              }
-            />
+              {/* Billing Route */}
+              <Route
+                path="/billing"
+                element={
+                  <ProtectedRoute>
+                    <Billing />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Landing Page (public) */}
-            <Route path="/" element={<LandingPage />} />
+              {/* User Area Routes */}
+              <Route
+                path="/user/*"
+                element={
+                  <ProtectedRoute>
+                    <UserArea />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Error Routes */}
-            <Route path="/error" element={<ErrorPage statusCode={500} />} />
-            <Route path="*" element={<ErrorPage statusCode={404} />} />
-          </Routes>
+              {/* Landing Page (public) */}
+              <Route path="/" element={<LandingPage />} />
+
+              {/* Error Routes */}
+              <Route path="/error" element={<ErrorPage statusCode={500} />} />
+              <Route path="*" element={<ErrorPage statusCode={404} />} />
+            </Routes>
+          </Suspense>
         </WorkspaceProvider>
       </ErrorBoundary>
     </Router>

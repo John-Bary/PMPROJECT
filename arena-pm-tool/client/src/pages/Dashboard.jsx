@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings, Users } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
+import PlanBadge from '../components/PlanBadge';
 import { ButtonSpinner } from '../components/Loader';
 
 function Dashboard() {
@@ -57,6 +58,17 @@ function Dashboard() {
             <div className="hidden md:block">
               <WorkspaceSwitcher />
             </div>
+            <Link to="/billing" className="hidden sm:block" title="Billing & Plans">
+              <PlanBadge plan="free" />
+            </Link>
+            <Link
+              to="/billing"
+              className="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-150 sm:hidden"
+              aria-label="Billing & Plans"
+              title="Billing & Plans"
+            >
+              <CreditCard size={20} />
+            </Link>
             <Link
               to="/user/team"
               className="p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all duration-150"
@@ -131,6 +143,15 @@ function Dashboard() {
               </button>
             ))}
             <div className="border-t border-neutral-150 mt-2 pt-2">
+              <Link
+                to="/billing"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-3 w-full py-3 px-3 rounded-lg font-medium text-sm text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 transition-all duration-150"
+              >
+                <CreditCard size={20} />
+                Billing & Plans
+                <PlanBadge plan="free" size="sm" />
+              </Link>
               <Link
                 to="/user/team"
                 onClick={() => setIsMobileMenuOpen(false)}

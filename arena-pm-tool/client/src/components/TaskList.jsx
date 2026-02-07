@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye } from 'lucide-react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
@@ -12,13 +12,14 @@ import AddCategoryButton from './AddCategoryButton';
 import FilterDropdown from './FilterDropdown';
 import { InlineSpinner, TaskColumnSkeleton, ButtonSpinner } from './Loader';
 import EmptyState from './EmptyState';
+import { useTaskActions } from '../hooks/useTaskActions';
+import { useTaskFilters } from '../hooks/useTaskFilters';
 
 function TaskList() {
   const {
     tasks,
     fetchTasks,
     deleteTask,
-    toggleComplete,
     updateTaskPosition,
     isLoading: isTasksLoading,
     isFetching,
@@ -47,18 +48,29 @@ function TaskList() {
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const searchDebounceRef = useRef(null);
   const searchInputRef = useRef(null);
-  const [togglingTaskIds, setTogglingTaskIds] = useState(new Set());
-  const [filters, setFilters] = useState({
-    assignees: [],
-    priorities: [],
-    categories: [],
-    hideCompleted: false,
-  });
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
+
+  // Shared hooks for toggle complete and filtering
+  const { handleToggleComplete, togglingTaskIds } = useTaskActions();
+
+  // Memoize top-level tasks
+  const topLevelTasks = useMemo(() =>
+    tasks.filter((task) => !task.parentTaskId),
+    [tasks]
+  );
+
+  const {
+    searchInput,
+    setSearchInput,
+    searchQuery,
+    filters,
+    setFilters,
+    filteredTasks: filteredTopLevelTasks,
+    hasActiveFilters,
+    clearSearch,
+    clearSearchAndFilters,
+  } = useTaskFilters(topLevelTasks, { debounceSearch: true });
 
   useEffect(() => {
     fetchTasks();
@@ -77,20 +89,6 @@ function TaskList() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Debounce search query - update filter value 300ms after user stops typing
-  useEffect(() => {
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
-    searchDebounceRef.current = setTimeout(() => {
-      setSearchQuery(searchInput);
-    }, 300);
-    return () => {
-      if (searchDebounceRef.current) {
-        clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, [searchInput]);
 
   const handleOpenDetail = (task) => {
     setSelectedTaskId(task.id);
@@ -112,23 +110,6 @@ function TaskList() {
     setDeletingTask(task);
   };
 
-  const handleToggleComplete = async (task) => {
-    setTogglingTaskIds((prev) => {
-      const next = new Set(prev);
-      next.add(task.id);
-      return next;
-    });
-
-    try {
-      await toggleComplete(task, categories);
-    } finally {
-      setTogglingTaskIds((prev) => {
-        const next = new Set(prev);
-        next.delete(task.id);
-        return next;
-      });
-    }
-  };
 
   const confirmDelete = async () => {
     if (deletingTask) {
@@ -252,67 +233,40 @@ function TaskList() {
     await updateTaskPosition(taskId, positionData);
   };
 
-  // Only show top-level tasks (subtasks are handled in ListView)
-  const topLevelTasks = tasks.filter((task) => !task.parentTaskId);
-
-  // Group tasks by category and apply search filter and filters
-  const getTasksByCategory = (categoryId) => {
-    return topLevelTasks.filter((task) => {
-      const matchesCategory = task.categoryId === categoryId;
-
-      const matchesSearch = searchQuery.trim() === '' ||
-        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      // Filter by assignee (check assignees array, not legacy assigneeId)
-      const matchesAssignee = filters.assignees.length === 0 ||
-        (task.assignees || []).some(assignee => filters.assignees.includes(assignee.id));
-
-      // Filter by priority
-      const matchesPriority = filters.priorities.length === 0 ||
-        filters.priorities.includes(task.priority);
-
-      // Filter by completed status
-      const matchesCompleted = !filters.hideCompleted ||
-        task.status !== 'completed';
-
-      return matchesCategory && matchesSearch && matchesAssignee && matchesPriority && matchesCompleted;
+  // Memoize filtered tasks grouped by category
+  const tasksByCategory = useMemo(() => {
+    const grouped = {};
+    filteredTopLevelTasks.forEach((task) => {
+      if (!grouped[task.categoryId]) {
+        grouped[task.categoryId] = [];
+      }
+      grouped[task.categoryId].push(task);
     });
-  };
+    return grouped;
+  }, [filteredTopLevelTasks]);
 
-  const clearSearch = () => {
-    setSearchInput('');
-    setSearchQuery('');
-  };
-
-  const clearSearchAndFilters = () => {
-    setSearchInput('');
-    setSearchQuery('');
-    setFilters({
-      assignees: [],
-      priorities: [],
-      categories: [],
-      hideCompleted: false,
-    });
-  };
+  const getTasksByCategory = useCallback((categoryId) => {
+    return tasksByCategory[categoryId] || [];
+  }, [tasksByCategory]);
 
   const isLoadingData = isTasksLoading || isCategoriesLoading || isFetching;
   const disableControls = isLoadingData;
   const disablePrimaryAction = isLoadingData || isMutating || !userCanEdit;
-  const hasActiveFilters = Boolean(searchInput.trim() || searchQuery.trim()) ||
-    filters.assignees.length > 0 ||
-    filters.priorities.length > 0 ||
-    filters.categories.length > 0 ||
-    filters.hideCompleted;
 
-  const visibleCategories = categories.filter(
-    (category) =>
-      filters.categories.length === 0 || filters.categories.includes(category.id)
+  const visibleCategories = useMemo(() =>
+    categories.filter(
+      (category) =>
+        filters.categories.length === 0 || filters.categories.includes(category.id)
+    ),
+    [categories, filters.categories]
   );
 
-  const visibleTaskCount = visibleCategories.reduce(
-    (count, category) => count + getTasksByCategory(category.id).length,
-    0
+  const visibleTaskCount = useMemo(() =>
+    visibleCategories.reduce(
+      (count, category) => count + (tasksByCategory[category.id]?.length || 0),
+      0
+    ),
+    [visibleCategories, tasksByCategory]
   );
 
   const showNoResults = !isLoadingData && visibleTaskCount === 0 && hasActiveFilters;
@@ -519,14 +473,14 @@ function TaskList() {
 
       {/* Delete Task Confirmation Modal */}
       {deletingTask && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
           <div
             className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={cancelDelete}
           ></div>
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-scale-in">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              <h3 id="delete-task-title" className="text-lg font-semibold text-neutral-900 mb-2">
                 Delete Task
               </h3>
               <p className="text-neutral-600 mb-6">

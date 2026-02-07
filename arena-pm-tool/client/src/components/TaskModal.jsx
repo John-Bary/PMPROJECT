@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Plus } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -34,6 +34,43 @@ const TaskModal = ({
 
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
+  const [initialFormData, setInitialFormData] = useState(null);
+  const titleInputRef = useRef(null);
+
+  // Track if form has unsaved changes
+  const isDirty = initialFormData !== null && (
+    formData.title !== initialFormData.title ||
+    formData.description !== initialFormData.description ||
+    formData.priority !== initialFormData.priority ||
+    formData.categoryId !== initialFormData.categoryId ||
+    formData.dueDate !== initialFormData.dueDate ||
+    JSON.stringify(formData.assigneeIds) !== JSON.stringify(initialFormData.assigneeIds)
+  );
+
+  // Warn on browser back/refresh when form is dirty
+  useEffect(() => {
+    if (!isOpen || !isDirty) return;
+
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isOpen, isDirty]);
+
+  // Auto-focus title input when modal opens
+  useEffect(() => {
+    if (isOpen && titleInputRef.current) {
+      // Delay to allow animation to complete
+      const timer = setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
@@ -53,25 +90,30 @@ const TaskModal = ({
         // Extract assignee IDs from the assignees array
         const existingAssigneeIds = (task.assignees || []).map(a => a.id);
 
-        setFormData({
+        const editData = {
           title: task.title || '',
           description: task.description || '',
           assigneeIds: existingAssigneeIds,
           dueDate: formattedDate,
           priority: task.priority || 'medium',
           categoryId: task.categoryId || '',
-        });
+        };
+        setFormData(editData);
+        setInitialFormData(editData);
       } else {
         // Reset form for new task
-        setFormData({
+        const newData = {
           title: '',
           description: '',
           assigneeIds: [],
           dueDate: initialDueDate || '',
           priority: 'medium',
           categoryId: defaultCategoryId ?? parentTask?.categoryId ?? '',
-        });
+        };
+        setFormData(newData);
+        setInitialFormData(newData);
       }
+      setShowUnsavedWarning(false);
     }
   }, [isOpen, task, initialDueDate, parentTask, fetchCategories, fetchUsers, defaultCategoryId, currentWorkspaceId]);
 
@@ -149,18 +191,38 @@ const TaskModal = ({
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
-      setFormData({
-        title: '',
-        description: '',
-        assigneeIds: [],
-        dueDate: '',
-        priority: 'medium',
-        categoryId: '',
-      });
-      setErrors({});
-      onClose();
+    if (isSubmitting) return;
+
+    if (isDirty) {
+      setShowUnsavedWarning(true);
+      return;
     }
+
+    resetAndClose();
+  };
+
+  const resetAndClose = () => {
+    setFormData({
+      title: '',
+      description: '',
+      assigneeIds: [],
+      dueDate: '',
+      priority: 'medium',
+      categoryId: '',
+    });
+    setErrors({});
+    setInitialFormData(null);
+    setShowUnsavedWarning(false);
+    onClose();
+  };
+
+  const handleDiscardChanges = () => {
+    setShowUnsavedWarning(false);
+    resetAndClose();
+  };
+
+  const handleKeepEditing = () => {
+    setShowUnsavedWarning(false);
   };
 
   // Add assignee to the list
@@ -194,7 +256,7 @@ const TaskModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -210,13 +272,14 @@ const TaskModal = ({
 
             {/* Header */}
             <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900">
+              <h2 id="task-modal-title" className="text-xl sm:text-2xl font-semibold text-neutral-900">
                 {isEditMode ? 'Edit Task' : isSubtask ? 'Add Subtask' : 'Create New Task'}
               </h2>
               <button
                 onClick={handleClose}
                 className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-all duration-150"
                 disabled={isSubmitting}
+                aria-label="Close"
               >
                 <X size={24} />
               </button>
@@ -230,6 +293,7 @@ const TaskModal = ({
                 Task Title <span className="text-red-500">*</span>
               </label>
               <input
+                ref={titleInputRef}
                 type="text"
                 id="title"
                 name="title"
@@ -421,6 +485,33 @@ const TaskModal = ({
           </div>
         </div>
       </div>
+
+      {/* Unsaved Changes Warning */}
+      {showUnsavedWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-warning-title">
+          <div className="fixed inset-0 bg-black/50" onClick={handleKeepEditing}></div>
+          <div className="relative bg-white rounded-xl shadow-xl max-w-sm w-full p-6 animate-scale-in">
+            <h3 id="unsaved-warning-title" className="text-lg font-semibold text-neutral-900 mb-2">Unsaved Changes</h3>
+            <p className="text-neutral-600 text-sm mb-6">
+              You have unsaved changes. Are you sure you want to discard them?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleKeepEditing}
+                className="flex-1 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-all duration-200 text-sm"
+              >
+                Keep Editing
+              </button>
+              <button
+                onClick={handleDiscardChanges}
+                className="flex-1 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-all duration-200 text-sm"
+              >
+                Discard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

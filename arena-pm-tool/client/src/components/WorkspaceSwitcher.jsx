@@ -2,8 +2,9 @@
 // Dropdown to switch between workspaces
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye, LayoutGrid } from 'lucide-react';
+import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye, LayoutGrid, Loader2 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
+import useWorkspaceStore from '../store/workspaceStore';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
 
 // Role badge component
@@ -34,6 +35,7 @@ function WorkspaceSwitcher({ className = '' }) {
     isLoading,
     currentUser,
   } = useWorkspace();
+  const { isSwitching } = useWorkspaceStore();
 
   // Get user's role in a workspace
   const getUserRole = (workspace) => {
@@ -92,16 +94,22 @@ function WorkspaceSwitcher({ className = '' }) {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        disabled={isLoading}
+        disabled={isLoading || isSwitching}
         className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
                    border border-neutral-200 rounded-lg transition-colors min-w-[180px]
                    disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+        aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
+        aria-expanded={isOpen}
       >
-        <div className={`w-6 h-6 rounded ${getWorkspaceColor(currentWorkspace?.id)} flex items-center justify-center text-xs font-medium text-white`}>
-          {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
-        </div>
+        {isSwitching ? (
+          <Loader2 size={16} className="w-6 h-6 animate-spin text-teal-500" />
+        ) : (
+          <div className={`w-6 h-6 rounded ${getWorkspaceColor(currentWorkspace?.id)} flex items-center justify-center text-xs font-medium text-white`}>
+            {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
+          </div>
+        )}
         <span className="flex-1 text-left text-sm text-neutral-800 truncate font-medium">
-          {currentWorkspace?.name || 'Select Workspace'}
+          {isSwitching ? 'Switching...' : (currentWorkspace?.name || 'Select Workspace')}
         </span>
         <ChevronDown
           className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}

@@ -13,6 +13,7 @@ const useWorkspaceStore = create((set, get) => ({
   members: [],
   invitations: [],
   isLoading: false,
+  isSwitching: false,
   isInitialized: false,
   error: null,
 
@@ -90,6 +91,9 @@ const useWorkspaceStore = create((set, get) => ({
       return { success: false, error: 'Workspace not found' };
     }
 
+    // Show switching state for loading indicators
+    set({ isSwitching: true });
+
     // Update state and localStorage
     localStorage.setItem(WORKSPACE_STORAGE_KEY, workspaceId);
     set({
@@ -100,7 +104,9 @@ const useWorkspaceStore = create((set, get) => ({
     });
 
     // Fetch members for new workspace
-    get().fetchMembers(workspaceId);
+    await get().fetchMembers(workspaceId);
+
+    set({ isSwitching: false });
 
     toast.success(`Switched to "${workspace.name}"`);
     return { success: true, workspace };
@@ -463,6 +469,7 @@ const useWorkspaceStore = create((set, get) => ({
       members: [],
       invitations: [],
       isLoading: false,
+      isSwitching: false,
       isInitialized: false,
       error: null,
     });

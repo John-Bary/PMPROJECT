@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Search,
@@ -9,6 +9,7 @@ import {
   Calendar,
   Check,
   GripVertical,
+  AlertCircle,
 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -22,13 +23,14 @@ import AssigneeDropdown from '../components/AssigneeDropdown';
 import { InlineSpinner, TaskRowSkeleton, ButtonSpinner } from '../components/Loader';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
 import { getPriorityColor } from '../utils/priorityStyles';
+import { useTaskActions } from '../hooks/useTaskActions';
+import { useTaskFilters } from '../hooks/useTaskFilters';
 
 function ListView() {
   const {
     tasks,
     fetchTasks,
     deleteTask,
-    toggleComplete,
     updateTask,
     updateTaskPosition,
     isLoading,
@@ -38,13 +40,6 @@ function ListView() {
   const { categories, fetchCategories, isLoading: isCategoriesLoading } = useCategoryStore();
   const { users, fetchUsers } = useUserStore();
   const { currentWorkspaceId } = useWorkspaceStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filters, setFilters] = useState({
-    assignees: [],
-    priorities: [],
-    categories: [],
-    hideCompleted: false,
-  });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [, setDefaultCategoryId] = useState(null);
@@ -53,11 +48,21 @@ function ListView() {
   const [expandedTasks, setExpandedTasks] = useState({});
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
   const [collapsedCategories, setCollapsedCategories] = useState({});
-  const [togglingTaskIds, setTogglingTaskIds] = useState(new Set());
   const [activeDropdown, setActiveDropdown] = useState(null); // { taskId, type }
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const dropdownRefs = useRef({});
+
+  // Shared hooks for toggle complete and filtering
+  const { handleToggleComplete, togglingTaskIds } = useTaskActions();
+  const {
+    searchInput: searchQuery,
+    setSearchInput: setSearchQuery,
+    filters,
+    setFilters,
+    filteredTasks,
+    clearSearch,
+  } = useTaskFilters(tasks);
 
   // Get the selected task from the tasks array to ensure it's always fresh
   const selectedTask = selectedTaskId ? tasks.find(t => t.id === selectedTaskId) : null;
@@ -145,23 +150,6 @@ function ListView() {
     setIsModalOpen(true);
   };
 
-  const handleToggleComplete = async (task) => {
-    setTogglingTaskIds((prev) => {
-      const next = new Set(prev);
-      next.add(task.id);
-      return next;
-    });
-
-    try {
-      await toggleComplete(task, categories);
-    } finally {
-      setTogglingTaskIds((prev) => {
-        const next = new Set(prev);
-        next.delete(task.id);
-        return next;
-      });
-    }
-  };
 
   /**
    * Handle drag-and-drop reordering of tasks and subtasks.
@@ -252,10 +240,6 @@ function ListView() {
     await updateTaskPosition(taskId, { category_id: categoryId, position: newIndex });
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
-  };
-
   // Toggle task expansion to show/hide subtasks
   const toggleTaskExpansion = (taskId) => {
     setExpandedTasks(prev => ({
@@ -272,38 +256,38 @@ function ListView() {
     }));
   };
 
-  // Get subtasks for a parent task
-  const getSubtasks = (parentTaskId) => {
+  // Memoize getSubtasks
+  const getSubtasks = useCallback((parentTaskId) => {
     return tasks.filter(task => task.parentTaskId === parentTaskId);
-  };
+  }, [tasks]);
 
-  const isTaskOverdue = (task) => isOverdue(task.dueDate, task.status);
+  const isTaskOverdue = useCallback((task) => isOverdue(task.dueDate, task.status), []);
 
-  // Inline editing handlers
-  const toggleDropdown = (taskId, dropdownType) => {
+  // Memoize inline editing handlers
+  const toggleDropdown = useCallback((taskId, dropdownType) => {
     setActiveDropdown(prev => {
       if (prev?.taskId === taskId && prev?.type === dropdownType) {
         return null;
       }
       return { taskId, type: dropdownType };
     });
-  };
+  }, []);
 
-  const closeDropdown = () => {
+  const closeDropdown = useCallback(() => {
     setActiveDropdown(null);
-  };
+  }, []);
 
-  const handlePrioritySelect = async (taskId, priority) => {
+  const handlePrioritySelect = useCallback(async (taskId, priority) => {
     try {
       await updateTask(taskId, { priority });
       closeDropdown();
     } catch (error) {
       // Error is handled in taskStore
     }
-  };
+  }, [updateTask, closeDropdown]);
 
   // Toggle assignee (add or remove) for a task
-  const handleAssigneeToggle = async (taskId, userId) => {
+  const handleAssigneeToggle = useCallback(async (taskId, userId) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
@@ -313,10 +297,8 @@ function ListView() {
 
       let newAssigneeIds;
       if (currentIds.includes(userId)) {
-        // Remove assignee
         newAssigneeIds = currentIds.filter(id => id !== userId);
       } else {
-        // Add assignee
         newAssigneeIds = [...currentIds, userId];
       }
 
@@ -324,9 +306,9 @@ function ListView() {
     } catch (error) {
       // Error is handled in taskStore
     }
-  };
+  }, [tasks, updateTask]);
 
-  const handleDateSelect = async (taskId, date) => {
+  const handleDateSelect = useCallback(async (taskId, date) => {
     try {
       const formattedDate = toUTCISOString(date);
       await updateTask(taskId, { due_date: formattedDate });
@@ -334,47 +316,34 @@ function ListView() {
     } catch (error) {
       // Error is handled in taskStore
     }
-  };
+  }, [updateTask, closeDropdown]);
 
   const priorities = ['low', 'medium', 'high', 'urgent'];
 
-  // Filter tasks
-  const filteredTasks = tasks.filter((task) => {
-    const matchesSearch = searchQuery.trim() === '' ||
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
+  // Memoize parent tasks from filtered tasks
+  const parentTasks = useMemo(() =>
+    filteredTasks.filter(task => !task.parentTaskId),
+    [filteredTasks]
+  );
 
-    // Updated to work with multiple assignees - OR logic (matches any selected assignee)
-    const matchesAssignee = filters.assignees.length === 0 ||
-      (task.assignees || []).some(assignee => filters.assignees.includes(assignee.id));
+  // Memoize group parent tasks by category
+  const tasksByCategory = useMemo(() =>
+    categories.reduce((acc, category) => {
+      acc[category.id] = parentTasks.filter(task => task.categoryId === category.id);
+      return acc;
+    }, {}),
+    [categories, parentTasks]
+  );
 
-    const matchesPriority = filters.priorities.length === 0 ||
-      filters.priorities.includes(task.priority);
-
-    const matchesCategory = filters.categories.length === 0 ||
-      filters.categories.includes(task.categoryId);
-
-    const matchesCompleted = !filters.hideCompleted ||
-      task.status !== 'completed';
-
-    return matchesSearch && matchesAssignee && matchesPriority && matchesCategory && matchesCompleted;
-  });
-
-  // Filter to only show parent tasks (tasks without parent_task_id)
-  const parentTasks = filteredTasks.filter(task => !task.parentTaskId);
-
-  // Group parent tasks by category
-  const tasksByCategory = categories.reduce((acc, category) => {
-    acc[category.id] = parentTasks.filter(task => task.categoryId === category.id);
-    return acc;
-  }, {});
-
-  // Filter categories that should be shown (have tasks or match filter)
-  const visibleCategories = categories.filter(category => {
-    const hasTasks = tasksByCategory[category.id]?.length > 0;
-    const matchesFilter = filters.categories.length === 0 || filters.categories.includes(category.id);
-    return hasTasks && matchesFilter;
-  });
+  // Memoize visible categories
+  const visibleCategories = useMemo(() =>
+    categories.filter(category => {
+      const hasTasks = tasksByCategory[category.id]?.length > 0;
+      const matchesFilter = filters.categories.length === 0 || filters.categories.includes(category.id);
+      return hasTasks && matchesFilter;
+    }),
+    [categories, tasksByCategory, filters.categories]
+  );
 
   const isLoadingData = isLoading || isFetching || isCategoriesLoading;
   const disableControls = isLoadingData;
@@ -588,6 +557,7 @@ function ListView() {
                                               : 'border-neutral-300 hover:border-teal-500'
                                           } ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}`}
                                           disabled={isToggling}
+                                          aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                         >
                                           {isToggling ? (
                                             <InlineSpinner size="sm" />
@@ -727,9 +697,9 @@ function ListView() {
                                             const label = formatDueDate(task.dueDate);
                                             return (
                                               <>
-                                                <Calendar size={12} className={overdue ? 'text-red-500' : ''} />
+                                                {overdue ? <AlertCircle size={12} className="text-red-500" aria-hidden="true" /> : <Calendar size={12} />}
                                                 {overdue && <span className="text-red-600 font-semibold">Overdue</span>}
-                                                {overdue && <span className="text-red-400 mx-0.5">·</span>}
+                                                {overdue && <span className="text-red-400 mx-0.5" aria-hidden="true">·</span>}
                                                 <span className={overdue ? 'text-red-600 font-medium' : 'text-neutral-700'}>
                                                   {label}
                                                 </span>
@@ -1068,14 +1038,14 @@ function ListView() {
 
       {/* Delete Confirmation Modal */}
       {deletingTask && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
           <div
             className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
             onClick={cancelDelete}
           ></div>
           <div className="flex min-h-full items-center justify-center p-4">
             <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+              <h3 id="delete-task-title" className="text-lg font-semibold text-neutral-900 mb-2">
                 Delete Task
               </h3>
               <p className="text-neutral-600 mb-6">
