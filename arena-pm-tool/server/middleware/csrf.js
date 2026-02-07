@@ -4,10 +4,11 @@
 const { doubleCsrf } = require('csrf-csrf');
 
 const {
-  generateToken,
+  generateCsrfToken,
   doubleCsrfProtection,
 } = doubleCsrf({
   getSecret: () => process.env.JWT_SECRET,
+  getSessionIdentifier: () => '',
   cookieName: '__csrf',
   cookieOptions: {
     httpOnly: true,
@@ -15,19 +16,14 @@ const {
     secure: process.env.NODE_ENV === 'production',
     path: '/',
   },
-  getTokenFromRequest: (req) =>
+  getCsrfTokenFromRequest: (req) =>
     req.headers['x-csrf-token'] || req.body?._csrf,
 });
 
 // Endpoint to get a CSRF token (called by the SPA on load)
 const csrfTokenRoute = (req, res) => {
-  try {
-    const token = generateToken(req, res);
-    res.json({ csrfToken: token });
-  } catch (error) {
-    console.error('CSRF token generation error:', error);
-    res.status(500).json({ status: 'error', message: 'Failed to generate CSRF token' });
-  }
+  const token = generateCsrfToken(req, res);
+  res.json({ csrfToken: token });
 };
 
 module.exports = {
