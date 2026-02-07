@@ -4,6 +4,7 @@
 const { query, getClient } = require('../config/database');
 const { sendTaskAssignmentNotification } = require('../utils/emailService');
 const { verifyWorkspaceAccess, canUserEdit } = require('../middleware/workspaceAuth');
+const { logActivity } = require('../lib/activityLog');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -460,6 +461,8 @@ const createTask = async (req, res) => {
       });
     }
 
+    logActivity(workspace_id, req.user.id, 'created', 'task', newTask.id, { title: newTask.title });
+
     res.status(201).json({
       status: 'success',
       message: 'Task created successfully',
@@ -734,6 +737,10 @@ const updateTask = async (req, res) => {
       });
     }
 
+    if (updatedTask.workspace_id) {
+      logActivity(updatedTask.workspace_id, req.user.id, 'updated', 'task', updatedTask.id, { title: updatedTask.title });
+    }
+
     res.json({
       status: 'success',
       message: 'Task updated successfully',
@@ -905,6 +912,10 @@ const deleteTask = async (req, res) => {
         SET position = position - 1
         WHERE category_id = $1 AND position > $2
       `, [task.category_id, task.position]);
+    }
+
+    if (task.workspace_id) {
+      logActivity(task.workspace_id, req.user.id, 'deleted', 'task', id, { title: task.title });
     }
 
     res.json({

@@ -76,6 +76,13 @@ router.get('/:id/invitations', withErrorHandling(workspaceController.getWorkspac
 router.delete('/:id/invitations/:invitationId', withErrorHandling(workspaceController.cancelInvitation));
 
 // ============================================================================
+// Workspace Activity Feed
+// ============================================================================
+
+// GET /api/workspaces/:id/activity - Get activity feed for workspace
+router.get('/:id/activity', withErrorHandling(workspaceController.getWorkspaceActivity));
+
+// ============================================================================
 // Workspace Onboarding
 // ============================================================================
 

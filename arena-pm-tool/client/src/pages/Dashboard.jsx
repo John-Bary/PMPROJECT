@@ -2,16 +2,19 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard } from 'lucide-react';
 import useAuthStore from '../store/authStore';
+import useWorkspaceStore from '../store/workspaceStore';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
+import ActivityFeed from '../components/ActivityFeed';
 import PlanBadge from '../components/PlanBadge';
 import { ButtonSpinner } from '../components/Loader';
 
 function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const { currentWorkspaceId } = useWorkspaceStore();
   const [activeView, setActiveView] = useState('board'); // 'board', 'list', or 'calendar'
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -192,15 +195,22 @@ function Dashboard() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {activeView === 'board' ? (
-          <>
-            <div className="mb-4 sm:mb-6 hidden md:block">
-              <h2 className="text-xl font-semibold text-neutral-900">Task Board</h2>
-              <p className="text-sm text-neutral-500 mt-1">
-                Manage your tasks across different categories
-              </p>
+          <div className="flex gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="mb-4 sm:mb-6 hidden md:block">
+                <h2 className="text-xl font-semibold text-neutral-900">Task Board</h2>
+                <p className="text-sm text-neutral-500 mt-1">
+                  Manage your tasks across different categories
+                </p>
+              </div>
+              <TaskList />
             </div>
-            <TaskList />
-          </>
+            <div className="hidden xl:block w-72 flex-shrink-0">
+              <div className="sticky top-24">
+                <ActivityFeed workspaceId={currentWorkspaceId} />
+              </div>
+            </div>
+          </div>
         ) : activeView === 'list' ? (
           <>
             <ListView />

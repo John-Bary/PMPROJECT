@@ -278,6 +278,14 @@ export const workspacesAPI = {
     safeApiCall(() => api.post(`/workspaces/${workspaceId}/onboarding/complete`)),
   skipOnboarding: (workspaceId) =>
     safeApiCall(() => api.post(`/workspaces/${workspaceId}/onboarding/skip`)),
+  // Activity feed
+  getActivity: (workspaceId, params = {}) => {
+    const queryParams = new URLSearchParams();
+    if (params.limit) queryParams.append('limit', params.limit);
+    if (params.offset) queryParams.append('offset', params.offset);
+    const qs = queryParams.toString();
+    return safeApiCall(() => api.get(`/workspaces/${workspaceId}/activity${qs ? `?${qs}` : ''}`));
+  },
 };
 
 // User Profile API (Me)
@@ -294,6 +302,20 @@ export const meAPI = {
     }));
   },
   deleteAvatar: () => safeApiCall(() => api.delete('/me/avatar')),
+  changePassword: (data) => safeApiCall(() => api.post('/me/password', data)),
+  deleteAccount: (data) => safeApiCall(() => api.delete('/me/account', { data })),
+  exportTasksCsv: (params = {}) => {
+    const queryParams = new URLSearchParams();
+    Object.keys(params).forEach(key => {
+      if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+        queryParams.append(key, params[key]);
+      }
+    });
+    const queryString = queryParams.toString();
+    return api.get(`/me/tasks/export${queryString ? `?${queryString}` : ''}`, {
+      responseType: 'blob'
+    });
+  },
   getMyTasks: (params = {}) => {
     const queryParams = new URLSearchParams();
     Object.keys(params).forEach(key => {

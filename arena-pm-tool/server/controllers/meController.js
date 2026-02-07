@@ -2,6 +2,7 @@
 // Handles user profile, preferences, notifications, and avatar management
 
 const { query } = require('../config/database');
+const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 
@@ -479,6 +480,169 @@ const getMyTasks = async (req, res) => {
   }
 };
 
+// Change password (requires current password)
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Current password and new password are required.'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'New password must be at least 8 characters.'
+      });
+    }
+
+    // Fetch current hashed password
+    const userResult = await query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const isValid = await bcrypt.compare(currentPassword, userResult.rows[0].password);
+    if (!isValid) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Current password is incorrect.'
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, req.user.id]);
+
+    res.json({ status: 'success', message: 'Password changed successfully.' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error changing password',
+      error: safeError(error)
+    });
+  }
+};
+
+// Delete account (requires password confirmation)
+const deleteAccount = async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Password is required to delete your account.'
+      });
+    }
+
+    // Verify password
+    const userResult = await query('SELECT password FROM users WHERE id = $1', [req.user.id]);
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    const isValid = await bcrypt.compare(password, userResult.rows[0].password);
+    if (!isValid) {
+      return res.status(401).json({
+        status: 'error',
+        message: 'Password is incorrect.'
+      });
+    }
+
+    // Delete user — cascading foreign keys in the DB handle related data
+    await query('DELETE FROM users WHERE id = $1', [req.user.id]);
+
+    // Clear auth cookie
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+
+    res.json({ status: 'success', message: 'Account deleted successfully.' });
+  } catch (error) {
+    console.error('Delete account error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error deleting account',
+      error: safeError(error)
+    });
+  }
+};
+
+// Export tasks as CSV
+const exportTasksCsv = async (req, res) => {
+  try {
+    const { workspace_id } = req.query;
+
+    let queryText = `
+      SELECT
+        t.title,
+        t.description,
+        t.status,
+        t.priority,
+        t.due_date,
+        t.completed_at,
+        c.name as category_name,
+        t.created_at
+      FROM tasks t
+      LEFT JOIN categories c ON c.id = t.category_id
+      JOIN task_assignments ta ON ta.task_id = t.id
+      WHERE ta.user_id = $1
+    `;
+    const values = [req.user.id];
+
+    if (workspace_id) {
+      queryText += ` AND t.workspace_id = $2`;
+      values.push(workspace_id);
+    }
+
+    queryText += ` ORDER BY t.created_at DESC`;
+
+    const result = await query(queryText, values);
+
+    // Build CSV
+    const header = 'Title,Description,Status,Priority,Due Date,Completed At,Category,Created At';
+    const escCsv = (val) => {
+      if (val == null) return '';
+      const str = String(val);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = result.rows.map(t =>
+      [
+        escCsv(t.title),
+        escCsv(t.description),
+        escCsv(t.status),
+        escCsv(t.priority),
+        escCsv(t.due_date ? new Date(t.due_date).toISOString().split('T')[0] : ''),
+        escCsv(t.completed_at ? new Date(t.completed_at).toISOString() : ''),
+        escCsv(t.category_name),
+        escCsv(t.created_at ? new Date(t.created_at).toISOString() : ''),
+      ].join(',')
+    );
+
+    const csv = [header, ...rows].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="todoria-tasks-${new Date().toISOString().split('T')[0]}.csv"`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Export tasks CSV error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error exporting tasks',
+      error: safeError(error)
+    });
+  }
+};
+
 module.exports = {
   getProfile,
   updateProfile,
@@ -486,5 +650,8 @@ module.exports = {
   updateNotifications,
   uploadAvatar,
   deleteAvatar,
-  getMyTasks
+  getMyTasks,
+  changePassword,
+  deleteAccount,
+  exportTasksCsv
 };

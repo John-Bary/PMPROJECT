@@ -15,7 +15,10 @@ const {
   updateNotifications,
   uploadAvatar,
   deleteAvatar,
-  getMyTasks
+  getMyTasks,
+  changePassword,
+  deleteAccount,
+  exportTasksCsv
 } = require('../controllers/meController');
 
 // Allowed file extensions for avatar uploads (whitelist)
@@ -73,8 +76,17 @@ router.patch('/notifications', withErrorHandling(updateNotifications));
 router.post('/avatar', uploadLimiter, upload.single('avatar'), withErrorHandling(uploadAvatar));
 router.delete('/avatar', withErrorHandling(deleteAvatar));
 
+// Password change
+router.post('/password', withErrorHandling(changePassword));
+
+// Account deletion
+router.delete('/account', withErrorHandling(deleteAccount));
+
 // My tasks route
 router.get('/tasks', withErrorHandling(getMyTasks));
+
+// CSV export
+router.get('/tasks/export', withErrorHandling(exportTasksCsv));
 
 // Error handling middleware for multer errors
 router.use((error, req, res, next) => {

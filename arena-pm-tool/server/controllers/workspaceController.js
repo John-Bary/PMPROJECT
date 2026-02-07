@@ -1063,6 +1063,51 @@ const getInviteInfo = async (req, res) => {
 };
 
 // Export helper for use in other controllers
+// Get workspace activity feed
+const getWorkspaceActivity = async (req, res) => {
+  const { id } = req.params;
+  const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+  const offset = parseInt(req.query.offset) || 0;
+
+  // Verify access
+  const membership = await verifyWorkspaceAccess(req.user.id, id);
+  if (!membership) {
+    return res.status(403).json({ status: 'error', message: 'Access denied' });
+  }
+
+  const result = await query(
+    `SELECT a.id, a.action, a.entity_type, a.entity_id, a.metadata, a.created_at,
+            u.id as user_id, u.name as user_name, u.first_name, u.last_name, u.avatar_url
+     FROM activity_log a
+     LEFT JOIN users u ON u.id = a.user_id
+     WHERE a.workspace_id = $1
+     ORDER BY a.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [id, limit, offset]
+  );
+
+  res.json({
+    status: 'success',
+    data: {
+      activities: result.rows.map(a => ({
+        id: a.id,
+        action: a.action,
+        entityType: a.entity_type,
+        entityId: a.entity_id,
+        metadata: a.metadata,
+        createdAt: a.created_at,
+        user: {
+          id: a.user_id,
+          name: a.user_name,
+          firstName: a.first_name,
+          lastName: a.last_name,
+          avatarUrl: a.avatar_url,
+        }
+      }))
+    }
+  });
+};
+
 module.exports = {
   getMyWorkspaces,
   getWorkspaceById,
@@ -1078,5 +1123,6 @@ module.exports = {
   cancelInvitation,
   updateMemberRole,
   removeMember,
-  verifyWorkspaceAccess
+  verifyWorkspaceAccess,
+  getWorkspaceActivity
 };

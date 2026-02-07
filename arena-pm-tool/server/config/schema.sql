@@ -249,6 +249,24 @@ CREATE TABLE IF NOT EXISTS invoices (
 CREATE INDEX idx_invoices_workspace_id ON invoices(workspace_id);
 CREATE INDEX idx_invoices_stripe_invoice_id ON invoices(stripe_invoice_id);
 
+-- ============================================================================
+-- ACTIVITY LOG TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS activity_log (
+    id SERIAL PRIMARY KEY,
+    workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(30) NOT NULL,
+    entity_id VARCHAR(50),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_log_workspace_id ON activity_log(workspace_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_created_at ON activity_log(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_log_user_id ON activity_log(user_id);
+
 -- Composite indexes for performance
 CREATE INDEX IF NOT EXISTS idx_tasks_workspace_due ON tasks(workspace_id, due_date);
 CREATE INDEX IF NOT EXISTS idx_tasks_workspace_status ON tasks(workspace_id, status);
