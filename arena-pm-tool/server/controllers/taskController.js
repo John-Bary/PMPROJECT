@@ -31,8 +31,13 @@ const getAllTasks = async (req, res) => {
       status,
       priority,
       search,
-      workspace_id
+      workspace_id,
+      cursor,
+      limit: limitParam,
     } = req.query;
+
+    // Pagination defaults
+    const limit = Math.min(Math.max(parseInt(limitParam) || 50, 1), 200);
 
     // Require workspace_id
     if (!workspace_id) {
@@ -124,15 +129,31 @@ const getAllTasks = async (req, res) => {
       paramCount++;
     }
 
-    // Order by category position, then task position
-    queryText += ' ORDER BY c.position ASC, t.position ASC';
+    // Cursor-based pagination: cursor = last task ID from previous page
+    if (cursor) {
+      queryText += ` AND t.id > $${paramCount}`;
+      params.push(parseInt(cursor));
+      paramCount++;
+    }
+
+    // Order by category position, then task position, then id for stable pagination
+    queryText += ' ORDER BY c.position ASC, t.position ASC, t.id ASC';
+
+    // Fetch one extra to determine if there are more results
+    queryText += ` LIMIT $${paramCount}`;
+    params.push(limit + 1);
+    paramCount++;
 
     const result = await query(queryText, params);
+
+    const hasMore = result.rows.length > limit;
+    const tasks = hasMore ? result.rows.slice(0, limit) : result.rows;
+    const nextCursor = hasMore ? tasks[tasks.length - 1].id : null;
 
     res.json({
       status: 'success',
       data: {
-        tasks: result.rows.map(task => ({
+        tasks: tasks.map(task => ({
           id: task.id,
           title: task.title,
           description: task.description,
@@ -154,7 +175,9 @@ const getAllTasks = async (req, res) => {
           createdAt: task.created_at,
           updatedAt: task.updated_at
         })),
-        count: result.rows.length
+        count: tasks.length,
+        nextCursor,
+        hasMore,
       }
     });
   } catch (error) {

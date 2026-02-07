@@ -12,7 +12,10 @@ const useTaskStore = create((set, get) => ({
   isLoading: false,
   isFetching: false,
   isMutating: false,
+  isLoadingMore: false,
   error: null,
+  nextCursor: null,
+  hasMore: false,
   filters: {
     category_id: null,
     assignee_ids: [], // Changed from assignee_id to support multiple assignees
@@ -21,7 +24,7 @@ const useTaskStore = create((set, get) => ({
     search: '',
   },
 
-  // Fetch all tasks (filtered by workspace_id)
+  // Fetch all tasks (filtered by workspace_id) — resets pagination
   fetchTasks: async (filters = {}, options = { showLoading: true }) => {
     const showLoading = options?.showLoading !== false;
     const workspaceId = getWorkspaceId();
@@ -42,8 +45,11 @@ const useTaskStore = create((set, get) => ({
         workspace_id: workspaceId,
       };
       const response = await tasksAPI.getAll(filtersWithWorkspace);
+      const { tasks, nextCursor, hasMore } = response.data.data;
       set({
-        tasks: response.data.data.tasks,
+        tasks,
+        nextCursor: nextCursor || null,
+        hasMore: hasMore || false,
         ...(showLoading ? { isLoading: false, isFetching: false } : {}),
       });
     } catch (error) {
@@ -52,6 +58,38 @@ const useTaskStore = create((set, get) => ({
         error: errorMessage,
         ...(showLoading ? { isLoading: false, isFetching: false } : {}),
       });
+      toast.error(errorMessage);
+    }
+  },
+
+  // Load more tasks (append next page)
+  loadMoreTasks: async () => {
+    const { nextCursor, hasMore, filters, isLoadingMore } = get();
+    if (!hasMore || !nextCursor || isLoadingMore) return;
+
+    const workspaceId = getWorkspaceId();
+    if (!workspaceId) return;
+
+    set({ isLoadingMore: true });
+
+    try {
+      const filtersWithPagination = {
+        ...filters,
+        workspace_id: workspaceId,
+        cursor: nextCursor,
+      };
+      const response = await tasksAPI.getAll(filtersWithPagination);
+      const { tasks: newTasks, nextCursor: newCursor, hasMore: moreAvailable } = response.data.data;
+
+      set((state) => ({
+        tasks: [...state.tasks, ...newTasks],
+        nextCursor: newCursor || null,
+        hasMore: moreAvailable || false,
+        isLoadingMore: false,
+      }));
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to load more tasks';
+      set({ isLoadingMore: false });
       toast.error(errorMessage);
     }
   },
@@ -228,6 +266,8 @@ const useTaskStore = create((set, get) => ({
   clearTasks: () => {
     set({
       tasks: [],
+      nextCursor: null,
+      hasMore: false,
       error: null,
     });
   },

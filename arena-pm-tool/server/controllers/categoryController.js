@@ -10,7 +10,10 @@ const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined :
 // Get all categories
 const getAllCategories = async (req, res) => {
   try {
-    const { workspace_id } = req.query;
+    const { workspace_id, cursor, limit: limitParam } = req.query;
+
+    // Pagination defaults
+    const limit = Math.min(Math.max(parseInt(limitParam) || 50, 1), 200);
 
     // Require workspace_id
     if (!workspace_id) {
@@ -29,6 +32,9 @@ const getAllCategories = async (req, res) => {
       });
     }
 
+    const params = [workspace_id];
+    let paramCount = 2;
+
     let queryText = `
       SELECT
         c.id, c.name, c.color, c.position, c.created_by, c.created_at, c.updated_at, c.workspace_id,
@@ -40,19 +46,29 @@ const getAllCategories = async (req, res) => {
       WHERE c.workspace_id = $1
     `;
 
-    const params = [workspace_id];
+    if (cursor) {
+      queryText += ` AND c.id > $${paramCount}`;
+      params.push(parseInt(cursor));
+      paramCount++;
+    }
 
     queryText += `
       GROUP BY c.id, u.name
-      ORDER BY c.position ASC
+      ORDER BY c.position ASC, c.id ASC
+      LIMIT $${paramCount}
     `;
+    params.push(limit + 1);
 
     const result = await query(queryText, params);
+
+    const hasMore = result.rows.length > limit;
+    const categories = hasMore ? result.rows.slice(0, limit) : result.rows;
+    const nextCursor = hasMore ? categories[categories.length - 1].id : null;
 
     res.json({
       status: 'success',
       data: {
-        categories: result.rows.map(cat => ({
+        categories: categories.map(cat => ({
           id: cat.id,
           name: cat.name,
           color: cat.color,
@@ -63,7 +79,9 @@ const getAllCategories = async (req, res) => {
           createdByName: cat.created_by_name,
           createdAt: cat.created_at,
           updatedAt: cat.updated_at
-        }))
+        })),
+        nextCursor,
+        hasMore,
       }
     });
   } catch (error) {
