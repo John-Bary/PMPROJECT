@@ -7,7 +7,7 @@ import useCategoryStore from '../store/categoryStore';
  * Replaces duplicated toggle-complete logic in TaskList, ListView, and TaskDetailModal.
  */
 export function useTaskActions() {
-  const { toggleComplete, updateTask } = useTaskStore();
+  const { toggleComplete } = useTaskStore();
   const { categories } = useCategoryStore();
   const [togglingTaskIds, setTogglingTaskIds] = useState(new Set());
 
