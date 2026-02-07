@@ -1,4 +1,5 @@
 import React from 'react';
+import * as Sentry from '@sentry/react';
 import ErrorPage from '../pages/ErrorPage';
 
 class ErrorBoundary extends React.Component {
@@ -13,6 +14,7 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Unhandled UI error:', error, errorInfo);
+    Sentry.captureException(error, { extra: errorInfo });
   }
 
   handleRetry = () => {

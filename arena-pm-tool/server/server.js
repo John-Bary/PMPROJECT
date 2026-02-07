@@ -30,6 +30,7 @@ const holidayRoutes = require('./routes/holidays');
 const reminderRoutes = require('./routes/reminders');
 const workspaceRoutes = require('./routes/workspaces');
 const billingRoutes = require('./routes/billing');
+const adminRoutes = require('./routes/admin');
 const { handleWebhook } = require('./controllers/billingController');
 
 // Initialize Express app
@@ -221,6 +222,7 @@ app.use('/api/holidays', holidayRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/workspaces', workspaceRoutes);
 app.use('/api/billing', billingRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Sentry error handler (must be before other error handlers)
 Sentry.setupExpressErrorHandler(app);

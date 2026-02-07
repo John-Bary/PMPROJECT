@@ -339,4 +339,9 @@ export const billingAPI = {
     safeApiCall(() => api.post('/billing/portal', { workspace_id: workspaceId })),
 };
 
+// Admin API
+export const adminAPI = {
+  getStats: () => safeApiCall(() => api.get('/admin/stats')),
+};
+
 export default api;

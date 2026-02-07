@@ -25,6 +25,7 @@ const WorkspaceOnboarding = lazy(() => import('./pages/WorkspaceOnboarding'));
 const Billing = lazy(() => import('./pages/Billing'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 
 function App() {
   const toastOptions = {
@@ -126,6 +127,16 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Billing />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin Dashboard */}
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
                   </ProtectedRoute>
                 }
               />
