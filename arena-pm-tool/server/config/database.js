@@ -1,6 +1,7 @@
 // PostgreSQL Database Configuration
 const { Pool } = require('pg');
 require('dotenv').config();
+const logger = require('../lib/logger');
 
 // Determine if running in serverless environment (Vercel)
 const isServerless = !!process.env.VERCEL;
@@ -41,11 +42,11 @@ const pool = new Pool(poolConfig);
 
 // Test database connection
 pool.on('connect', () => {
-  console.log('✅ Database connected successfully');
+  logger.info('Database connected successfully');
 });
 
 pool.on('error', (err) => {
-  console.error('❌ Unexpected database error:', err);
+  logger.fatal({ err }, 'Unexpected database pool error');
   process.exit(-1);
 });
 
@@ -55,7 +56,7 @@ const query = async (text, params) => {
     const result = await pool.query(text, params);
     return result;
   } catch (error) {
-    console.error('Database query error:', error);
+    logger.error({ err: error, query: text.substring(0, 200) }, 'Database query error');
     throw error;
   }
 };

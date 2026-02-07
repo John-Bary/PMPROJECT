@@ -15,7 +15,7 @@ const onboardingController = require('../controllers/onboardingController');
 // ============================================================================
 
 // GET /api/workspaces/invite-info/:token - Get invite details for landing page
-router.get('/invite-info/:token', workspaceController.getInviteInfo);
+router.get('/invite-info/:token', withErrorHandling(workspaceController.getInviteInfo));
 
 // All routes below require authentication
 router.use(authMiddleware);
@@ -25,35 +25,35 @@ router.use(authMiddleware);
 // ============================================================================
 
 // GET /api/workspaces - Get all workspaces for current user
-router.get('/', workspaceController.getMyWorkspaces);
+router.get('/', withErrorHandling(workspaceController.getMyWorkspaces));
 
 // POST /api/workspaces - Create new workspace (plan limit enforced)
 router.post('/', checkWorkspaceLimit, workspaceController.createWorkspace);
 
 // GET /api/workspaces/users - Get users for workspace (for assignee dropdown)
-router.get('/users', workspaceController.getWorkspaceUsers);
+router.get('/users', withErrorHandling(workspaceController.getWorkspaceUsers));
 
 // GET /api/workspaces/:id - Get single workspace
-router.get('/:id', workspaceController.getWorkspaceById);
+router.get('/:id', withErrorHandling(workspaceController.getWorkspaceById));
 
 // PUT /api/workspaces/:id - Update workspace
-router.put('/:id', workspaceController.updateWorkspace);
+router.put('/:id', withErrorHandling(workspaceController.updateWorkspace));
 
 // DELETE /api/workspaces/:id - Delete workspace
-router.delete('/:id', workspaceController.deleteWorkspace);
+router.delete('/:id', withErrorHandling(workspaceController.deleteWorkspace));
 
 // ============================================================================
 // Workspace Members
 // ============================================================================
 
 // GET /api/workspaces/:id/members - Get all members of workspace
-router.get('/:id/members', workspaceController.getWorkspaceMembers);
+router.get('/:id/members', withErrorHandling(workspaceController.getWorkspaceMembers));
 
 // PATCH /api/workspaces/:id/members/:memberId - Update member role
-router.patch('/:id/members/:memberId', workspaceController.updateMemberRole);
+router.patch('/:id/members/:memberId', withErrorHandling(workspaceController.updateMemberRole));
 
 // DELETE /api/workspaces/:id/members/:memberId - Remove member from workspace
-router.delete('/:id/members/:memberId', workspaceController.removeMember);
+router.delete('/:id/members/:memberId', withErrorHandling(workspaceController.removeMember));
 
 // ============================================================================
 // Workspace Invitations
@@ -61,34 +61,34 @@ router.delete('/:id/members/:memberId', workspaceController.removeMember);
 
 // POST /api/workspaces/accept-invite/:token - Accept invitation (any authenticated user)
 // Defined before /:id routes to prevent parameterized route conflicts
-router.post('/accept-invite/:token', workspaceController.acceptInvitation);
+router.post('/accept-invite/:token', withErrorHandling(workspaceController.acceptInvitation));
 
 // POST /api/workspaces/:id/invite - Invite user to workspace (rate + plan limited)
 router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, workspaceController.inviteToWorkspace);
 
 // GET /api/workspaces/:id/invitations - Get pending invitations for workspace
-router.get('/:id/invitations', workspaceController.getWorkspaceInvitations);
+router.get('/:id/invitations', withErrorHandling(workspaceController.getWorkspaceInvitations));
 
 // DELETE /api/workspaces/:id/invitations/:invitationId - Cancel invitation
-router.delete('/:id/invitations/:invitationId', workspaceController.cancelInvitation);
+router.delete('/:id/invitations/:invitationId', withErrorHandling(workspaceController.cancelInvitation));
 
 // ============================================================================
 // Workspace Onboarding
 // ============================================================================
 
 // GET /api/workspaces/:id/onboarding - Get onboarding status and data
-router.get('/:id/onboarding', onboardingController.getOnboardingStatus);
+router.get('/:id/onboarding', withErrorHandling(onboardingController.getOnboardingStatus));
 
 // POST /api/workspaces/:id/onboarding/start - Start/restart onboarding
-router.post('/:id/onboarding/start', onboardingController.startOnboarding);
+router.post('/:id/onboarding/start', withErrorHandling(onboardingController.startOnboarding));
 
 // PUT /api/workspaces/:id/onboarding/progress - Update step progress
-router.put('/:id/onboarding/progress', onboardingController.updateProgress);
+router.put('/:id/onboarding/progress', withErrorHandling(onboardingController.updateProgress));
 
 // POST /api/workspaces/:id/onboarding/complete - Mark onboarding as complete
-router.post('/:id/onboarding/complete', onboardingController.completeOnboarding);
+router.post('/:id/onboarding/complete', withErrorHandling(onboardingController.completeOnboarding));
 
 // POST /api/workspaces/:id/onboarding/skip - Skip onboarding
-router.post('/:id/onboarding/skip', onboardingController.skipOnboarding);
+router.post('/:id/onboarding/skip', withErrorHandling(onboardingController.skipOnboarding));
 
 module.exports = router;

@@ -7,6 +7,7 @@ const multer = require('multer');
 const path = require('path');
 const { authMiddleware } = require('../middleware/auth');
 const { uploadLimiter } = require('../middleware/rateLimiter');
+const withErrorHandling = require('../lib/withErrorHandling');
 const {
   getProfile,
   updateProfile,
@@ -59,21 +60,21 @@ const upload = multer({
 router.use(authMiddleware);
 
 // Profile routes
-router.get('/', getProfile);
-router.patch('/', updateProfile);
+router.get('/', withErrorHandling(getProfile));
+router.patch('/', withErrorHandling(updateProfile));
 
 // Preferences routes
-router.patch('/preferences', updatePreferences);
+router.patch('/preferences', withErrorHandling(updatePreferences));
 
 // Notification routes
-router.patch('/notifications', updateNotifications);
+router.patch('/notifications', withErrorHandling(updateNotifications));
 
 // Avatar routes (rate limited)
-router.post('/avatar', uploadLimiter, upload.single('avatar'), uploadAvatar);
-router.delete('/avatar', deleteAvatar);
+router.post('/avatar', uploadLimiter, upload.single('avatar'), withErrorHandling(uploadAvatar));
+router.delete('/avatar', withErrorHandling(deleteAvatar));
 
 // My tasks route
-router.get('/tasks', getMyTasks);
+router.get('/tasks', withErrorHandling(getMyTasks));
 
 // Error handling middleware for multer errors
 router.use((error, req, res, next) => {

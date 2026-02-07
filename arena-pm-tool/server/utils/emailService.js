@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Resend } = require('resend');
+const logger = require('../lib/logger');
 
 const templatesDir = path.join(__dirname, '..', 'templates', 'email');
 const templateCache = new Map();
@@ -29,7 +30,7 @@ const loadTemplate = (templateName) => {
     templateCache.set(templatePath, template);
     return template;
   } catch (error) {
-    console.error(`❌ Could not load email template at ${templatePath}`);
+    logger.error({ templatePath }, 'Could not load email template');
     throw error;
   }
 };
@@ -78,10 +79,10 @@ const getFromAddress = () => {
 const verifyConnection = async () => {
   try {
     getResendClient();
-    console.log('✅ Email service is ready');
+    logger.info('Email service is ready');
     return true;
   } catch (error) {
-    console.error('❌ Email service configuration error:', error.message);
+    logger.error({ err: error }, 'Email service configuration error');
     return false;
   }
 };
@@ -100,14 +101,14 @@ const sendEmail = async ({ to, subject, html, text }) => {
     });
 
     if (error) {
-      console.error('❌ Failed to send email:', error.message);
+      logger.error({ to, subject, error: error.message }, 'Failed to send email');
       return { success: false, error: error.message };
     }
 
-    console.log('📧 Email sent:', data.id);
+    logger.info({ messageId: data.id, to, subject }, 'Email sent');
     return { success: true, messageId: data.id };
   } catch (error) {
-    console.error('❌ Failed to send email:', error.message);
+    logger.error({ err: error, to, subject }, 'Failed to send email');
     return { success: false, error: error.message };
   }
 };

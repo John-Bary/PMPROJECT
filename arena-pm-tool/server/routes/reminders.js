@@ -5,11 +5,12 @@ const express = require('express');
 const router = express.Router();
 const { runReminderJob } = require('../jobs/reminderJob');
 const { authMiddleware } = require('../middleware/auth');
+const withErrorHandling = require('../lib/withErrorHandling');
 
 // POST /api/reminders/trigger
 // This endpoint is called by Vercel Cron to trigger reminder emails
 // API-03: CRON_SECRET is now enforced in ALL environments (not just Vercel)
-router.post('/trigger', async (req, res) => {
+router.post('/trigger', withErrorHandling(async (req, res) => {
   // Verify the request using CRON_SECRET in all environments
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -28,22 +29,14 @@ router.post('/trigger', async (req, res) => {
     });
   }
 
-  try {
-    const summary = await runReminderJob('vercel-cron');
+  const summary = await runReminderJob('vercel-cron');
 
-    res.json({
-      status: 'OK',
-      message: 'Reminder job completed',
-      summary: summary || { sent: 0, failed: 0 }
-    });
-  } catch (error) {
-    console.error('Reminder trigger error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to run reminder job'
-    });
-  }
-});
+  res.json({
+    status: 'OK',
+    message: 'Reminder job completed',
+    summary: summary || { sent: 0, failed: 0 }
+  });
+}));
 
 // GET /api/reminders/status
 // Health check for the reminder system (API-07: now requires authentication)
