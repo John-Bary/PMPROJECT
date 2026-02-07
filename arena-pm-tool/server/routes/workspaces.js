@@ -7,6 +7,7 @@ const { authMiddleware } = require('../middleware/auth');
 const { inviteLimiter } = require('../middleware/rateLimiter');
 const { requireActiveSubscription } = require('../middleware/billingGuard');
 const { checkMemberLimit, checkWorkspaceLimit } = require('../middleware/planLimits');
+const withErrorHandling = require('../lib/withErrorHandling');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
 
