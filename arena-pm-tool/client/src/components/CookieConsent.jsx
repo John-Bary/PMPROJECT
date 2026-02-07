@@ -1,0 +1,45 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
+const COOKIE_CONSENT_KEY = 'todoria_cookie_consent';
+
+function CookieConsent() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
+    if (!consent) {
+      // Small delay so it doesn't flash on first render
+      const timer = setTimeout(() => setIsVisible(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  const handleAccept = () => {
+    localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
+    setIsVisible(false);
+  };
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-6" role="dialog" aria-label="Cookie consent">
+      <div className="max-w-lg mx-auto bg-neutral-900 text-white rounded-xl shadow-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <p className="text-sm text-neutral-300 flex-1">
+          We use essential cookies only for authentication. No tracking. No ads.{' '}
+          <Link to="/privacy" className="text-teal-400 hover:text-teal-300 underline">
+            Privacy Policy
+          </Link>
+        </p>
+        <button
+          onClick={handleAccept}
+          className="px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
+        >
+          Got it
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default CookieConsent;

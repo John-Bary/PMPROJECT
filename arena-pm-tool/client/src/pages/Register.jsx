@@ -17,6 +17,7 @@ function Register() {
     password: '',
     confirmPassword: '',
   });
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const [errors, setErrors] = useState({});
 
@@ -55,6 +56,10 @@ function Register() {
 
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!acceptedTerms) {
+      newErrors.terms = 'You must accept the Terms of Service';
     }
 
     setErrors(newErrors);
@@ -174,6 +179,32 @@ function Register() {
               {errors.confirmPassword && (
                 <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
               )}
+            </div>
+
+            {/* Terms of Service */}
+            <div>
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={acceptedTerms}
+                  onChange={(e) => {
+                    setAcceptedTerms(e.target.checked);
+                    if (errors.terms) setErrors({ ...errors, terms: '' });
+                  }}
+                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">
+                  I agree to the{' '}
+                  <Link to="/terms" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link to="/privacy" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
+                    Privacy Policy
+                  </Link>
+                </span>
+              </label>
+              {errors.terms && <p className="mt-1 text-sm text-red-600">{errors.terms}</p>}
             </div>
 
             <button

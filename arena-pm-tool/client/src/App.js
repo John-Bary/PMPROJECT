@@ -15,6 +15,7 @@ import InviteLanding from './pages/InviteLanding';
 import ErrorPage from './pages/ErrorPage';
 import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import CookieConsent from './components/CookieConsent';
 import { PageLoader } from './components/Loader';
 
 // Lazy load less-frequently visited pages
@@ -22,6 +23,8 @@ const WorkspaceSelectionPage = lazy(() => import('./pages/WorkspaceSelectionPage
 const UserArea = lazy(() => import('./pages/UserArea/UserArea'));
 const WorkspaceOnboarding = lazy(() => import('./pages/WorkspaceOnboarding'));
 const Billing = lazy(() => import('./pages/Billing'));
+const Terms = lazy(() => import('./pages/Terms'));
+const Privacy = lazy(() => import('./pages/Privacy'));
 
 function App() {
   const toastOptions = {
@@ -65,6 +68,7 @@ function App() {
 
       <ErrorBoundary>
         <WorkspaceProvider>
+          <CookieConsent />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}
@@ -135,6 +139,10 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Legal Pages (public) */}
+              <Route path="/terms" element={<Terms />} />
+              <Route path="/privacy" element={<Privacy />} />
 
               {/* Landing Page (public) */}
               <Route path="/" element={<LandingPage />} />
