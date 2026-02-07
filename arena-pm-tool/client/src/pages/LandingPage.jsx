@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Kanban, List, CalendarDays, Menu, X } from 'lucide-react';
+import { Kanban, List, CalendarDays, Menu, X, Check, Sparkles } from 'lucide-react';
 
 function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,7 +15,9 @@ function LandingPage() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-6">
+            <a href="#features" className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors duration-200">Features</a>
+            <a href="#pricing" className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors duration-200">Pricing</a>
             <Link
               to="/login"
               className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200"
@@ -43,6 +45,8 @@ function LandingPage() {
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
           <div className="sm:hidden border-t border-neutral-100 bg-white/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3 animate-fade-in">
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200 py-1">Features</a>
+            <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors duration-200 py-1">Pricing</a>
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
@@ -178,6 +182,76 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing */}
+      <section id="pricing" className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
+        <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          Simple, transparent pricing.
+        </h2>
+        <p className="mt-3 text-neutral-500 text-center max-w-xl mx-auto">
+          Start free. Upgrade when your team needs more.
+        </p>
+
+        <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+          {/* Free Plan */}
+          <div className="rounded-xl border-2 border-neutral-200 p-6 sm:p-8 flex flex-col">
+            <h3 className="text-lg font-semibold text-neutral-900">Free</h3>
+            <p className="mt-1 text-sm text-neutral-500">For individuals getting started</p>
+            <div className="mt-5">
+              <span className="text-4xl font-bold text-neutral-900">&euro;0</span>
+              <span className="text-neutral-500 text-sm">/month</span>
+            </div>
+            <ul className="mt-6 space-y-3 flex-1">
+              {['Up to 50 tasks', '1 workspace', 'Up to 3 members', 'Board + List + Calendar views'].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm">
+                  <Check size={16} className="text-teal-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-neutral-700">{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link to="/register" className="mt-6 w-full py-2.5 rounded-lg font-medium text-sm bg-neutral-100 text-neutral-700 hover:bg-neutral-200 transition-all text-center block">
+              Get Started
+            </Link>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="relative rounded-xl border-2 border-teal-300 ring-2 ring-teal-100 p-6 sm:p-8 shadow-lg flex flex-col">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+              <span className="bg-teal-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                Most Popular
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sparkles size={20} className="text-teal-500" />
+              <h3 className="text-lg font-semibold text-neutral-900">Pro</h3>
+            </div>
+            <p className="mt-1 text-sm text-neutral-500">For small teams who need more</p>
+            <div className="mt-5">
+              <span className="text-4xl font-bold text-neutral-900">&euro;5</span>
+              <span className="text-neutral-500 text-sm">/seat/month</span>
+            </div>
+            <ul className="mt-6 space-y-3 flex-1">
+              {[
+                'Unlimited tasks',
+                'Unlimited workspaces',
+                'Unlimited members',
+                'Board + List + Calendar views',
+                'Email reminders',
+                'File attachments',
+                'Priority support',
+              ].map((f) => (
+                <li key={f} className="flex items-start gap-2 text-sm">
+                  <Check size={16} className="text-teal-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-neutral-700">{f}</span>
+                </li>
+              ))}
+            </ul>
+            <Link to="/register" className="mt-6 w-full py-2.5 rounded-lg font-medium text-sm bg-teal-500 text-white hover:bg-teal-600 shadow-sm transition-all text-center block">
+              Start Free Trial
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Final CTA */}
       <section id="final-cta" className="bg-neutral-50 border-y border-neutral-100">
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-24 text-center">
@@ -197,21 +271,14 @@ function LandingPage() {
 
       {/* Footer */}
       <footer id="footer" className="max-w-6xl mx-auto px-5 sm:px-6">
-        <div className="py-8 flex items-center justify-between border-t border-neutral-100">
+        <div className="py-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-neutral-100">
           <span className="text-sm text-neutral-400">&copy; 2026 Todoria</span>
           <div className="flex items-center gap-6">
-            <Link
-              to="/login"
-              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/register"
-              className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200"
-            >
-              Sign Up
-            </Link>
+            <a href="#features" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200">Features</a>
+            <a href="#pricing" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200">Pricing</a>
+            <Link to="/terms" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200">Terms</Link>
+            <Link to="/privacy" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200">Privacy</Link>
+            <Link to="/login" className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors duration-200">Sign In</Link>
           </div>
         </div>
       </footer>
