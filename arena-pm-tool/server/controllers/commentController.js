@@ -29,10 +29,14 @@ const verifyTaskWorkspaceAccess = async (taskId, userId) => {
   return { exists: true, authorized: true };
 };
 
-// Get comments for a task (AUTHZ-04: workspace scope added)
+// Get comments for a task (AUTHZ-04: workspace scope added, paginated)
 const getCommentsByTaskId = async (req, res) => {
   try {
     const { taskId } = req.params;
+    const { cursor, limit: limitParam } = req.query;
+
+    // Pagination defaults (20 per page for comments)
+    const limit = Math.min(Math.max(parseInt(limitParam) || 20, 1), 100);
 
     // Verify user has access to the task's workspace
     const access = await verifyTaskWorkspaceAccess(taskId, req.user.id);
@@ -49,7 +53,10 @@ const getCommentsByTaskId = async (req, res) => {
       });
     }
 
-    const result = await query(`
+    const params = [taskId];
+    let paramCount = 2;
+
+    let queryText = `
       SELECT
         c.id, c.task_id, c.author_id, c.content,
         c.created_at, c.updated_at,
@@ -57,13 +64,27 @@ const getCommentsByTaskId = async (req, res) => {
       FROM comments c
       LEFT JOIN users u ON c.author_id = u.id
       WHERE c.task_id = $1
-      ORDER BY c.created_at ASC
-    `, [taskId]);
+    `;
+
+    if (cursor) {
+      queryText += ` AND c.id > $${paramCount}`;
+      params.push(parseInt(cursor));
+      paramCount++;
+    }
+
+    queryText += ` ORDER BY c.created_at ASC, c.id ASC LIMIT $${paramCount}`;
+    params.push(limit + 1);
+
+    const result = await query(queryText, params);
+
+    const hasMore = result.rows.length > limit;
+    const comments = hasMore ? result.rows.slice(0, limit) : result.rows;
+    const nextCursor = hasMore ? comments[comments.length - 1].id : null;
 
     res.json({
       status: 'success',
       data: {
-        comments: result.rows.map(comment => ({
+        comments: comments.map(comment => ({
           id: comment.id,
           taskId: comment.task_id,
           authorId: comment.author_id,
@@ -72,7 +93,9 @@ const getCommentsByTaskId = async (req, res) => {
           createdAt: comment.created_at,
           updatedAt: comment.updated_at
         })),
-        count: result.rows.length
+        count: comments.length,
+        nextCursor,
+        hasMore,
       }
     });
   } catch (error) {

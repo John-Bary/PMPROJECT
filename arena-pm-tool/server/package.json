@@ -16,6 +16,9 @@
     "db:diff": "cd .. && npx supabase db diff --use-migra -f",
     "db:push": "cd .. && npx supabase db push",
     "db:pull": "cd .. && npx supabase db pull",
+    "migrate:up": "node-pg-migrate up --migrations-dir migrations --migration-file-language js",
+    "migrate:down": "node-pg-migrate down --migrations-dir migrations --migration-file-language js",
+    "migrate:create": "node-pg-migrate create --migrations-dir migrations --migration-file-language js",
     "db:migrate": "cd .. && npx supabase migration up",
     "db:migrate-workspaces": "node scripts/migrateToWorkspaces.js",
     "email:test": "node scripts/testEmail.js",
@@ -41,8 +44,10 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
+    "node-pg-migrate": "^8.0.4",
     "pg": "^8.17.1",
-    "resend": "^4.0.0"
+    "resend": "^4.0.0",
+    "stripe": "^20.3.1"
   },
   "devDependencies": {
     "jest": "^29.7.0",
