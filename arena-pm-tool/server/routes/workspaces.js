@@ -4,6 +4,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/auth');
+const withErrorHandling = require('../lib/withErrorHandling');
 const { inviteLimiter } = require('../middleware/rateLimiter');
 const { requireActiveSubscription } = require('../middleware/billingGuard');
 const { checkMemberLimit, checkWorkspaceLimit } = require('../middleware/planLimits');
