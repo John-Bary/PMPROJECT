@@ -293,8 +293,32 @@ const deleteWorkspace = async (req, res) => {
       });
     }
 
-    // Delete workspace (cascades to members, tasks, categories via FK)
-    await query('DELETE FROM workspaces WHERE id = $1', [id]);
+    // Delete workspace in an explicit transaction with cascade verification
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+
+      // Count related records for logging before deletion
+      const countsResult = await client.query(`
+        SELECT
+          (SELECT COUNT(*) FROM workspace_members WHERE workspace_id = $1) AS member_count,
+          (SELECT COUNT(*) FROM tasks WHERE workspace_id = $1) AS task_count,
+          (SELECT COUNT(*) FROM categories WHERE workspace_id = $1) AS category_count
+      `, [id]);
+      const counts = countsResult.rows[0];
+
+      // Delete workspace (cascades to members, tasks, categories via FK)
+      await client.query('DELETE FROM workspaces WHERE id = $1', [id]);
+
+      await client.query('COMMIT');
+
+      console.log(`Workspace ${id} deleted by user ${req.user.id}. Cascaded: ${counts.member_count} members, ${counts.task_count} tasks, ${counts.category_count} categories.`);
+    } catch (txError) {
+      await client.query('ROLLBACK');
+      throw txError;
+    } finally {
+      client.release();
+    }
 
     res.json({
       status: 'success',

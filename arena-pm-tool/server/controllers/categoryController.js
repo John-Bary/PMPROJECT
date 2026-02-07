@@ -1,7 +1,7 @@
 // Category Controller
 // Handles all category-related operations
 
-const { query } = require('../config/database');
+const { query, getClient } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 
 // Helper: sanitize error for response (hide internals in production)
@@ -435,11 +435,21 @@ const reorderCategories = async (req, res) => {
     }
 
     // Update positions for each category in a transaction
-    for (let i = 0; i < categoryIds.length; i++) {
-      await query(
-        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
-        [i, categoryIds[i]]
-      );
+    const client = await getClient();
+    try {
+      await client.query('BEGIN');
+      for (let i = 0; i < categoryIds.length; i++) {
+        await client.query(
+          'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+          [i, categoryIds[i]]
+        );
+      }
+      await client.query('COMMIT');
+    } catch (txError) {
+      await client.query('ROLLBACK');
+      throw txError;
+    } finally {
+      client.release();
     }
 
     // Fetch and return updated categories (scoped to workspace)

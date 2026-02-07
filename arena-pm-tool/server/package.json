@@ -18,6 +18,7 @@
     "db:pull": "cd .. && npx supabase db pull",
     "db:migrate": "cd .. && npx supabase migration up",
     "db:migrate-workspaces": "node scripts/migrateToWorkspaces.js",
+    "db:add-reliability-tables": "node scripts/addProductionReliabilityTables.js",
     "email:test": "node scripts/testEmail.js",
     "reminders:test": "node scripts/testReminders.js",
     "reminders:run": "node jobs/reminderJob.js --run-once",
@@ -42,6 +43,7 @@
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "pg": "^8.17.1",
+    "pino": "^10.3.0",
     "resend": "^4.0.0"
   },
   "devDependencies": {

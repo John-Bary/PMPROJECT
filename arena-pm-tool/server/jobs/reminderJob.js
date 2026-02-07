@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const dotenv = require('dotenv');
 const { sendReminderEmails } = require('../utils/reminderService');
+const logger = require('../lib/logger');
 
 dotenv.config();
 
@@ -17,58 +18,63 @@ const isDryRun = () => toBool(process.env.REMINDER_DRY_RUN);
 const logSummary = (summary, dryRun, context) => {
   if (!summary) return;
 
-  console.log(
-    `📨 [Reminders] ${context} summary: recipients sent=${summary.sent}, failed=${summary.failed}, totalTasks=${summary.totalTasks}, lookahead=${summary.lookaheadDays} day(s)${dryRun ? ' (dry run)' : ''}`
-  );
+  logger.info({
+    component: 'reminders',
+    context,
+    dryRun,
+    sent: summary.sent,
+    failed: summary.failed,
+    totalTasks: summary.totalTasks,
+    lookaheadDays: summary.lookaheadDays,
+    skipped: summary.skipped || false,
+  }, `Reminder ${context} run complete`);
 
   if (Array.isArray(summary.results) && summary.results.length) {
-    const modeLabel = dryRun ? ' (dry run)' : '';
     summary.results.forEach((result) => {
-      const status = result.success ? '✅' : '⚠️';
-      console.log(
-        `${status} [Reminders] ${result.email} - ${result.count} task(s)${modeLabel}${result.error ? ` | Error: ${result.error}` : ''}`
-      );
+      if (result.success) {
+        logger.info({ component: 'reminders', email: result.email, taskCount: result.count, dryRun }, 'Reminder sent');
+      } else {
+        logger.warn({ component: 'reminders', email: result.email, taskCount: result.count, error: result.error }, 'Reminder send failed');
+      }
     });
   }
 };
 
 const runReminderJob = async (context = 'manual') => {
   const dryRun = isDryRun();
-  const startedAt = new Date();
+  const startedAt = Date.now();
 
-  console.log(`\n⏰ [Reminders] ${context} run started at ${startedAt.toISOString()}${dryRun ? ' (dry run)' : ''}`);
+  logger.info({ component: 'reminders', context, dryRun }, 'Reminder run started');
 
   try {
     const summary = await sendReminderEmails({ dryRun });
     logSummary(summary, dryRun, context);
     return summary;
   } catch (error) {
-    console.error(`❌ [Reminders] ${context} run failed:`, error.message || error);
+    logger.error({ component: 'reminders', context, err: error }, 'Reminder run failed');
     return null;
   } finally {
-    console.log(`⏹️ [Reminders] ${context} run finished in ${Date.now() - startedAt.getTime()}ms\n`);
+    logger.info({ component: 'reminders', context, durationMs: Date.now() - startedAt }, 'Reminder run finished');
   }
 };
 
 const startReminderScheduler = () => {
   if (!isSchedulerEnabled()) {
-    console.log('⏸️ [Reminders] Scheduler disabled via REMINDER_JOB_ENABLED=false');
+    logger.info({ component: 'reminders' }, 'Scheduler disabled via REMINDER_JOB_ENABLED=false');
     return null;
   }
 
   const schedule = getCronSchedule();
 
   if (!cron.validate(schedule)) {
-    console.error(`❌ [Reminders] Invalid cron expression "${schedule}". Scheduler not started.`);
+    logger.error({ component: 'reminders', schedule }, 'Invalid cron expression. Scheduler not started.');
     return null;
   }
 
   const timezone = getTimezone();
   const cronOptions = timezone ? { timezone } : undefined;
 
-  console.log(
-    `🗓️ [Reminders] Scheduling job with cron "${schedule}"${timezone ? ` (${timezone})` : ''}`
-  );
+  logger.info({ component: 'reminders', schedule, timezone }, 'Scheduling reminder job');
 
   const task = cron.schedule(schedule, () => runReminderJob('scheduled'), cronOptions);
 

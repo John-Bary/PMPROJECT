@@ -14,8 +14,11 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const { pool } = require('./config/database');
 const { startReminderScheduler } = require('./jobs/reminderJob');
+const { startEmailQueueScheduler } = require('./jobs/emailQueueJob');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { doubleCsrfProtection, csrfTokenRoute } = require('./middleware/csrf');
+const requestIdMiddleware = require('./middleware/requestId');
+const logger = require('./lib/logger');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -71,6 +74,9 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(helmet(helmetConfig));
 
+// Assign unique request ID to every request (for tracing/logging)
+app.use(requestIdMiddleware);
+
 // Allowed origins for CORS - environment-aware
 const getAllowedOrigins = () => {
   const envOrigins = process.env.ALLOWED_ORIGINS;
@@ -91,10 +97,10 @@ const getAllowedOrigins = () => {
   }
 
   if (process.env.NODE_ENV === 'production' && origins.length === 0) {
-    console.warn('WARNING: No ALLOWED_ORIGINS configured for production!');
+    logger.warn('No ALLOWED_ORIGINS configured for production');
   }
 
-  console.log('CORS allowed origins:', origins);
+  logger.info({ origins }, 'CORS allowed origins');
   return origins;
 };
 
@@ -116,7 +122,7 @@ const corsOptions = {
       return callback(null, true);
     }
     // Log denied origins for debugging
-    console.warn(`CORS request from origin: ${origin}, allowed: ${allowedOrigins.join(', ')}`);
+    logger.warn({ origin, allowedOrigins }, 'CORS request from unlisted origin');
     // Still allow the request but without CORS headers (browser will block)
     return callback(null, false);
   },
@@ -177,6 +183,16 @@ app.get('/api/health', async (req, res) => {
     }
   }
 
+  // Check email queue health (add ?queue=true to URL)
+  if (req.query.queue === 'true') {
+    try {
+      const { getEmailQueueHealth } = require('./jobs/emailQueueJob');
+      health.emailQueue = await getEmailQueueHealth();
+    } catch (error) {
+      health.emailQueue = { status: 'error' };
+    }
+  }
+
   // Only expose config checks in non-production
   if (!isProd) {
     health.config = {
@@ -203,11 +219,28 @@ app.use('/api/workspaces', workspaceRoutes);
 // Sentry error handler (must be before other error handlers)
 Sentry.setupExpressErrorHandler(app);
 
+// Global error handler — catches anything not handled by withErrorHandling
+const AppError = require('./lib/AppError');
+app.use((err, req, res, _next) => {
+  const requestId = req.id || 'unknown';
+  const isAppError = err instanceof AppError;
+  const statusCode = isAppError ? err.statusCode : 500;
+
+  logger.error({ requestId, method: req.method, url: req.originalUrl, err }, 'Unhandled error');
+
+  res.status(statusCode).json({
+    status: 'error',
+    message: isAppError ? err.message : 'Internal server error',
+    requestId,
+  });
+});
+
 // 404 handler for undefined routes
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
-    message: 'Route not found'
+    message: 'Route not found',
+    requestId: req.id,
   });
 });
 
@@ -216,7 +249,7 @@ const PORT = process.env.PORT || 5001;
 
 // AUTH-05: Validate JWT_SECRET at startup
 if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
-  console.error('FATAL: JWT_SECRET must be set and at least 32 characters long.');
+  logger.fatal('JWT_SECRET must be set and at least 32 characters long');
   if (process.env.NODE_ENV === 'production') {
     process.exit(1);
   }
@@ -224,12 +257,15 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
 
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
-    console.log(`\n Server is running on port ${PORT}`);
-    console.log(` API endpoint: http://localhost:${PORT}/api`);
-    console.log(` Health check: http://localhost:${PORT}/api/health\n`);
+    logger.info({ port: PORT }, `Server is running on port ${PORT}`);
+    logger.info({ endpoint: `http://localhost:${PORT}/api` }, 'API endpoint ready');
+    logger.info({ healthCheck: `http://localhost:${PORT}/api/health` }, 'Health check available');
 
     // Schedule daily reminder job (only for local development)
     startReminderScheduler();
+
+    // Start email queue processor
+    startEmailQueueScheduler();
   });
 }
 
