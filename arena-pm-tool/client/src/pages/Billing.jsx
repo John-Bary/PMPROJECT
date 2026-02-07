@@ -84,7 +84,7 @@ function Billing() {
   const [isPortalLoading, setIsPortalLoading] = useState(false);
   const [searchParams] = useSearchParams();
 
-  const { subscription, plan, usage, fetchSubscription, openPortal, isLoading } = useBillingStore();
+  const { subscription, plan, usage, fetchSubscription, openPortal } = useBillingStore();
   const { workspaces, members } = useWorkspaceStore();
   const { tasks } = useTaskStore();
   const { categories } = useCategoryStore();
