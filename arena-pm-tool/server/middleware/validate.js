@@ -19,9 +19,11 @@ const validate = (schemas) => (req, res, next) => {
       req[key] = schema.parse(data);
     } catch (error) {
       if (error instanceof ZodError) {
+        // Zod 4 uses .issues, Zod 3 uses .errors
+        const issues = error.issues || error.errors || [];
         errors.push(
-          ...error.errors.map((e) => ({
-            field: e.path.join('.'),
+          ...issues.map((e) => ({
+            field: (e.path || []).join('.'),
             message: e.message,
             source: key,
           }))
@@ -35,7 +37,7 @@ const validate = (schemas) => (req, res, next) => {
   if (errors.length > 0) {
     return res.status(400).json({
       status: 'error',
-      message: errors[0].message, // Primary error message for toast
+      message: errors[0].message,
       errors,
     });
   }

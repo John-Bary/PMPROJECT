@@ -21,8 +21,13 @@ const {
 
 // Endpoint to get a CSRF token (called by the SPA on load)
 const csrfTokenRoute = (req, res) => {
-  const token = generateToken(req, res);
-  res.json({ csrfToken: token });
+  try {
+    const token = generateToken(req, res);
+    res.json({ csrfToken: token });
+  } catch (error) {
+    console.error('CSRF token generation error:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to generate CSRF token' });
+  }
 };
 
 module.exports = {
