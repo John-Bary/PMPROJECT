@@ -420,6 +420,7 @@ function TaskList() {
               </div>
             </div>
           ) : (
+            <>
             <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
               <Droppable droppableId="categories" direction="horizontal" type="CATEGORY">
                 {(provided) => (
@@ -469,6 +470,7 @@ function TaskList() {
                 </button>
               </div>
             )}
+            </>
           )}
         </>
       )}

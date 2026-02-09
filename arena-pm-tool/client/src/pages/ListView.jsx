@@ -447,6 +447,7 @@ function ListView() {
           </div>
         </div>
       ) : (
+        <>
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="bg-white rounded-xl shadow-sm border border-neutral-150 overflow-x-auto">
             {/* Desktop Table View */}
@@ -1053,6 +1054,7 @@ function ListView() {
             </button>
           </div>
         )}
+        </>
       )}
 
       {/* Task Modal */}
