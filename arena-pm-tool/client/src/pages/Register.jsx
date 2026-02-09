@@ -80,7 +80,7 @@ function Register() {
     }
 
     const { confirmPassword, ...registerData } = formData;
-    const result = await register(registerData);
+    const result = await register({ ...registerData, tos_accepted: acceptedTerms });
 
     if (result.success) {
       // If invite token present, redirect to accept-invite flow
