@@ -2,7 +2,10 @@
 
 ## Project Overview
 
-Todoria is a simple to do app. It provides task management with categories, calendar views, drag & drop functionality, and team collaboration features.
+Todoria is a multi-workspace project management SaaS application. It provides task management with board/list/calendar views, drag & drop, team collaboration with role-based access, Stripe billing (free & pro plans), onboarding flows, and GDPR compliance features.
+
+**Repository:** https://github.com/John-Bary/PMPROJECT
+**Deployment:** Vercel (frontend + serverless API)
 
 ## Tech Stack
 
@@ -11,171 +14,357 @@ Todoria is a simple to do app. It provides task management with categories, cale
 - **Styling**: Tailwind CSS 3.4
 - **State Management**: Zustand 5
 - **Routing**: React Router DOM 7
-- **HTTP Client**: Axios
+- **HTTP Client**: Axios (with CSRF + cookie auth)
 - **Drag & Drop**: @hello-pangea/dnd
 - **Date Handling**: date-fns, react-day-picker
 - **Icons**: lucide-react
 - **Notifications**: react-hot-toast
+- **Error Tracking**: @sentry/react
+- **Virtualization**: react-window
 
 ### Backend (Node.js)
 - **Framework**: Express 5
-- **Database**: PostgreSQL (via pg)
-- **Authentication**: JWT (jsonwebtoken) + bcryptjs
+- **Database**: PostgreSQL (via pg) + Supabase
+- **Authentication**: JWT (httpOnly cookies) + bcryptjs
+- **Validation**: Zod
 - **Email**: Resend
+- **Billing**: Stripe
+- **Security**: helmet, csrf-csrf, express-rate-limit
+- **Logging**: Pino
+- **Error Tracking**: @sentry/node
 - **Scheduled Tasks**: node-cron
-- **Environment**: dotenv
+- **Migrations**: node-pg-migrate
+- **File Uploads**: multer
 
 ## Project Structure
 
 ```
-todorio/
-├── client/                    # React frontend
+arena-pm-tool/
+├── api/                         # Vercel serverless entry point
+│   └── index.js
+├── client/                      # React frontend
 │   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   │   ├── TaskItem.jsx   # Individual task row
-│   │   │   ├── TaskList.jsx   # Task list with drag & drop
-│   │   │   ├── TaskModal.jsx  # Create/edit task modal
-│   │   │   ├── CategorySection.jsx
-│   │   │   ├── CategoryModal.jsx
-│   │   │   ├── DatePicker.jsx
-│   │   │   ├── FilterDropdown.jsx
-│   │   │   └── Loader.jsx
-│   │   ├── pages/             # Page components
-│   │   │   ├── Dashboard.jsx  # Main dashboard
-│   │   │   ├── ListView.jsx   # Task list view
-│   │   │   ├── CalendarView.jsx
-│   │   │   ├── Login.jsx
-│   │   │   └── Register.jsx
-│   │   ├── store/             # Zustand stores
-│   │   ├── utils/             # Helper functions
-│   │   └── App.js             # Root component with routing
+│   │   ├── components/          # Reusable UI components (28 files)
+│   │   ├── contexts/            # React contexts (WorkspaceContext)
+│   │   ├── hooks/               # Custom hooks (focus trap, keyboard shortcuts, task actions/filters)
+│   │   ├── pages/               # Page components (22 files)
+│   │   │   └── UserArea/        # User settings sub-pages
+│   │   ├── store/               # Zustand stores (auth, task, category, workspace, billing, user, holiday)
+│   │   ├── types/               # TypeScript type definitions
+│   │   ├── utils/               # Helpers (api, analytics, dateUtils, priorityStyles, supabase)
+│   │   └── App.js               # Root component with routing
+│   ├── tailwind.config.js
 │   └── package.json
 │
-├── server/                    # Node.js backend
-│   ├── config/                # Database configuration
-│   ├── controllers/           # Route handlers
-│   │   ├── authController.js
-│   │   ├── taskController.js
-│   │   └── categoryController.js
-│   ├── middleware/            # Express middleware (auth)
-│   ├── routes/                # API route definitions
-│   │   ├── auth.js
-│   │   ├── tasks.js
-│   │   └── categories.js
-│   ├── scripts/               # Database scripts
-│   │   ├── initDatabase.js
-│   │   └── resetDatabase.js
-│   ├── server.js              # Express entry point
+├── server/                      # Node.js backend
+│   ├── config/                  # Database config (pg, supabase, schema.sql)
+│   ├── controllers/             # Route handlers (10 controllers)
+│   │   └── __tests__/           # Controller tests
+│   ├── jobs/                    # Background jobs (reminder, email queue, backup, retention)
+│   ├── lib/                     # Utilities (logger, AppError, sentry, activityLog, alerts, withErrorHandling)
+│   ├── middleware/              # Express middleware (10 files: auth, csrf, rateLimiter, billingGuard, planLimits, validate, schemas, workspaceAuth, auditLog, requestId)
+│   │   └── __tests__/           # Middleware tests
+│   ├── migrations/              # node-pg-migrate migrations (5 files)
+│   ├── routes/                  # API route definitions (10 files)
+│   ├── scripts/                 # Database & utility scripts (18 files)
+│   ├── templates/email/         # HTML email templates (7 templates)
+│   ├── tests/                   # Integration tests
+│   ├── uploads/                 # Avatar uploads
+│   ├── utils/                   # Email service, queue, templates, reminder service
+│   ├── server.js                # Express entry point
 │   └── package.json
 │
-└── tasks.md                   # Development guide/checklist
+├── supabase/                    # Supabase config & migrations (10 SQL migrations)
+├── docs/                        # Deployment & security docs
+├── vercel.json                  # Production deployment config
+└── package.json                 # Root monorepo scripts
 ```
 
 ## Development Commands
 
-### Frontend (from `/todorio/client`)
+### Root (from `arena-pm-tool/`)
 ```bash
-npm start          # Start dev server on port 3000
-npm run build      # Build for production
-npm test           # Run tests
+npm run dev              # Start both client & server concurrently
+npm run dev:server       # Start server only (nodemon, port 5001)
+npm run dev:client       # Start client only (port 3000)
+npm run build            # Build client for production
 ```
 
-### Backend (from `/todorio/server`)
+### Frontend (from `arena-pm-tool/client/`)
 ```bash
-npm run dev        # Start dev server with nodemon on port 5000
-npm start          # Start production server
-npm run db:init    # Initialize database schema
-npm run db:reset   # Reset database (destructive)
+npm start                # Dev server on port 3000
+npm run build            # Production build
+npm test                 # Run tests (Jest + Testing Library)
+```
+
+### Backend (from `arena-pm-tool/server/`)
+```bash
+npm run dev              # Dev server with nodemon
+npm start                # Production server
+npm test                 # Run tests with coverage (Jest + supertest)
+npm run test:watch       # Watch mode
+
+# Database
+npm run db:init          # Initialize database schema
+npm run db:reset         # Reset database (destructive)
+npm run db:backup        # Backup database
+npm run db:restore       # Restore database
+npm run db:deploy        # Deploy database changes
+npm run migrate:up       # Run node-pg-migrate migrations
+npm run migrate:down     # Rollback migration
+npm run migrate:create   # Create new migration
+
+# Email & Reminders
+npm run email:test       # Test email sending
+npm run reminders:test   # Test reminder system
+npm run reminders:run    # Run reminders once
+npm run reminders:schedule  # Start reminder cron
+```
+
+### Supabase (from `arena-pm-tool/`)
+```bash
+npm run supabase:start   # Start local Supabase
+npm run supabase:stop    # Stop local Supabase
+npm run db:diff          # Generate migration diff
+npm run db:push          # Push migrations to remote
+npm run db:pull          # Pull remote schema
+npm run supabase:gen-types  # Generate TypeScript types
 ```
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - Logout user
+### Authentication (`/api/auth`)
+- `POST /register` - Register (requires ToS acceptance)
+- `POST /login` - Login (returns JWT in httpOnly cookies)
+- `POST /logout` - Logout (clears cookies)
+- `POST /refresh` - Refresh access token
+- `GET /me` - Get current user
+- `GET /users` - Get workspace users (for assignee dropdown)
+- `POST /forgot-password` - Request password reset
+- `POST /reset-password` - Reset password with token
+- `POST /verify-email` - Verify email
+- `POST /resend-verification` - Resend verification email
 
-### Tasks
-- `GET /api/tasks` - Get all tasks
-- `POST /api/tasks` - Create task
-- `PUT /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
-- `PATCH /api/tasks/:id/complete` - Toggle completion
-- `PATCH /api/tasks/reorder` - Reorder tasks (drag & drop)
+### Workspaces (`/api/workspaces`)
+- `GET /` - List user's workspaces
+- `POST /` - Create workspace (plan-limited)
+- `GET /:id` - Get workspace
+- `PUT /:id` - Update workspace
+- `DELETE /:id` - Delete workspace
+- `GET /:id/members` - List members
+- `GET /users` - Get workspace users
+- `PATCH /:id/members/:memberId` - Update member role
+- `DELETE /:id/members/:memberId` - Remove member
+- `POST /:id/invite` - Invite user (sends email)
+- `POST /accept-invite/:token` - Accept invitation
+- `GET /invite-info/:token` - Get invite details (public)
+- `GET /:id/invitations` - List pending invitations
+- `DELETE /:id/invitations/:invitationId` - Cancel invitation
+- `GET /:id/activity` - Activity feed
+- `GET /:id/audit-log` - Audit log (admin only)
+- `GET/POST/PUT/POST /:id/onboarding/*` - Onboarding endpoints
 
-### Categories
-- `GET /api/categories` - Get all categories
-- `POST /api/categories` - Create category
-- `PUT /api/categories/:id` - Update category
-- `DELETE /api/categories/:id` - Delete category
+### Tasks (`/api/tasks`)
+- `GET /` - List tasks (filters: category_id, assignee_ids, status, priority, search; cursor pagination)
+- `GET /:id` - Get task
+- `GET /:id/subtasks` - Get subtasks
+- `POST /` - Create task (subscription + plan-limit enforced)
+- `PUT /:id` - Update task
+- `PATCH /:id/position` - Update position (drag & drop)
+- `DELETE /:id` - Delete task
+- `GET /:taskId/comments` - List comments
+- `POST /:taskId/comments` - Create comment
+
+### Categories (`/api/categories`)
+- `GET /` - List categories (workspace-scoped, paginated)
+- `GET /:id` - Get category
+- `POST /` - Create category
+- `PUT /:id` - Update category
+- `DELETE /:id` - Delete category
+- `PATCH /reorder` - Reorder categories
+
+### Comments (`/api/comments`)
+- `PUT /:id` - Update comment
+- `DELETE /:id` - Delete comment
+
+### User Profile (`/api/me`)
+- `GET /` - Get profile
+- `PATCH /` - Update profile
+- `PATCH /preferences` - Update preferences (language, timezone)
+- `PATCH /notifications` - Update notification settings
+- `POST /avatar` - Upload avatar (5MB max, jpg/png/webp)
+- `DELETE /avatar` - Delete avatar
+- `POST /password` - Change password
+- `DELETE /account` - Delete account (GDPR)
+- `GET /tasks` - My tasks
+- `GET /tasks/export` - Export tasks as CSV
+- `GET /export` - Full GDPR data export
+
+### Billing (`/api/billing`)
+- `GET /plans` - Get available plans (public)
+- `GET /subscription` - Get subscription & usage
+- `POST /checkout` - Create Stripe checkout session
+- `POST /portal` - Create Stripe portal session
+- `POST /webhook` - Stripe webhook handler
+
+### Other
+- `GET /api/holidays?year=2026` - Lithuanian holidays
+- `POST /api/reminders/trigger` - Trigger reminder job (CRON_SECRET)
+- `GET /api/reminders/status` - Reminder system health
+- `GET /api/admin/stats` - Admin dashboard stats
+- `GET /api/health` - Health check (optional `?db=true&queue=true`)
+- `GET /api/csrf-token` - Get CSRF token
 
 ## Environment Variables
 
 ### Server (`server/.env`)
 ```
-PORT=5000
-DATABASE_URL=postgresql://user:password@localhost:5432/todorio
-JWT_SECRET=your-secret-key
-JWT_EXPIRES_IN=7d
-RESEND_API_KEY=re_your_api_key_here
-EMAIL_FROM=noreply@example.com
+# Core
+NODE_ENV=development
+PORT=5001
+ALLOWED_ORIGINS=http://localhost:3000
+CLIENT_URL=http://localhost:3000
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/todoria
+
+# Auth
+JWT_SECRET=your-secret-key-min-32-chars
+
+# Email (Resend)
+RESEND_API_KEY=re_your_key
+EMAIL_FROM=noreply@todoria.app
 EMAIL_FROM_NAME=Todoria
+
+# Billing (Stripe)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRO_PRICE_ID=price_...
+
+# Scheduled Jobs
+CRON_SECRET=your-cron-secret
+REMINDER_JOB_ENABLED=true
+REMINDER_CRON_SCHEDULE=0 9 * * *
+BACKUP_ENABLED=false
+RETENTION_ENABLED=true
+
+# Monitoring
+SENTRY_DSN=https://...
+
+# External APIs
+ABSTRACT_API_KEY=your-key (holidays)
 ```
 
 ### Client (`client/.env`)
 ```
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5001/api
 ```
 
 ## Database Schema
 
-### Users
-- id, email (unique), password (hashed), name, avatar_color, created_at
+### Core Tables
+- **users** — id, email, password, name, first_name, last_name, avatar_url, avatar_color, role, language, timezone, email_verified, tos_accepted_at, deleted_at, created_at
+- **workspaces** — id (uuid), name, owner_id, created_at
+- **workspace_members** — id, workspace_id, user_id, role (admin/member/viewer), joined_at
+- **workspace_invitations** — id, workspace_id, email, role, token, invited_by, expires_at, accepted_at
+- **workspace_onboarding_progress** — id, workspace_id, user_id, current_step, steps_completed (jsonb), completed_at
 
-### Categories
-- id, name, color, position, user_id, created_at
+### Task Tables
+- **tasks** — id, title, description, category_id, priority (low/medium/high/urgent), status (todo/in_progress/completed), due_date, completed_at, position, parent_task_id, created_by, workspace_id
+- **task_assignments** — task_id, user_id (composite PK) — enables multiple assignees
+- **categories** — id, name, color, position, created_by, workspace_id
+- **comments** — id, task_id, author_id, content, created_at
 
-### Tasks
-- id, name, description, assignee_id (FK users), due_date, priority (low/medium/high), completed, category_id (FK categories), position, created_by (FK users), created_at, updated_at
+### Billing Tables
+- **plans** — id ('free'/'pro'), name, price_per_seat_cents, max_members, max_tasks_per_workspace, features (jsonb)
+- **subscriptions** — id, workspace_id, plan_id, stripe_customer_id, stripe_subscription_id, status, seat_count
+- **invoices** — id, workspace_id, stripe_invoice_id, amount_cents, status, pdf_url
+
+### Compliance Tables
+- **audit_logs** — id, workspace_id, user_id, action, resource_type, resource_id, details (jsonb), ip_address
 
 ## Key Features
 
-1. **Task Management**: Create, edit, delete tasks with inline editing
-2. **Categories**: Organize tasks into collapsible categories
-3. **Drag & Drop**: Reorder tasks within and across categories
-4. **Calendar View**: View tasks by due date
-5. **Filtering**: Filter by assignee, priority, date range
-6. **Search**: Search tasks by name
-7. **Email Reminders**: Scheduled reminder emails for due tasks
+1. **Multi-workspace** — Create/switch workspaces, invite members, role-based access (admin/member/viewer)
+2. **Task management** — CRUD with subtasks, multiple assignees, priorities, categories, comments
+3. **Three views** — Board (drag & drop Kanban), List, Calendar
+4. **Stripe billing** — Free & Pro plans with seat-based pricing, plan limits enforcement
+5. **Onboarding** — Guided workspace setup flow for new users
+6. **Email system** — Queue-based with templates for verification, invites, reminders, assignments
+7. **GDPR compliance** — Data export, account deletion, audit logging, ToS/privacy acceptance tracking
+8. **Security** — httpOnly JWT cookies, CSRF protection, rate limiting, Helmet headers, Zod validation
+9. **Monitoring** — Sentry error tracking, Pino structured logging, health check endpoint
+10. **Background jobs** — Task reminders, email queue processor, database backups, data retention
 
-## Code Style Guidelines
+## Code Style
 
-- Use functional components with hooks
-- Keep components focused and small
-- Use Zustand for global state
-- Handle errors with try-catch and toast notifications
-- Use Tailwind CSS utility classes
-- Follow existing patterns for API calls in controllers
+- Functional components with hooks
+- Zustand for global state (all stores are workspace-aware)
+- HttpOnly cookie auth — no tokens in localStorage
+- CSRF token auto-fetched and attached to mutations via Axios interceptor
+- `react-hot-toast` for all user notifications
+- Tailwind CSS utility classes (custom teal primary palette, Apple-inspired design)
+- `withErrorHandling` wrapper for controller error handling on the server
+- `AppError` class for operational errors with status codes
+- Pino logger (not console.log/console.error) on the server
 
 ## Common Patterns
 
 ### API Calls (Frontend)
 ```javascript
-import axios from 'axios';
-const API_URL = process.env.REACT_APP_API_URL;
+// All API functions are in client/src/utils/api.js
+import { tasksAPI, categoriesAPI, workspacesAPI } from '../utils/api';
 
-// Include auth token in requests
-axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+// Stores auto-include workspace_id
+const response = await tasksAPI.getAll({ workspace_id: workspaceId, ...filters });
+```
+
+### Zustand Store Pattern
+```javascript
+import { create } from 'zustand';
+import useWorkspaceStore from './workspaceStore';
+
+const getWorkspaceId = () => useWorkspaceStore.getState().currentWorkspaceId;
+
+const useStore = create((set, get) => ({
+  items: [],
+  isLoading: false,
+  fetchItems: async () => { /* ... */ },
+}));
 ```
 
 ### Protected Routes (Backend)
 ```javascript
 const authMiddleware = require('../middleware/auth');
-router.get('/protected', authMiddleware, controller.method);
+const { workspaceAuth } = require('../middleware/workspaceAuth');
+const { billingGuard } = require('../middleware/billingGuard');
+
+router.post('/', authMiddleware, billingGuard, controller.create);
+router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), controller.getMembers);
+```
+
+### Custom Hooks
+```javascript
+// useTaskActions — shared task toggle logic
+// useTaskFilters — shared filtering with debounced search
+// useKeyboardShortcuts — global keyboard shortcut handler
+// useFocusTrap — accessible modal focus management
 ```
 
 ## Testing
 
-- Frontend: Jest + React Testing Library
-- Backend: Manual testing with Postman (automated tests not yet implemented)
+### Frontend (Jest + React Testing Library)
+- Store tests: `client/src/store/__tests__/` (auth, task, category stores)
+- Component tests: `ErrorBoundary.test.js`, `SubtaskList.test.js`
+- API tests: `client/src/utils/api.test.js`
+
+### Backend (Jest + supertest)
+- Controller tests: `server/controllers/__tests__/` (auth, billing, category, comment, task)
+- Middleware tests: `server/middleware/__tests__/` (auth, planLimits)
+- Config: `server/jest.config.js`
+
+```bash
+# Run all tests
+cd server && npm test        # Backend with coverage
+cd client && npm test        # Frontend
+```
