@@ -2,6 +2,7 @@
 // Handles workspace onboarding flow for invited users
 
 const { query, getClient } = require('../config/database');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -218,7 +219,7 @@ const getOnboardingStatus = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get onboarding status error:', error);
+    logger.error({ err: error }, 'Get onboarding status error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching onboarding status',
@@ -276,7 +277,7 @@ const startOnboarding = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Start onboarding error:', error);
+    logger.error({ err: error }, 'Start onboarding error');
     res.status(500).json({
       status: 'error',
       message: 'Error starting onboarding',
@@ -361,7 +362,7 @@ const updateProgress = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update onboarding progress error:', error);
+    logger.error({ err: error }, 'Update onboarding progress error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating onboarding progress',
@@ -429,7 +430,7 @@ const completeOnboarding = async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Complete onboarding error:', error);
+    logger.error({ err: error }, 'Complete onboarding error');
     res.status(500).json({
       status: 'error',
       message: 'Error completing onboarding',
@@ -497,7 +498,7 @@ const skipOnboarding = async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Skip onboarding error:', error);
+    logger.error({ err: error }, 'Skip onboarding error');
     res.status(500).json({
       status: 'error',
       message: 'Error skipping onboarding',

@@ -12,7 +12,10 @@ const useCategoryStore = create((set, get) => ({
   isLoading: false,
   isFetching: false,
   isMutating: false,
+  isLoadingMore: false,
   error: null,
+  nextCursor: null,
+  hasMore: false,
 
   // Fetch all categories (filtered by workspace_id)
   fetchCategories: async () => {
@@ -28,8 +31,11 @@ const useCategoryStore = create((set, get) => ({
       // Include workspace_id in query params
       const params = { workspace_id: workspaceId };
       const response = await categoriesAPI.getAll(params);
+      const { categories, nextCursor, hasMore } = response.data.data;
       set({
-        categories: response.data.data.categories,
+        categories,
+        nextCursor: nextCursor || null,
+        hasMore: hasMore || false,
         isLoading: false,
         isFetching: false,
       });
@@ -40,6 +46,37 @@ const useCategoryStore = create((set, get) => ({
         isLoading: false,
         isFetching: false,
       });
+      toast.error(errorMessage);
+    }
+  },
+
+  // Load more categories (append next page)
+  loadMoreCategories: async () => {
+    const { nextCursor, hasMore, isLoadingMore } = get();
+    if (!hasMore || !nextCursor || isLoadingMore) return;
+
+    const workspaceId = getWorkspaceId();
+    if (!workspaceId) return;
+
+    set({ isLoadingMore: true });
+
+    try {
+      const params = {
+        workspace_id: workspaceId,
+        cursor: nextCursor,
+      };
+      const response = await categoriesAPI.getAll(params);
+      const { categories: newCategories, nextCursor: newCursor, hasMore: moreAvailable } = response.data.data;
+
+      set((state) => ({
+        categories: [...state.categories, ...newCategories],
+        nextCursor: newCursor || null,
+        hasMore: moreAvailable || false,
+        isLoadingMore: false,
+      }));
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to load more categories';
+      set({ isLoadingMore: false });
       toast.error(errorMessage);
     }
   },
@@ -159,6 +196,8 @@ const useCategoryStore = create((set, get) => ({
   clearCategories: () => {
     set({
       categories: [],
+      nextCursor: null,
+      hasMore: false,
       error: null,
     });
   },

@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
 const { sendWelcomeEmail, sendPasswordResetEmail, sendVerificationEmail } = require('../utils/emailService');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -59,6 +60,15 @@ const register = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'Please provide email, password, and name.'
+      });
+    }
+
+    // Require ToS acceptance
+    if (!req.body.tos_accepted) {
+      client.release();
+      return res.status(400).json({
+        status: 'error',
+        message: 'You must accept the Terms of Service to register.'
       });
     }
 
@@ -171,7 +181,7 @@ const register = async (req, res) => {
       userName: newUser.name,
       verificationUrl
     }).catch(err => {
-      console.error(`Failed to send verification email to ${newUser.email}:`, err.message);
+      logger.warn({ err, email: newUser.email }, 'Failed to send verification email');
     });
 
     // Return user data (without password) - token still returned for backward compat
@@ -196,7 +206,7 @@ const register = async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Registration error:', error);
+    logger.error({ err: error }, 'Registration error');
     res.status(500).json({
       status: 'error',
       message: 'Error registering user',
@@ -269,7 +279,7 @@ const login = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error({ err: error }, 'Login error');
     res.status(500).json({
       status: 'error',
       message: 'Error logging in',
@@ -290,7 +300,7 @@ const logout = async (req, res) => {
       message: 'Logged out successfully'
     });
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error({ err: error }, 'Logout error');
     res.status(500).json({
       status: 'error',
       message: 'Error logging out',
@@ -332,7 +342,7 @@ const getCurrentUser = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get current user error:', error);
+    logger.error({ err: error }, 'Get current user error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching user data',
@@ -378,7 +388,7 @@ const getAllUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all users error:', error);
+    logger.error({ err: error }, 'Get all users error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching users',
@@ -446,7 +456,7 @@ const refreshAccessToken = async (req, res) => {
         message: 'Invalid or expired refresh token. Please login again.'
       });
     }
-    console.error('Refresh token error:', error);
+    logger.error({ err: error }, 'Refresh token error');
     res.status(500).json({
       status: 'error',
       message: 'Error refreshing token'
@@ -505,12 +515,12 @@ const forgotPassword = async (req, res) => {
       userName: user.name || user.email,
       resetUrl
     }).catch(err => {
-      console.error(`Failed to send password reset email to ${user.email}:`, err.message);
+      logger.warn({ err, email: user.email }, 'Failed to send password reset email');
     });
 
     res.json(successResponse);
   } catch (error) {
-    console.error('Forgot password error:', error);
+    logger.error({ err: error }, 'Forgot password error');
     res.status(500).json({
       status: 'error',
       message: 'Error processing password reset request',
@@ -577,7 +587,7 @@ const resetPassword = async (req, res) => {
       message: 'Password has been reset successfully. You can now log in with your new password.'
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error({ err: error }, 'Reset password error');
     res.status(500).json({
       status: 'error',
       message: 'Error resetting password',
@@ -624,7 +634,7 @@ const verifyEmail = async (req, res) => {
       to: user.email,
       userName: user.name
     }).catch(err => {
-      console.error(`Failed to send welcome email to ${user.email}:`, err.message);
+      logger.warn({ err, email: user.email }, 'Failed to send welcome email');
     });
 
     res.json({
@@ -632,7 +642,7 @@ const verifyEmail = async (req, res) => {
       message: 'Email verified successfully!'
     });
   } catch (error) {
-    console.error('Verify email error:', error);
+    logger.error({ err: error }, 'Verify email error');
     res.status(500).json({
       status: 'error',
       message: 'Error verifying email',
@@ -685,7 +695,7 @@ const resendVerificationEmail = async (req, res) => {
       message: 'Verification email sent. Please check your inbox.'
     });
   } catch (error) {
-    console.error('Resend verification error:', error);
+    logger.error({ err: error }, 'Resend verification error');
     res.status(500).json({
       status: 'error',
       message: 'Error sending verification email',

@@ -3,6 +3,7 @@
 
 const { query, getClient } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -85,7 +86,7 @@ const getAllCategories = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all categories error:', error);
+    logger.error({ err: error }, 'Get all categories error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching categories',
@@ -145,7 +146,7 @@ const getCategoryById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get category error:', error);
+    logger.error({ err: error }, 'Get category error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching category',
@@ -258,7 +259,7 @@ const createCategory = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Create category error:', error);
+    logger.error({ err: error }, 'Create category error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating category',
@@ -390,7 +391,7 @@ const updateCategory = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update category error:', error);
+    logger.error({ err: error }, 'Update category error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating category',
@@ -512,7 +513,7 @@ const reorderCategories = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Reorder categories error:', error);
+    logger.error({ err: error }, 'Reorder categories error');
     res.status(500).json({
       status: 'error',
       message: 'Error reordering categories',
@@ -584,7 +585,7 @@ const deleteCategory = async (req, res) => {
       message: 'Category deleted successfully'
     });
   } catch (error) {
-    console.error('Delete category error:', error);
+    logger.error({ err: error }, 'Delete category error');
     res.status(500).json({
       status: 'error',
       message: 'Error deleting category',

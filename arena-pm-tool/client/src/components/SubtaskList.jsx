@@ -314,6 +314,7 @@ function SubtaskList({ taskId, categoryId }) {
                 <button
                   onClick={() => handleToggleComplete(subtask)}
                   disabled={togglingIds.has(subtask.id)}
+                  aria-label={subtask.status === 'completed' ? `Mark "${subtask.title}" as incomplete` : `Mark "${subtask.title}" as complete`}
                   className={`
                     flex-shrink-0 w-5 h-5 rounded border-2
                     flex items-center justify-center transition-all
@@ -364,6 +365,7 @@ function SubtaskList({ taskId, categoryId }) {
                     ${deletingIds.has(subtask.id) ? 'opacity-100' : ''}
                   `}
                   title="Delete subtask"
+                  aria-label={`Delete subtask "${subtask.title}"`}
                 >
                   {deletingIds.has(subtask.id) ? (
                     <InlineSpinner size="xs" />
@@ -450,6 +452,7 @@ function SubtaskList({ taskId, categoryId }) {
                     onClick={() => setActiveAssigneeDropdown(activeAssigneeDropdown === subtask.id ? null : subtask.id)}
                     className="flex items-center hover:bg-neutral-100 rounded px-1 py-0.5 transition"
                     title="Manage assignees"
+                    aria-label="Manage assignees"
                   >
                     {(subtask.assignees || []).length > 0 ? (
                       <div className="flex items-center">
@@ -594,6 +597,7 @@ function SubtaskList({ taskId, categoryId }) {
                 onClick={() => setShowNewAssigneeDropdown(!showNewAssigneeDropdown)}
                 className="flex items-center hover:bg-neutral-100 rounded px-1 py-0.5 transition"
                 disabled={isCreating}
+                aria-label="Assign subtask"
               >
                 {newSubtaskAssigneeIds.length > 0 ? (
                   <div className="flex items-center">

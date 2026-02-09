@@ -3,6 +3,7 @@
 
 const { query, getClient } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -106,7 +107,7 @@ const getSubscription = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get subscription error:', error);
+    logger.error({ err: error }, 'Get subscription error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching subscription',
@@ -227,7 +228,7 @@ const createCheckoutSession = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Create checkout session error:', error);
+    logger.error({ err: error }, 'Create checkout session error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating checkout session',
@@ -287,7 +288,7 @@ const createPortalSession = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Create portal session error:', error);
+    logger.error({ err: error }, 'Create portal session error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating portal session',
@@ -304,7 +305,7 @@ const handleWebhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
 
   if (!process.env.STRIPE_WEBHOOK_SECRET) {
-    console.error('STRIPE_WEBHOOK_SECRET not configured');
+    logger.error('STRIPE_WEBHOOK_SECRET not configured');
     return res.status(500).json({ error: 'Webhook not configured' });
   }
 
@@ -316,7 +317,7 @@ const handleWebhook = async (req, res) => {
       process.env.STRIPE_WEBHOOK_SECRET
     );
   } catch (err) {
-    console.error('Webhook signature verification failed:', err.message);
+    logger.error({ err }, 'Webhook signature verification failed');
     return res.status(400).json({ error: 'Invalid signature' });
   }
 
@@ -473,7 +474,7 @@ const handleWebhook = async (req, res) => {
     res.json({ received: true });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Webhook processing error:', error);
+    logger.error({ err: error }, 'Webhook processing error');
     res.status(500).json({ error: 'Webhook processing failed' });
   } finally {
     client.release();
@@ -503,7 +504,7 @@ const getPlans = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get plans error:', error);
+    logger.error({ err: error }, 'Get plans error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching plans',

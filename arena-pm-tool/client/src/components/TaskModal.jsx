@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus } from 'lucide-react';
+import useFocusTrap from '../hooks/useFocusTrap';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
@@ -37,6 +38,9 @@ const TaskModal = ({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [initialFormData, setInitialFormData] = useState(null);
   const titleInputRef = useRef(null);
+  const focusTrapRef = useRef(null);
+
+  useFocusTrap(focusTrapRef, isOpen);
 
   // Track if form has unsaved changes
   const isDirty = initialFormData !== null && (
@@ -256,7 +260,7 @@ const TaskModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
+    <div ref={focusTrapRef} className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -402,6 +406,7 @@ const TaskModal = ({
                           onClick={() => handleRemoveAssignee(userId)}
                           className="ml-0.5 p-0.5 hover:bg-teal-100 rounded-full transition-colors"
                           disabled={isSubmitting}
+                          aria-label={`Remove ${user.name} from assignees`}
                         >
                           <X size={12} />
                         </button>

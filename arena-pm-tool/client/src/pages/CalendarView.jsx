@@ -464,6 +464,7 @@ function CalendarView() {
                         }}
                         className="text-neutral-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg p-1 transition-all duration-150"
                         title="Add task"
+                        aria-label={`Add task on day ${day}`}
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

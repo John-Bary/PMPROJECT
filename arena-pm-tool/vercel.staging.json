@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "name": "todoria-staging",
+  "env": {
+    "NODE_ENV": "staging"
+  },
+  "build": {
+    "env": {
+      "REACT_APP_API_URL": "https://staging-api.todoria.app/api"
+    }
+  }
+}

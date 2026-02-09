@@ -4,6 +4,7 @@
 const { query, getClient } = require('../config/database');
 const crypto = require('crypto');
 const { sendWorkspaceInvite } = require('../utils/emailService');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -54,7 +55,7 @@ const getMyWorkspaces = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get workspaces error:', error);
+    logger.error({ err: error }, 'Get workspaces error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspaces',
@@ -111,7 +112,7 @@ const getWorkspaceById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get workspace error:', error);
+    logger.error({ err: error }, 'Get workspace error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace',
@@ -190,7 +191,7 @@ const createWorkspace = async (req, res) => {
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Create workspace error:', error);
+    logger.error({ err: error }, 'Create workspace error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating workspace',
@@ -259,7 +260,7 @@ const updateWorkspace = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update workspace error:', error);
+    logger.error({ err: error }, 'Update workspace error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating workspace',
@@ -325,7 +326,7 @@ const deleteWorkspace = async (req, res) => {
       message: 'Workspace deleted successfully'
     });
   } catch (error) {
-    console.error('Delete workspace error:', error);
+    logger.error({ err: error }, 'Delete workspace error');
     res.status(500).json({
       status: 'error',
       message: 'Error deleting workspace',
@@ -401,7 +402,7 @@ const getWorkspaceMembers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get workspace members error:', error);
+    logger.error({ err: error }, 'Get workspace members error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace members',
@@ -455,7 +456,7 @@ const getWorkspaceUsers = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get workspace users error:', error);
+    logger.error({ err: error }, 'Get workspace users error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching workspace users',
@@ -569,7 +570,7 @@ const inviteToWorkspace = async (req, res) => {
       });
       emailSent = emailResult?.success || false;
     } catch (err) {
-      console.error(`Failed to send invite email to ${email}:`, err.message);
+      logger.warn({ err, email }, 'Failed to send invite email');
     }
 
     res.status(201).json({
@@ -588,7 +589,7 @@ const inviteToWorkspace = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Invite to workspace error:', error);
+    logger.error({ err: error }, 'Invite to workspace error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating invitation',
@@ -714,7 +715,7 @@ const acceptInvitation = async (req, res) => {
         ON CONFLICT (workspace_id, user_id) DO NOTHING
       `, [invitation.workspace_id, req.user.id]);
     } catch (onboardingError) {
-      console.error('Non-fatal: Failed to initialize onboarding progress:', onboardingError.message);
+      logger.warn({ err: onboardingError }, 'Non-fatal: Failed to initialize onboarding progress');
     }
 
     res.json({
@@ -732,10 +733,10 @@ const acceptInvitation = async (req, res) => {
       try {
         await client.query('ROLLBACK');
       } catch (rollbackError) {
-        console.error('Rollback failed:', rollbackError.message);
+        logger.error({ err: rollbackError }, 'Rollback failed');
       }
     }
-    console.error('Accept invitation error:', error);
+    logger.error({ err: error }, 'Accept invitation error');
     res.status(500).json({
       status: 'error',
       message: 'Error accepting invitation',
@@ -788,7 +789,7 @@ const getWorkspaceInvitations = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get workspace invitations error:', error);
+    logger.error({ err: error }, 'Get workspace invitations error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching invitations',
@@ -828,7 +829,7 @@ const cancelInvitation = async (req, res) => {
       message: 'Invitation cancelled'
     });
   } catch (error) {
-    console.error('Cancel invitation error:', error);
+    logger.error({ err: error }, 'Cancel invitation error');
     res.status(500).json({
       status: 'error',
       message: 'Error cancelling invitation',
@@ -907,7 +908,7 @@ const updateMemberRole = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update member role error:', error);
+    logger.error({ err: error }, 'Update member role error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating member role',
@@ -971,7 +972,7 @@ const removeMember = async (req, res) => {
       message: isRemovingSelf ? 'You have left the workspace' : 'Member removed from workspace'
     });
   } catch (error) {
-    console.error('Remove member error:', error);
+    logger.error({ err: error }, 'Remove member error');
     res.status(500).json({
       status: 'error',
       message: 'Error removing member',
@@ -1053,7 +1054,7 @@ const getInviteInfo = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get invite info error:', error);
+    logger.error({ err: error }, 'Get invite info error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching invitation info',
@@ -1108,6 +1109,49 @@ const getWorkspaceActivity = async (req, res) => {
   });
 };
 
+// GET /api/workspaces/:id/audit-log - View audit log for workspace
+const getAuditLog = async (req, res) => {
+  const { id } = req.params;
+  const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+  const offset = parseInt(req.query.offset) || 0;
+
+  const membership = await verifyWorkspaceAccess(req.user.id, id);
+  if (!membership || membership.role !== 'admin') {
+    return res.status(403).json({ status: 'error', message: 'Admin access required' });
+  }
+
+  const result = await query(
+    `SELECT al.id, al.action, al.resource_type, al.resource_id, al.details, al.ip_address, al.created_at,
+            u.id as user_id, u.name as user_name, u.avatar_url
+     FROM audit_logs al
+     LEFT JOIN users u ON u.id = al.user_id
+     WHERE al.workspace_id = $1
+     ORDER BY al.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [id, limit, offset]
+  );
+
+  res.json({
+    status: 'success',
+    data: {
+      auditLogs: result.rows.map(log => ({
+        id: log.id,
+        action: log.action,
+        resourceType: log.resource_type,
+        resourceId: log.resource_id,
+        details: log.details,
+        ipAddress: log.ip_address,
+        createdAt: log.created_at,
+        user: {
+          id: log.user_id,
+          name: log.user_name,
+          avatarUrl: log.avatar_url,
+        }
+      }))
+    }
+  });
+};
+
 module.exports = {
   getMyWorkspaces,
   getWorkspaceById,
@@ -1124,5 +1168,6 @@ module.exports = {
   updateMemberRole,
   removeMember,
   verifyWorkspaceAccess,
-  getWorkspaceActivity
+  getWorkspaceActivity,
+  getAuditLog
 };

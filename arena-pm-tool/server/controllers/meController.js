@@ -5,6 +5,7 @@ const { query } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -54,7 +55,7 @@ const getProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error({ err: error }, 'Get profile error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching profile',
@@ -132,7 +133,7 @@ const updateProfile = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update profile error:', error);
+    logger.error({ err: error }, 'Update profile error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating profile',
@@ -210,7 +211,7 @@ const updatePreferences = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update preferences error:', error);
+    logger.error({ err: error }, 'Update preferences error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating preferences',
@@ -288,7 +289,7 @@ const updateNotifications = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update notifications error:', error);
+    logger.error({ err: error }, 'Update notifications error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating notification settings',
@@ -337,7 +338,7 @@ const uploadAvatar = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Upload avatar error:', error);
+    logger.error({ err: error }, 'Upload avatar error');
     res.status(500).json({
       status: 'error',
       message: 'Error uploading avatar',
@@ -377,7 +378,7 @@ const deleteAvatar = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Delete avatar error:', error);
+    logger.error({ err: error }, 'Delete avatar error');
     res.status(500).json({
       status: 'error',
       message: 'Error removing avatar',
@@ -471,7 +472,7 @@ const getMyTasks = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get my tasks error:', error);
+    logger.error({ err: error }, 'Get my tasks error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching tasks',
@@ -520,7 +521,7 @@ const changePassword = async (req, res) => {
 
     res.json({ status: 'success', message: 'Password changed successfully.' });
   } catch (error) {
-    console.error('Change password error:', error);
+    logger.error({ err: error }, 'Change password error');
     res.status(500).json({
       status: 'error',
       message: 'Error changing password',
@@ -555,8 +556,19 @@ const deleteAccount = async (req, res) => {
       });
     }
 
-    // Delete user — cascading foreign keys in the DB handle related data
-    await query('DELETE FROM users WHERE id = $1', [req.user.id]);
+    // Anonymize user instead of hard-deleting (GDPR-compliant soft delete)
+    await query(
+      `UPDATE users SET
+        name = 'Deleted User',
+        first_name = 'Deleted',
+        last_name = 'User',
+        email = $1,
+        password = 'DELETED',
+        avatar_url = NULL,
+        deleted_at = NOW()
+      WHERE id = $2`,
+      [`deleted_${req.user.id}@removed.todoria.app`, req.user.id]
+    );
 
     // Clear auth cookie
     res.clearCookie('accessToken');
@@ -564,7 +576,7 @@ const deleteAccount = async (req, res) => {
 
     res.json({ status: 'success', message: 'Account deleted successfully.' });
   } catch (error) {
-    console.error('Delete account error:', error);
+    logger.error({ err: error }, 'Delete account error');
     res.status(500).json({
       status: 'error',
       message: 'Error deleting account',
@@ -634,12 +646,46 @@ const exportTasksCsv = async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename="todoria-tasks-${new Date().toISOString().split('T')[0]}.csv"`);
     res.send(csv);
   } catch (error) {
-    console.error('Export tasks CSV error:', error);
+    logger.error({ err: error }, 'Export tasks CSV error');
     res.status(500).json({
       status: 'error',
       message: 'Error exporting tasks',
       error: safeError(error)
     });
+  }
+};
+
+// GDPR data export - returns all user data as JSON
+const getDataExport = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [userResult, tasksResult, categoriesResult, commentsResult, workspacesResult] = await Promise.all([
+      query('SELECT id, email, name, first_name, last_name, created_at FROM users WHERE id = $1', [userId]),
+      query(`SELECT t.id, t.title, t.description, t.status, t.priority, t.due_date, t.created_at
+             FROM tasks t JOIN task_assignments ta ON ta.task_id = t.id WHERE ta.user_id = $1
+             ORDER BY t.created_at DESC`, [userId]),
+      query('SELECT id, name, color, workspace_id, created_at FROM categories WHERE created_by = $1 ORDER BY created_at DESC', [userId]),
+      query('SELECT id, task_id, content, created_at FROM comments WHERE user_id = $1 ORDER BY created_at DESC', [userId]),
+      query(`SELECT w.id, w.name, wm.role, wm.joined_at FROM workspaces w
+             JOIN workspace_members wm ON wm.workspace_id = w.id WHERE wm.user_id = $1
+             ORDER BY wm.joined_at DESC`, [userId]),
+    ]);
+
+    res.json({
+      status: 'success',
+      data: {
+        exportedAt: new Date().toISOString(),
+        user: userResult.rows[0],
+        tasks: tasksResult.rows,
+        categories: categoriesResult.rows,
+        comments: commentsResult.rows,
+        workspaces: workspacesResult.rows,
+      }
+    });
+  } catch (error) {
+    logger.error({ err: error }, 'Data export error');
+    res.status(500).json({ status: 'error', message: 'Error exporting user data', error: safeError(error) });
   }
 };
 
@@ -653,5 +699,6 @@ module.exports = {
   getMyTasks,
   changePassword,
   deleteAccount,
-  exportTasksCsv
+  exportTasksCsv,
+  getDataExport
 };

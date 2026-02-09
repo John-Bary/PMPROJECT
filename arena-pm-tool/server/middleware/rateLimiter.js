@@ -37,10 +37,10 @@ const authLimiter = rateLimit({
 });
 
 // Rate limiter for invitation endpoints
-// 10 invitations per hour per IP
+// 5 invitations per hour per IP
 const inviteLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 10,
+  max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -50,15 +50,15 @@ const inviteLimiter = rateLimit({
 });
 
 // Rate limiter for file uploads
-// 20 uploads per hour per IP
+// 3 uploads per minute per IP
 const uploadLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 20,
+  windowMs: 60 * 1000,
+  max: 3,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
     status: 'error',
-    message: 'Too many upload requests. Please try again later.'
+    message: 'Too many upload requests. Limit is 3 per minute. Please try again shortly.'
   }
 });
 

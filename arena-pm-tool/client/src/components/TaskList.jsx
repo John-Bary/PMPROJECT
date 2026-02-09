@@ -24,6 +24,9 @@ function TaskList() {
     isLoading: isTasksLoading,
     isFetching,
     isMutating,
+    hasMore,
+    loadMoreTasks,
+    isLoadingMore,
   } = useTaskStore();
   const {
     categories,
@@ -417,6 +420,7 @@ function TaskList() {
               </div>
             </div>
           ) : (
+            <>
             <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
               <Droppable droppableId="categories" direction="horizontal" type="CATEGORY">
                 {(provided) => (
@@ -452,6 +456,21 @@ function TaskList() {
                 )}
               </Droppable>
             </DragDropContext>
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center mt-4">
+                <button
+                  onClick={loadMoreTasks}
+                  disabled={isLoadingMore}
+                  className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-teal-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {isLoadingMore && <ButtonSpinner />}
+                  {isLoadingMore ? 'Loading...' : 'Load more'}
+                </button>
+              </div>
+            )}
+            </>
           )}
         </>
       )}
