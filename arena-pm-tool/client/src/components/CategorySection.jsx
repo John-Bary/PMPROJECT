@@ -69,6 +69,7 @@ function CategorySection({
                   onClick={toggleCollapse}
                   className="text-neutral-400 hover:text-neutral-600 transition-all duration-150 p-0.5 flex-shrink-0"
                   title={isCollapsed ? 'Expand category' : 'Collapse category'}
+                  aria-label={isCollapsed ? `Expand ${category.name} category` : `Collapse ${category.name} category`}
                 >
                   {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                 </button>
@@ -88,6 +89,7 @@ function CategorySection({
                     onClick={() => onEditCategory(category)}
                     className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
                     title="Edit category"
+                    aria-label={`Edit ${category.name} category`}
                   >
                     <Pencil size={14} />
                   </button>
@@ -95,6 +97,7 @@ function CategorySection({
                     onClick={() => onDeleteCategory(category)}
                     className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
                     title="Delete category"
+                    aria-label={`Delete ${category.name} category`}
                   >
                     <Trash2 size={14} />
                   </button>

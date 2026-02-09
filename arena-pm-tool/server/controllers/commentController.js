@@ -5,6 +5,7 @@
 
 const { query } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -99,7 +100,7 @@ const getCommentsByTaskId = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get comments error:', error);
+    logger.error({ err: error }, 'Get comments error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching comments',
@@ -184,7 +185,7 @@ const createComment = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Create comment error:', error);
+    logger.error({ err: error }, 'Create comment error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating comment',
@@ -279,7 +280,7 @@ const updateComment = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update comment error:', error);
+    logger.error({ err: error }, 'Update comment error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating comment',
@@ -329,7 +330,7 @@ const deleteComment = async (req, res) => {
       message: 'Comment deleted successfully'
     });
   } catch (error) {
-    console.error('Delete comment error:', error);
+    logger.error({ err: error }, 'Delete comment error');
     res.status(500).json({
       status: 'error',
       message: 'Error deleting comment',

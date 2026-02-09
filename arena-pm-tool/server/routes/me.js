@@ -18,7 +18,8 @@ const {
   getMyTasks,
   changePassword,
   deleteAccount,
-  exportTasksCsv
+  exportTasksCsv,
+  getDataExport
 } = require('../controllers/meController');
 
 // Allowed file extensions for avatar uploads (whitelist)
@@ -87,6 +88,9 @@ router.get('/tasks', withErrorHandling(getMyTasks));
 
 // CSV export
 router.get('/tasks/export', withErrorHandling(exportTasksCsv));
+
+// GDPR data export (full JSON)
+router.get('/export', withErrorHandling(getDataExport));
 
 // Error handling middleware for multer errors
 router.use((error, req, res, next) => {

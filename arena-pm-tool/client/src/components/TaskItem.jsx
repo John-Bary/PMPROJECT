@@ -216,6 +216,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                 onClick={handleEdit}
                 className="p-1.5 text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
                 title="Edit task"
+                aria-label="Edit task"
               >
                 <Pencil size={14} className="sm:w-4 sm:h-4" />
               </button>
@@ -223,6 +224,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                 onClick={handleDelete}
                 className="p-1.5 text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
                 title="Delete task"
+                aria-label="Delete task"
               >
                 <Trash2 size={14} className="sm:w-4 sm:h-4" />
               </button>

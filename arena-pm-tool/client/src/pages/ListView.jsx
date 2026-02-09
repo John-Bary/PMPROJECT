@@ -36,6 +36,9 @@ function ListView() {
     isLoading,
     isFetching,
     isMutating,
+    hasMore,
+    loadMoreTasks,
+    isLoadingMore,
   } = useTaskStore();
   const { categories, fetchCategories, isLoading: isCategoriesLoading } = useCategoryStore();
   const { users, fetchUsers } = useUserStore();
@@ -395,6 +398,7 @@ function ListView() {
                 onClick={clearSearch}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-all duration-150"
                 title="Clear search"
+                aria-label="Clear search"
                 disabled={disableControls}
               >
                 <X size={18} />
@@ -733,6 +737,7 @@ function ListView() {
                                             onClick={() => handleAddSubtask(task)}
                                             className="text-neutral-600 hover:text-teal-600 transition-all duration-150"
                                             title="Add subtask"
+                                            aria-label="Add subtask"
                                           >
                                             <Plus size={18} />
                                           </button>
@@ -741,6 +746,7 @@ function ListView() {
                                           onClick={() => handleEdit(task)}
                                           className="text-neutral-600 hover:text-teal-600 transition-all duration-150"
                                           title={isSubtask ? 'Edit subtask' : 'Edit task'}
+                                          aria-label={isSubtask ? 'Edit subtask' : 'Edit task'}
                                         >
                                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -750,6 +756,7 @@ function ListView() {
                                           onClick={() => handleDelete(task)}
                                           className="text-neutral-600 hover:text-red-500 transition-all duration-150"
                                           title={isSubtask ? 'Delete subtask' : 'Delete task'}
+                                          aria-label={isSubtask ? 'Delete subtask' : 'Delete task'}
                                         >
                                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -833,6 +840,7 @@ function ListView() {
                                           : 'border-neutral-300 hover:border-teal-500'
                                       } ${isToggling ? 'opacity-70' : ''}`}
                                       disabled={isToggling}
+                                      aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                     >
                                       {isToggling ? (
                                         <InlineSpinner size="sm" />
@@ -923,6 +931,7 @@ function ListView() {
                                         onClick={() => handleAddSubtask(task)}
                                         className="text-neutral-500 hover:text-teal-600 p-1"
                                         title="Add subtask"
+                                        aria-label="Add subtask"
                                       >
                                         <Plus size={18} />
                                       </button>
@@ -930,6 +939,7 @@ function ListView() {
                                         onClick={() => handleEdit(task)}
                                         className="text-neutral-500 hover:text-teal-600 p-1"
                                         title="Edit task"
+                                        aria-label="Edit task"
                                       >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -939,6 +949,7 @@ function ListView() {
                                         onClick={() => handleDelete(task)}
                                         className="text-neutral-500 hover:text-red-500 p-1"
                                         title="Delete task"
+                                        aria-label="Delete task"
                                       >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -964,6 +975,7 @@ function ListView() {
                                               : 'border-neutral-300 hover:border-teal-500'
                                           } ${isSubtaskToggling ? 'opacity-70' : ''}`}
                                           disabled={isSubtaskToggling}
+                                          aria-label={isSubtaskCompleted ? `Mark "${subtask.title}" as incomplete` : `Mark "${subtask.title}" as complete`}
                                         >
                                           {isSubtaskToggling ? (
                                             <InlineSpinner size="sm" />
@@ -984,6 +996,7 @@ function ListView() {
                                           <button
                                             onClick={() => handleEdit(subtask)}
                                             className="text-neutral-400 hover:text-teal-600 p-1"
+                                            aria-label="Edit subtask"
                                           >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -992,6 +1005,7 @@ function ListView() {
                                           <button
                                             onClick={() => handleDelete(subtask)}
                                             className="text-neutral-400 hover:text-red-500 p-1"
+                                            aria-label="Delete subtask"
                                           >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1025,6 +1039,20 @@ function ListView() {
             </div>
           </div>
         </DragDropContext>
+
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={loadMoreTasks}
+              disabled={isLoadingMore}
+              className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-teal-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {isLoadingMore && <ButtonSpinner />}
+              {isLoadingMore ? 'Loading...' : 'Load more'}
+            </button>
+          </div>
+        )}
       )}
 
       {/* Task Modal */}

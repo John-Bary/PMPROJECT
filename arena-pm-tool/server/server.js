@@ -15,6 +15,9 @@ const path = require('path');
 const { pool } = require('./config/database');
 const { startReminderScheduler } = require('./jobs/reminderJob');
 const { startEmailQueueScheduler } = require('./jobs/emailQueueJob');
+const { startBackupScheduler } = require('./jobs/backupJob');
+const { startRetentionScheduler } = require('./jobs/retentionJob');
+const { recordRequest, checkAlertThresholds } = require('./lib/alerts');
 const { apiLimiter } = require('./middleware/rateLimiter');
 const { doubleCsrfProtection, csrfTokenRoute } = require('./middleware/csrf');
 const requestIdMiddleware = require('./middleware/requestId');
@@ -212,6 +215,15 @@ app.get('/api/health', async (req, res) => {
   res.status(statusCode).json(health);
 });
 
+// Response-time tracking for alerting
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    recordRequest(res.statusCode, Date.now() - start);
+  });
+  next();
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -277,6 +289,15 @@ if (!process.env.VERCEL) {
 
     // Start email queue processor
     startEmailQueueScheduler();
+
+    // Start backup scheduler
+    startBackupScheduler();
+
+    // Start data retention scheduler
+    startRetentionScheduler();
+
+    // Periodic alert threshold checks
+    setInterval(checkAlertThresholds, 60 * 1000);
   });
 }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import useFocusTrap from '../hooks/useFocusTrap';
 import { format } from 'date-fns';
 import {
   X, Check, Calendar, User, FolderOpen, Flag,
@@ -51,6 +52,9 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   const priorityDropdownRef = useRef(null);
   const moreMenuRef = useRef(null);
   const modalRef = useRef(null);
+  const focusTrapRef = useRef(null);
+
+  useFocusTrap(focusTrapRef, isOpen);
 
   const dueDateObj = toLocalDate(task?.dueDate);
   const formattedDueDate = formatDueDateLong(task?.dueDate);
@@ -275,6 +279,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
   return (
     <div
+      ref={focusTrapRef}
       className="fixed inset-0 z-50 overflow-y-auto"
       onClick={handleBackdropClick}
       role="dialog"
@@ -415,6 +420,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                             type="button"
                             onClick={() => handleAssigneeToggle(assignee.id)}
                             className="ml-0.5 p-0.5 hover:bg-teal-100 rounded-full transition-colors"
+                            aria-label={`Remove ${assignee.name} from assignees`}
                           >
                             <X size={12} />
                           </button>
@@ -479,6 +485,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                           }}
                           className="ml-1 p-0.5 hover:bg-gray-200 rounded transition"
                           title="Clear date"
+                          aria-label="Clear due date"
                         >
                           <X size={12} className="text-gray-400" />
                         </button>

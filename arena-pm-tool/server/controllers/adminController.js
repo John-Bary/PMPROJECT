@@ -2,6 +2,7 @@
 // Provides dashboard statistics for admin users
 
 const { query } = require('../config/database');
+const logger = require('../lib/logger');
 
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
 
@@ -67,7 +68,7 @@ const getStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Admin stats error:', error);
+    logger.error({ err: error }, 'Admin stats error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching admin stats',

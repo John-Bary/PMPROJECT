@@ -1,6 +1,8 @@
 // Holiday Controller
 // Proxies requests to Abstract API with caching for Lithuanian holidays
 
+const logger = require('../lib/logger');
+
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
 
@@ -88,7 +90,7 @@ const getHolidays = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Get holidays error:', error);
+    logger.error({ err: error }, 'Get holidays error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching holidays',

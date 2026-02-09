@@ -5,6 +5,7 @@ const { query, getClient } = require('../config/database');
 const { sendTaskAssignmentNotification } = require('../utils/emailService');
 const { verifyWorkspaceAccess, canUserEdit } = require('../middleware/workspaceAuth');
 const { logActivity } = require('../lib/activityLog');
+const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -182,7 +183,7 @@ const getAllTasks = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get all tasks error:', error);
+    logger.error({ err: error }, 'Get all tasks error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching tasks',
@@ -267,7 +268,7 @@ const getTaskById = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get task error:', error);
+    logger.error({ err: error }, 'Get task error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching task',
@@ -455,7 +456,7 @@ const createTask = async (req, res) => {
             dueDate: newTask.due_date,
             priority: newTask.priority
           }).catch(err => {
-            console.error(`Failed to send assignment notification to ${assignee.email}:`, err.message);
+            logger.warn({ err, email: assignee.email }, 'Failed to send assignment notification');
           });
         }
       });
@@ -492,7 +493,7 @@ const createTask = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Create task error:', error);
+    logger.error({ err: error }, 'Create task error');
     res.status(500).json({
       status: 'error',
       message: 'Error creating task',
@@ -731,7 +732,7 @@ const updateTask = async (req, res) => {
             dueDate: updatedTask.due_date,
             priority: updatedTask.priority
           }).catch(err => {
-            console.error(`Failed to send assignment notification to ${assignee.email}:`, err.message);
+            logger.warn({ err, email: assignee.email }, 'Failed to send assignment notification');
           });
         }
       });
@@ -769,7 +770,7 @@ const updateTask = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update task error:', error);
+    logger.error({ err: error }, 'Update task error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating task',
@@ -860,7 +861,7 @@ const updateTaskPosition = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Update task position error:', error);
+    logger.error({ err: error }, 'Update task position error');
     res.status(500).json({
       status: 'error',
       message: 'Error updating task position',
@@ -923,7 +924,7 @@ const deleteTask = async (req, res) => {
       message: 'Task deleted successfully'
     });
   } catch (error) {
-    console.error('Delete task error:', error);
+    logger.error({ err: error }, 'Delete task error');
     res.status(500).json({
       status: 'error',
       message: 'Error deleting task',
@@ -1005,7 +1006,7 @@ const getSubtasks = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get subtasks error:', error);
+    logger.error({ err: error }, 'Get subtasks error');
     res.status(500).json({
       status: 'error',
       message: 'Error fetching subtasks',

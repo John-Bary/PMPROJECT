@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { tasksAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 import useWorkspaceStore from './workspaceStore';
+import analytics, { EVENTS } from '../utils/analytics';
 
 // Helper to get current workspace ID
 const getWorkspaceId = () => useWorkspaceStore.getState().currentWorkspaceId;
@@ -118,6 +119,7 @@ const useTaskStore = create((set, get) => ({
         isMutating: false,
       }));
 
+      analytics.track(EVENTS.TASK_CREATED);
       toast.success(`Created "${taskTitle}"`);
       return { success: true, task: newTask };
     } catch (error) {

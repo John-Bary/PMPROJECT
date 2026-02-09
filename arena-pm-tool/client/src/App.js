@@ -1,4 +1,5 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import analytics from './utils/analytics';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -26,8 +27,13 @@ const Billing = lazy(() => import('./pages/Billing'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const DPA = lazy(() => import('./pages/DPA'));
 
 function App() {
+  useEffect(() => {
+    analytics.init();
+  }, []);
+
   const toastOptions = {
     duration: 3200,
     style: {
@@ -154,6 +160,7 @@ function App() {
               {/* Legal Pages (public) */}
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/dpa" element={<DPA />} />
 
               {/* Landing Page (public) */}
               <Route path="/" element={<LandingPage />} />

@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { authAPI, meAPI, resetAuthInterceptorFlag } from '../utils/api';
 import toast from 'react-hot-toast';
+import analytics, { EVENTS } from '../utils/analytics';
 
 // DATA-01: Only store minimal user fields in localStorage to reduce exposure
 const sanitizeUserForStorage = (user) => {
@@ -42,6 +43,8 @@ const useAuthStore = create((set) => ({
         error: null,
       });
 
+      analytics.identify(user.id, { email: user.email, name: user.name });
+      analytics.track(EVENTS.LOGIN);
       toast.success('Welcome back!');
       return { success: true };
     } catch (error) {
@@ -75,6 +78,7 @@ const useAuthStore = create((set) => ({
         error: null,
       });
 
+      analytics.track(EVENTS.SIGNUP);
       toast.success('Account created! Please check your email to verify.');
       return { success: true };
     } catch (error) {
@@ -107,6 +111,7 @@ const useAuthStore = create((set) => ({
       error: null,
     });
 
+    analytics.track(EVENTS.LOGOUT);
     toast.success('Logged out successfully');
   },
 
