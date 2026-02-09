@@ -40,6 +40,7 @@ const registerSchema = {
     email: emailString,
     password: passwordString,
     name: sanitizedString(100).refine((v) => v.length >= 1, 'Name is required'),
+    tos_accepted: z.boolean(),
   }),
 };
 
