@@ -86,7 +86,7 @@ const UserArea = () => {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-teal-600 flex items-center justify-center text-white text-sm font-medium">
+                <div className="h-8 w-8 rounded-full bg-neutral-600 flex items-center justify-center text-white text-sm font-medium">
                   {getInitials(user?.firstName, user?.lastName, user?.name)}
                 </div>
               )}
@@ -111,7 +111,7 @@ const UserArea = () => {
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-teal-600/20 text-teal-400'
+                      ? 'bg-neutral-800 text-white'
                       : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
                   }`
                 }
@@ -136,7 +136,7 @@ const UserArea = () => {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-teal-600/20 text-teal-400 border border-teal-600/30'
+                        ? 'bg-neutral-800 text-white border border-neutral-700'
                         : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white border border-transparent'
                     }`
                   }

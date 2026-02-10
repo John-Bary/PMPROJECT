@@ -20,7 +20,7 @@ import UpgradeModal from '../components/UpgradeModal';
 import { ButtonSpinner } from '../components/Loader';
 import toast from 'react-hot-toast';
 
-function UsageBar({ label, icon: Icon, current, limit, color = 'teal' }) {
+function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
   const isUnlimited = !limit || limit === Infinity;
   const percentage = isUnlimited ? 0 : Math.min((current / limit) * 100, 100);
   const isNearLimit = !isUnlimited && percentage >= 80;
@@ -30,8 +30,8 @@ function UsageBar({ label, icon: Icon, current, limit, color = 'teal' }) {
     <div className="p-4 bg-white rounded-xl border border-neutral-200">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${isAtLimit ? 'bg-red-50' : `bg-${color}-50`}`}>
-            <Icon size={16} className={isAtLimit ? 'text-red-500' : `text-${color}-500`} />
+          <div className={`p-1.5 rounded-lg ${isAtLimit ? 'bg-red-50' : 'bg-neutral-50'}`}>
+            <Icon size={16} className={isAtLimit ? 'text-red-500' : 'text-neutral-500'} />
           </div>
           <span className="text-sm font-medium text-neutral-700">{label}</span>
         </div>
@@ -44,7 +44,7 @@ function UsageBar({ label, icon: Icon, current, limit, color = 'teal' }) {
         <div className="w-full bg-neutral-100 rounded-full h-2">
           <div
             className={`h-2 rounded-full transition-all ${
-              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-teal-500`
+              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-neutral-900`
             }`}
             style={{ width: `${percentage}%` }}
             role="progressbar"
@@ -214,7 +214,7 @@ function Billing() {
                 )}
                 <button
                   onClick={() => setIsUpgradeModalOpen(true)}
-                  className="px-6 py-2.5 bg-teal-500 text-white font-medium rounded-lg hover:bg-teal-600 transition-all shadow-sm text-sm"
+                  className="px-6 py-2.5 bg-neutral-900 text-white font-medium rounded-lg hover:bg-neutral-800 transition-all shadow-sm text-sm"
                 >
                   {currentPlan === 'free' ? 'Upgrade Plan' : 'Change Plan'}
                 </button>
@@ -272,7 +272,7 @@ function Billing() {
               <button
                 onClick={handleManageBilling}
                 disabled={isPortalLoading}
-                className="mt-3 text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1 mx-auto"
+                className="mt-3 text-sm text-neutral-700 hover:text-neutral-900 font-medium flex items-center gap-1 mx-auto"
               >
                 {isPortalLoading ? <ButtonSpinner /> : <ExternalLink size={14} />}
                 View invoices in Stripe

@@ -1,14 +1,9 @@
 import { Check } from 'lucide-react';
 
-const AVATAR_COLORS = [
-  'bg-blue-500', 'bg-green-500', 'bg-purple-500',
-  'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
-];
+const AVATAR_COLORS = ['bg-neutral-600'];
 
-function getAvatarColor(name) {
-  if (!name) return AVATAR_COLORS[0];
-  const index = name.charCodeAt(0) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[index];
+function getAvatarColor() {
+  return 'bg-neutral-600';
 }
 
 /**
@@ -74,8 +69,8 @@ function AssigneeListItem({
         ${sizes.container}
         hover:bg-neutral-50 active:bg-neutral-100
         transition-colors duration-150
-        ${isSelected ? 'bg-teal-50 hover:bg-teal-100/70' : ''}
-        focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:ring-inset
+        ${isSelected ? 'bg-neutral-100 hover:bg-neutral-200/70' : ''}
+        focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-inset
       `}
     >
       {/* Checkbox/Radio visual indicator */}
@@ -96,7 +91,7 @@ function AssigneeListItem({
             transition-all duration-150
             ${variant === 'single' ? 'rounded-full' : 'rounded'}
             ${isSelected
-              ? 'bg-teal-500 border-2 border-teal-500'
+              ? 'bg-neutral-900 border-2 border-neutral-900'
               : 'border-2 border-neutral-300 bg-white'
             }
           `}
@@ -129,7 +124,7 @@ function AssigneeListItem({
       <span
         className={`
           ${sizes.text} flex-1 min-w-0
-          ${isSelected ? 'text-teal-700 font-medium' : 'text-neutral-700'}
+          ${isSelected ? 'text-neutral-900 font-medium' : 'text-neutral-700'}
           truncate
         `}
         title={user.name}

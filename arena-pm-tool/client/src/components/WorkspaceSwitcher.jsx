@@ -10,8 +10,8 @@ import CreateWorkspaceModal from './CreateWorkspaceModal';
 // Role badge component
 const RoleBadge = ({ role }) => {
   const roleConfig = {
-    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-    member: { label: 'Member', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50' },
+    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-neutral-700', bg: 'bg-neutral-100' },
+    member: { label: 'Member', icon: Shield, color: 'text-neutral-600', bg: 'bg-neutral-100' },
     viewer: { label: 'Viewer', icon: Eye, color: 'text-neutral-500', bg: 'bg-neutral-100' },
   };
 
@@ -70,20 +70,6 @@ function WorkspaceSwitcher({ className = '' }) {
     setIsOpen(false);
   };
 
-  // Get workspace avatar color based on ID
-  const getWorkspaceColor = (id) => {
-    const colors = [
-      'bg-gradient-to-br from-indigo-500 to-purple-600',
-      'bg-gradient-to-br from-teal-500 to-emerald-600',
-      'bg-gradient-to-br from-orange-500 to-red-600',
-      'bg-gradient-to-br from-blue-500 to-cyan-600',
-      'bg-gradient-to-br from-pink-500 to-rose-600',
-      'bg-gradient-to-br from-violet-500 to-fuchsia-600',
-    ];
-    const index = id?.charCodeAt(0) % colors.length || 0;
-    return colors[index];
-  };
-
   // Don't render if no workspaces
   if (!workspaces || workspaces.length === 0) {
     return null;
@@ -97,14 +83,14 @@ function WorkspaceSwitcher({ className = '' }) {
         disabled={isLoading || isSwitching}
         className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
                    border border-neutral-200 rounded-lg transition-colors min-w-[180px]
-                   disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                   disabled:opacity-50 disabled:cursor-not-allowed"
         aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
         aria-expanded={isOpen}
       >
         {isSwitching ? (
-          <Loader2 size={16} className="w-6 h-6 animate-spin text-teal-500" />
+          <Loader2 size={16} className="w-6 h-6 animate-spin text-neutral-500" />
         ) : (
-          <div className={`w-6 h-6 rounded ${getWorkspaceColor(currentWorkspace?.id)} flex items-center justify-center text-xs font-medium text-white`}>
+          <div className="w-6 h-6 rounded bg-neutral-900 flex items-center justify-center text-xs font-medium text-white">
             {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
           </div>
         )}
@@ -119,10 +105,10 @@ function WorkspaceSwitcher({ className = '' }) {
       {/* Dropdown Menu */}
       {isOpen && (
         <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-neutral-200
-                        rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                        rounded-lg shadow-sm z-50 py-1 overflow-hidden">
           {/* Header */}
           <div className="px-3 py-2 border-b border-neutral-100">
-            <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+            <p className="text-xs font-medium text-neutral-500">
               Your Workspaces
             </p>
           </div>
@@ -137,10 +123,10 @@ function WorkspaceSwitcher({ className = '' }) {
                   onClick={() => handleSwitch(workspace.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-neutral-50
                              transition-colors text-left
-                             ${workspace.id === currentWorkspace?.id ? 'bg-teal-50' : ''}`}
+                             ${workspace.id === currentWorkspace?.id ? 'bg-neutral-100' : ''}`}
                 >
-                  <div className={`w-9 h-9 rounded-lg ${getWorkspaceColor(workspace.id)} flex items-center justify-center
-                                 text-sm font-semibold text-white flex-shrink-0 shadow-sm`}>
+                  <div className="w-9 h-9 rounded-lg bg-neutral-900 flex items-center justify-center
+                                 text-sm font-semibold text-white flex-shrink-0">
                     {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -153,7 +139,7 @@ function WorkspaceSwitcher({ className = '' }) {
                     </div>
                   </div>
                   {workspace.id === currentWorkspace?.id && (
-                    <Check className="w-5 h-5 text-teal-600 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-neutral-900 flex-shrink-0" />
                   )}
                 </button>
               );

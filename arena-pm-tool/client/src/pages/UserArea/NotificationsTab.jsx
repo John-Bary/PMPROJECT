@@ -65,8 +65,8 @@ const NotificationsTab = () => {
         {/* Email Notifications Toggle */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-teal-600/20 rounded-lg">
-              <Mail className="h-6 w-6 text-teal-400" />
+            <div className="p-3 bg-neutral-700/20 rounded-lg">
+              <Mail className="h-6 w-6 text-neutral-300" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
@@ -81,8 +81,8 @@ const NotificationsTab = () => {
                 <button
                   type="button"
                   onClick={handleToggle}
-                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
-                    formData.emailNotificationsEnabled ? 'bg-teal-600' : 'bg-neutral-700'
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
+                    formData.emailNotificationsEnabled ? 'bg-neutral-600' : 'bg-neutral-700'
                   }`}
                   role="switch"
                   aria-checked={formData.emailNotificationsEnabled}
@@ -106,8 +106,8 @@ const NotificationsTab = () => {
           }`}
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-teal-600/20 rounded-lg">
-              <Bell className="h-6 w-6 text-teal-400" />
+            <div className="p-3 bg-neutral-700/20 rounded-lg">
+              <Bell className="h-6 w-6 text-neutral-300" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-medium text-white">Notification Frequency</h3>
@@ -120,7 +120,7 @@ const NotificationsTab = () => {
                 <label
                   className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                     formData.emailDigestMode === 'immediate'
-                      ? 'border-teal-500 bg-teal-600/10'
+                      ? 'border-neutral-500 bg-neutral-700/10'
                       : 'border-neutral-700 hover:border-neutral-600'
                   }`}
                 >
@@ -130,7 +130,7 @@ const NotificationsTab = () => {
                     value="immediate"
                     checked={formData.emailDigestMode === 'immediate'}
                     onChange={() => handleDigestModeChange('immediate')}
-                    className="mt-1 h-4 w-4 text-teal-600 border-neutral-600 focus:ring-teal-500 focus:ring-offset-neutral-900"
+                    className="mt-1 h-4 w-4 text-neutral-400 border-neutral-600 focus:ring-neutral-500 focus:ring-offset-neutral-900"
                   />
                   <div>
                     <span className="text-white font-medium">Immediate</span>
@@ -144,7 +144,7 @@ const NotificationsTab = () => {
                 <label
                   className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                     formData.emailDigestMode === 'daily_digest'
-                      ? 'border-teal-500 bg-teal-600/10'
+                      ? 'border-neutral-500 bg-neutral-700/10'
                       : 'border-neutral-700 hover:border-neutral-600'
                   }`}
                 >
@@ -154,7 +154,7 @@ const NotificationsTab = () => {
                     value="daily_digest"
                     checked={formData.emailDigestMode === 'daily_digest'}
                     onChange={() => handleDigestModeChange('daily_digest')}
-                    className="mt-1 h-4 w-4 text-teal-600 border-neutral-600 focus:ring-teal-500 focus:ring-offset-neutral-900"
+                    className="mt-1 h-4 w-4 text-neutral-400 border-neutral-600 focus:ring-neutral-500 focus:ring-offset-neutral-900"
                   />
                   <div>
                     <span className="text-white font-medium">Daily Digest</span>
@@ -180,7 +180,7 @@ const NotificationsTab = () => {
           <button
             type="submit"
             disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

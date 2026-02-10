@@ -93,13 +93,13 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-xl p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8">
           {/* Invite Banner */}
           {inviteToken && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
-              <p className="text-sm text-blue-700">
+            <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
+              <p className="text-sm text-neutral-700">
                 Create an account to accept your workspace invitation
               </p>
             </div>
@@ -107,14 +107,14 @@ function Register() {
 
           {/* Logo/Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Todoria</h1>
-            <p className="text-gray-600 mt-2">Create your account</p>
+            <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
+            <p className="text-neutral-600 mt-2">Create your account</p>
           </div>
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-2">
                 Full Name
               </label>
               <input
@@ -124,15 +124,15 @@ function Register() {
                 value={formData.name}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
-                  errors.name ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
+                  errors.name ? 'border-red-500' : 'border-neutral-300'
+                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
                 placeholder="John Doe"
               />
               {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
                 Email Address
               </label>
               <input
@@ -142,15 +142,15 @@ function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
+                  errors.email ? 'border-red-500' : 'border-neutral-300'
+                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
                 placeholder="your@email.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
                 Password
               </label>
               <input
@@ -160,15 +160,15 @@ function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
-                  errors.password ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
+                  errors.password ? 'border-red-500' : 'border-neutral-300'
+                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
                 placeholder="Must include uppercase, lowercase, and a digit"
               />
               {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
                 Confirm Password
               </label>
               <input
@@ -178,8 +178,8 @@ function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition`}
+                  errors.confirmPassword ? 'border-red-500' : 'border-neutral-300'
+                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
                 placeholder="Re-enter your password"
               />
               {errors.confirmPassword && (
@@ -197,15 +197,15 @@ function Register() {
                     setAcceptedTerms(e.target.checked);
                     if (errors.terms) setErrors({ ...errors, terms: '' });
                   }}
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-neutral-600">
                   I agree to the{' '}
-                  <Link to="/terms" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
+                  <Link to="/terms" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
                     Terms of Service
                   </Link>{' '}
                   and{' '}
-                  <Link to="/privacy" target="_blank" className="text-blue-600 hover:text-blue-700 underline">
+                  <Link to="/privacy" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
                     Privacy Policy
                   </Link>
                 </span>
@@ -216,7 +216,7 @@ function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+              className="w-full bg-neutral-900 text-white py-2 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
             >
               {isLoading && <ButtonSpinner />}
               {isLoading ? 'Creating account...' : 'Create Account'}
@@ -224,11 +224,11 @@ function Register() {
           </form>
 
           {/* Login Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-neutral-600">
             Already have an account?{' '}
             <Link
               to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login'}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-neutral-900 hover:text-neutral-700 font-medium"
             >
               Sign in
             </Link>

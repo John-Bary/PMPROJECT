@@ -20,12 +20,12 @@
 
   /* Focus visible - accessible focus rings */
   *:focus-visible {
-    @apply outline-none ring-2 ring-teal-500/40 ring-offset-2;
+    @apply outline-none ring-2 ring-neutral-900/15 ring-offset-2;
   }
 
   /* Selection styling */
   ::selection {
-    @apply bg-teal-100 text-teal-900;
+    @apply bg-neutral-200 text-neutral-900;
   }
 
   code {
@@ -38,19 +38,19 @@
   /* Primary button */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2;
-    @apply bg-teal-500 text-white font-medium;
-    @apply rounded-lg shadow-sm;
+    @apply bg-neutral-900 text-white font-medium;
+    @apply rounded-lg;
     @apply transition-all duration-200;
-    @apply hover:bg-teal-600 hover:shadow;
+    @apply hover:bg-neutral-800;
     @apply active:scale-[0.98];
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-teal-500;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-neutral-900;
   }
 
   /* Secondary button */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2;
     @apply bg-white text-neutral-700 font-medium;
-    @apply border border-neutral-200 rounded-lg shadow-xs;
+    @apply border border-neutral-200 rounded-lg;
     @apply transition-all duration-200;
     @apply hover:bg-neutral-50 hover:border-neutral-300;
     @apply active:scale-[0.98];
@@ -60,7 +60,7 @@
   /* Ghost button */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-3 py-1.5;
-    @apply text-neutral-600 font-medium;
+    @apply text-neutral-600 font-normal;
     @apply rounded-lg;
     @apply transition-all duration-150;
     @apply hover:bg-neutral-100 hover:text-neutral-900;
@@ -69,10 +69,10 @@
   /* Danger button */
   .btn-danger {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2;
-    @apply bg-red-500 text-white font-medium;
-    @apply rounded-lg shadow-sm;
+    @apply bg-red-600 text-white font-medium;
+    @apply rounded-lg;
     @apply transition-all duration-200;
-    @apply hover:bg-red-600;
+    @apply hover:bg-red-700;
     @apply active:scale-[0.98];
   }
 
@@ -82,86 +82,53 @@
     @apply bg-white text-neutral-900 placeholder:text-neutral-400;
     @apply border border-neutral-200 rounded-lg;
     @apply transition-all duration-150;
-    @apply focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20;
+    @apply focus:outline-none focus:border-neutral-400 focus:ring-2 focus:ring-neutral-900/10;
     @apply disabled:bg-neutral-50 disabled:text-neutral-500;
   }
 
   /* Card */
   .card {
-    @apply bg-white rounded-xl border border-neutral-150 shadow-sm;
+    @apply bg-white rounded-lg border border-neutral-200;
     @apply transition-all duration-200;
   }
 
   .card-hover {
-    @apply hover:shadow hover:border-neutral-200;
+    @apply hover:border-neutral-300;
   }
 
-  /* Priority badges - muted Apple-like colors */
-  .badge-priority-urgent {
-    @apply px-2 py-0.5 text-xs font-medium rounded-md;
-    @apply border;
-    background-color: #fef2f2;
-    color: #b91c1c;
-    border-color: #fecaca;
-  }
-
-  .badge-priority-high {
-    @apply px-2 py-0.5 text-xs font-medium rounded-md;
-    @apply border;
-    background-color: #fff7ed;
-    color: #c2410c;
-    border-color: #fed7aa;
-  }
-
-  .badge-priority-medium {
-    @apply px-2 py-0.5 text-xs font-medium rounded-md;
-    @apply border;
-    background-color: #fefce8;
-    color: #a16207;
-    border-color: #fef08a;
-  }
-
-  .badge-priority-low {
-    @apply px-2 py-0.5 text-xs font-medium rounded-md;
-    @apply border;
-    background-color: #f8fafc;
-    color: #64748b;
-    border-color: #e2e8f0;
-  }
-
-  /* Checkbox - Apple style */
+  /* Checkbox */
   .checkbox {
     @apply w-5 h-5 rounded-md border-2 border-neutral-300;
     @apply transition-all duration-150;
-    @apply hover:border-teal-500;
+    @apply hover:border-neutral-500;
   }
 
   .checkbox-checked {
-    @apply bg-teal-500 border-teal-500;
+    @apply bg-neutral-900 border-neutral-900;
   }
 
   /* Modal backdrop */
   .modal-backdrop {
-    @apply fixed inset-0 bg-black/40 backdrop-blur-sm;
+    @apply fixed inset-0 bg-black/20;
     @apply transition-opacity duration-200;
   }
 
   /* Modal container */
   .modal {
-    @apply bg-white rounded-2xl shadow-xl;
+    @apply bg-white rounded-xl shadow-md;
     @apply animate-scale-in;
   }
 
   /* Dropdown */
   .dropdown {
-    @apply bg-white rounded-xl border border-neutral-150 shadow-lg;
+    @apply bg-white rounded-lg border border-neutral-200 shadow-sm;
     @apply animate-fade-in;
   }
 
-  /* Section header (macOS sidebar style) */
+  /* Section header */
   .section-header {
     @apply flex items-center gap-2 px-1 py-2;
-    @apply text-xs font-semibold text-neutral-500 uppercase tracking-wide;
+    @apply text-xs font-medium text-neutral-500;
   }
 }
 

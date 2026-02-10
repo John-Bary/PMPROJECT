@@ -58,18 +58,18 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/20 transition-opacity"
         onClick={handleClose}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md border border-neutral-200 animate-scale-in">
+        <div className="relative bg-white rounded-xl shadow-md w-full max-w-md border border-neutral-200 animate-scale-in">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-teal-100 rounded-lg">
-                <Briefcase className="w-5 h-5 text-teal-600" />
+              <div className="p-2 bg-neutral-100 rounded-lg">
+                <Briefcase className="w-5 h-5 text-neutral-600" />
               </div>
               <h2 className="text-lg font-semibold text-neutral-900">Create Workspace</h2>
             </div>
@@ -97,7 +97,7 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
                 disabled={isLoading}
                 className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-lg
                          text-neutral-900 placeholder-neutral-400
-                         focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent
+                         focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
                          disabled:opacity-50 disabled:cursor-not-allowed"
                 autoFocus
               />
@@ -128,8 +128,8 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
               <button
                 type="submit"
                 disabled={isLoading || !name.trim()}
-                className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg
-                         hover:bg-teal-700 transition-colors
+                className="flex-1 px-4 py-2.5 bg-neutral-900 text-white rounded-lg
+                         hover:bg-neutral-800 transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2"
               >

@@ -69,8 +69,8 @@ const ActivityTab = () => {
 
               return (
                 <li key={activity.id} className="flex items-start gap-3 text-sm">
-                  <div className="w-7 h-7 rounded-full bg-teal-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-teal-400">
+                  <div className="w-7 h-7 rounded-full bg-neutral-700/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-medium text-neutral-300">
                       {userName.charAt(0).toUpperCase()}
                     </span>
                   </div>

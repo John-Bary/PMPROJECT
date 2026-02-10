@@ -29,9 +29,9 @@ import CreateWorkspaceModal from '../components/CreateWorkspaceModal';
 
 // Role configuration for badges
 const roleConfig = {
-  admin: { label: 'Admin', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-  member: { label: 'Member', icon: Shield, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-  viewer: { label: 'Viewer', icon: Eye, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-200' },
+  admin: { label: 'Admin', icon: ShieldCheck, color: 'text-neutral-900', bg: 'bg-neutral-100', border: 'border-neutral-300' },
+  member: { label: 'Member', icon: Shield, color: 'text-neutral-700', bg: 'bg-neutral-50', border: 'border-neutral-200' },
+  viewer: { label: 'Viewer', icon: Eye, color: 'text-neutral-500', bg: 'bg-neutral-50', border: 'border-neutral-200' },
 };
 
 // Role badge component
@@ -57,31 +57,22 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
     return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'W';
   };
 
-  const getWorkspaceColor = (id) => {
-    const colors = [
-      'from-indigo-500 to-purple-600',
-      'from-teal-500 to-emerald-600',
-      'from-orange-500 to-red-600',
-      'from-blue-500 to-cyan-600',
-      'from-pink-500 to-rose-600',
-      'from-violet-500 to-fuchsia-600',
-    ];
-    const index = id?.charCodeAt(0) % colors.length || 0;
-    return colors[index];
+  const getWorkspaceColor = () => {
+    return 'bg-neutral-900';
   };
 
   return (
     <div
       className={`relative group bg-white rounded-xl border-2 transition-all duration-200 cursor-pointer hover:shadow-lg ${
         isSelected
-          ? 'border-teal-500 ring-2 ring-teal-500/20 shadow-md'
+          ? 'border-neutral-900 ring-2 ring-neutral-900/20 shadow-md'
           : 'border-neutral-200 hover:border-neutral-300'
       }`}
       onClick={() => onSelect(workspace.id)}
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-teal-500 rounded-full flex items-center justify-center shadow-md">
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-neutral-900 rounded-full flex items-center justify-center shadow-md">
           <Check className="w-4 h-4 text-white" />
         </div>
       )}
@@ -89,7 +80,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
       <div className="p-5">
         {/* Header with avatar and menu */}
         <div className="flex items-start justify-between mb-4">
-          <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getWorkspaceColor(workspace.id)} flex items-center justify-center text-white font-bold text-lg shadow-md`}>
+          <div className={`w-14 h-14 rounded-xl ${getWorkspaceColor(workspace.id)} flex items-center justify-center text-white font-bold text-lg shadow-md`}>
             {getInitials(workspace.name)}
           </div>
 
@@ -115,7 +106,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
                       setShowMenu(false);
                     }}
                   />
-                  <div className="absolute right-0 top-8 z-20 w-40 bg-white rounded-lg shadow-xl border border-neutral-200 py-1 animate-fade-in">
+                  <div className="absolute right-0 top-8 z-20 w-40 bg-white rounded-lg shadow-sm border border-neutral-200 py-1 animate-fade-in">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -176,7 +167,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
             e.stopPropagation();
             onSelect(workspace.id);
           }}
-          className="w-full py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <span>Open Workspace</span>
           <ChevronRight className="w-4 h-4" />
@@ -192,9 +183,9 @@ function DeleteConfirmModal({ workspace, isOpen, onClose, onConfirm, isDeleting 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20" onClick={onClose} />
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md animate-scale-in">
+        <div className="relative bg-white rounded-xl shadow-sm w-full max-w-md animate-scale-in">
           <div className="p-6">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Trash2 className="w-6 h-6 text-red-600" />
@@ -248,9 +239,9 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/20" onClick={onClose} />
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-md animate-scale-in">
+        <div className="relative bg-white rounded-xl shadow-sm w-full max-w-md animate-scale-in">
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
             <h3 className="text-lg font-semibold text-neutral-900">Rename Workspace</h3>
             <button
@@ -270,7 +261,7 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter workspace name"
               disabled={isLoading}
-              className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-50"
+              className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:opacity-50"
               autoFocus
             />
             <div className="flex gap-3 mt-6">
@@ -285,7 +276,7 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
               <button
                 type="submit"
                 disabled={isLoading || !name.trim() || name.trim() === workspace?.name}
-                className="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isLoading ? 'Saving...' : 'Save'}
@@ -386,8 +377,8 @@ function WorkspaceSelectionPage() {
 
         {/* Empty state */}
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-          <div className="w-20 h-20 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Briefcase className="w-10 h-10 text-teal-600" />
+          <div className="w-20 h-20 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Briefcase className="w-10 h-10 text-neutral-600" />
           </div>
           <h2 className="text-2xl font-bold text-neutral-900 mb-3">
             Welcome to Todoria, {user?.name?.split(' ')[0]}!
@@ -397,7 +388,7 @@ function WorkspaceSelectionPage() {
           </p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-colors shadow-lg shadow-teal-600/25"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xl transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
             Create Your First Workspace
@@ -405,22 +396,22 @@ function WorkspaceSelectionPage() {
 
           <div className="mt-12 grid sm:grid-cols-3 gap-6 text-left">
             <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mb-3">
-                <LayoutGrid className="w-5 h-5 text-blue-600" />
+              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                <LayoutGrid className="w-5 h-5 text-neutral-600" />
               </div>
               <h3 className="font-semibold text-neutral-900 mb-1">Organize Tasks</h3>
               <p className="text-sm text-neutral-500">Create categories and manage tasks with drag & drop.</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mb-3">
-                <Users className="w-5 h-5 text-purple-600" />
+              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                <Users className="w-5 h-5 text-neutral-600" />
               </div>
               <h3 className="font-semibold text-neutral-900 mb-1">Collaborate</h3>
               <p className="text-sm text-neutral-500">Invite team members and assign tasks together.</p>
             </div>
             <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mb-3">
-                <Clock className="w-5 h-5 text-orange-600" />
+              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                <Clock className="w-5 h-5 text-neutral-600" />
               </div>
               <h3 className="font-semibold text-neutral-900 mb-1">Track Progress</h3>
               <p className="text-sm text-neutral-500">Use calendar and list views to stay on schedule.</p>
@@ -488,7 +479,7 @@ function WorkspaceSelectionPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search workspaces..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
             />
           </div>
 
@@ -522,7 +513,7 @@ function WorkspaceSelectionPage() {
             {/* Create button */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-lg transition-colors shadow-sm"
             >
               <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">New Workspace</span>
@@ -564,9 +555,9 @@ function WorkspaceSelectionPage() {
                 onClick={() => handleSelectWorkspace(workspace.id)}
                 className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-neutral-50 transition-colors ${
                   index !== filteredWorkspaces.length - 1 ? 'border-b border-neutral-100' : ''
-                } ${workspace.id === currentWorkspaceId ? 'bg-teal-50/50' : ''}`}
+                } ${workspace.id === currentWorkspaceId ? 'bg-neutral-100' : ''}`}
               >
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold`}>
+                <div className={`w-12 h-12 rounded-lg bg-neutral-900 flex items-center justify-center text-white font-bold`}>
                   {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -577,7 +568,7 @@ function WorkspaceSelectionPage() {
                 </div>
                 <RoleBadge role={workspace.userRole} />
                 {workspace.id === currentWorkspaceId && (
-                  <span className="text-xs text-teal-600 font-medium">Current</span>
+                  <span className="text-xs text-neutral-600 font-medium">Current</span>
                 )}
                 <ChevronRight className="w-5 h-5 text-neutral-400" />
               </div>

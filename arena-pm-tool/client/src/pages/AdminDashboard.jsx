@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Users, FolderOpen, ClipboardList, CreditCard, Loader2 } from 'lucide-react';
 import { adminAPI } from '../utils/api';
 
-function StatCard({ label, value, sub, icon: Icon, color = 'teal' }) {
+function StatCard({ label, value, sub, icon: Icon, color = 'neutral' }) {
   return (
     <div className="bg-white rounded-xl border border-neutral-200 p-5">
       <div className="flex items-center gap-3 mb-3">
-        <div className={`p-2 rounded-lg bg-${color}-50`}>
-          <Icon size={18} className={`text-${color}-500`} />
+        <div className="p-2 rounded-lg bg-neutral-50">
+          <Icon size={18} className="text-neutral-500" />
         </div>
         <span className="text-sm font-medium text-neutral-500">{label}</span>
       </div>
@@ -50,7 +50,7 @@ function AdminDashboard() {
       <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-neutral-500 mb-4">{error}</p>
-          <Link to="/dashboard" className="text-teal-600 hover:text-teal-700 font-medium">
+          <Link to="/dashboard" className="text-neutral-700 hover:text-neutral-900 font-medium">
             Back to Dashboard
           </Link>
         </div>

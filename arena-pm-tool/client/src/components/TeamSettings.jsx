@@ -33,12 +33,12 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirm
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/20 transition-opacity"
         onClick={onClose}
       ></div>
 
       <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
+        <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
           <div className="p-4 sm:p-6">
             {/* Mobile drag handle indicator */}
             <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
@@ -69,8 +69,8 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirm
                 onClick={onConfirm}
                 className={`flex-1 px-4 py-2.5 sm:py-2 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98] ${
                   isDestructive
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-teal-500 hover:bg-teal-600'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : 'bg-neutral-900 hover:bg-neutral-800'
                 }`}
                 disabled={isLoading}
               >
@@ -102,7 +102,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
     <div className="flex items-center justify-between py-3 px-4 hover:bg-neutral-50 rounded-lg transition-colors">
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium">
+        <div className="h-10 w-10 rounded-full bg-neutral-600 flex items-center justify-center text-white font-medium">
           {member.user?.email?.[0]?.toUpperCase() || 'U'}
         </div>
 
@@ -113,7 +113,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
               {member.user?.email || 'Unknown User'}
             </span>
             {isCurrentUser && (
-              <span className="text-xs px-2 py-0.5 bg-teal-100 text-teal-700 rounded-full">
+              <span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-900 rounded-full">
                 You
               </span>
             )}
@@ -133,7 +133,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
             value={member.role}
             onChange={(e) => handleRoleChange(e.target.value)}
             disabled={isChangingRole}
-            className="text-sm border border-neutral-200 rounded-lg px-3 py-1.5 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 disabled:opacity-50"
+            className="text-sm border border-neutral-200 rounded-lg px-3 py-1.5 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:opacity-50"
           >
             {ROLE_OPTIONS.map((role) => (
               <option key={role.value} value={role.value}>
@@ -305,7 +305,7 @@ function TeamSettings() {
         {isAdmin && (
           <button
             onClick={() => setIsInviteModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg transition-colors"
           >
             <UserPlus className="h-4 w-4" />
             <span>Invite Member</span>
@@ -324,7 +324,7 @@ function TeamSettings() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-teal-500 animate-spin" />
+            <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
           </div>
         ) : members.length === 0 ? (
           <div className="py-12 text-center text-neutral-500">
@@ -358,7 +358,7 @@ function TeamSettings() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-teal-500 animate-spin" />
+            <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
           </div>
         ) : pendingInvitations.length === 0 ? (
           <div className="py-12 text-center text-neutral-500">

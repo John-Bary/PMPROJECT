@@ -188,7 +188,7 @@ function AssigneeDropdown({
       aria-label={variant === 'multi' ? 'Select assignees' : 'Select assignee'}
       aria-multiselectable={variant === 'multi'}
       className={`
-        fixed bg-white border border-neutral-150 rounded-xl shadow-lg z-[100]
+        fixed bg-white border border-neutral-200 rounded-lg shadow-sm z-[100]
         animate-fade-in overflow-hidden
         ${position.placement === 'top' ? 'origin-bottom' : 'origin-top'}
       `}

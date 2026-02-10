@@ -137,12 +137,12 @@ function InviteMemberModal({ isOpen, onClose }) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/20 transition-opacity"
         onClick={handleClose}
       ></div>
 
       <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative bg-white rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
+        <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
           <div className="p-4 sm:p-6">
             {/* Mobile drag handle indicator */}
             <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
@@ -206,7 +206,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                       className={`px-3 py-2 rounded-lg flex items-center gap-1.5 text-sm font-medium transition-all duration-200 ${
                         copied
                           ? 'bg-green-100 text-green-700 border border-green-200'
-                          : 'bg-teal-500 text-white hover:bg-teal-600'
+                          : 'bg-neutral-900 text-white hover:bg-neutral-800'
                       }`}
                     >
                       {copied ? (
@@ -241,7 +241,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                   <button
                     type="button"
                     onClick={handleInviteAnother}
-                    className="flex-1 px-4 py-2.5 sm:py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base active:scale-[0.98]"
+                    className="flex-1 px-4 py-2.5 sm:py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base active:scale-[0.98]"
                   >
                     <UserPlus className="h-4 w-4" />
                     <span>Invite Another</span>
@@ -266,7 +266,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                         setFormData({ ...formData, email: e.target.value });
                         if (error) setError('');
                       }}
-                      className={`w-full pl-10 pr-3 py-2.5 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 transition-all duration-150 text-base sm:text-sm ${
+                      className={`w-full pl-10 pr-3 py-2.5 sm:py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150 text-base sm:text-sm ${
                         error ? 'border-red-300' : 'border-neutral-200'
                       }`}
                       placeholder="colleague@company.com"
@@ -291,7 +291,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                         key={role.value}
                         className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-all duration-150 ${
                           formData.role === role.value
-                            ? 'border-teal-500 bg-teal-50/50'
+                            ? 'border-neutral-900 bg-neutral-50'
                             : 'border-neutral-200 hover:border-neutral-300'
                         } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
@@ -301,7 +301,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                           value={role.value}
                           checked={formData.role === role.value}
                           onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                          className="mt-0.5 w-4 h-4 text-teal-600 border-neutral-300 focus:ring-teal-500"
+                          className="mt-0.5 w-4 h-4 text-neutral-900 border-neutral-300 focus:ring-neutral-900"
                           disabled={isSubmitting}
                         />
                         <div>
@@ -332,7 +332,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2.5 sm:py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
+                    className="flex-1 px-4 py-2.5 sm:py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
                     disabled={isSubmitting}
                   >
                     {isSubmitting && <ButtonSpinner />}

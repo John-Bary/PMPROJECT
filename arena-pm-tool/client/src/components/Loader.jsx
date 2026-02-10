@@ -9,7 +9,7 @@ function Spinner({ size = 'md', className = '' }) {
 
   return (
     <div
-      className={`animate-spin rounded-full border-teal-500 border-t-transparent ${sizeClasses[size]} ${className}`}
+      className={`animate-spin rounded-full border-neutral-900 border-t-transparent ${sizeClasses[size]} ${className}`}
     ></div>
   );
 }
@@ -26,7 +26,7 @@ export function PageLoader() {
 // Skeleton loader for task items
 export function TaskSkeleton() {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 border border-neutral-150 animate-pulse">
+    <div className="bg-white rounded-lg p-4 border border-neutral-200 animate-pulse">
       <div className="flex items-start gap-3">
         {/* Checkbox skeleton */}
         <div className="w-5 h-5 bg-neutral-200 rounded mt-1"></div>

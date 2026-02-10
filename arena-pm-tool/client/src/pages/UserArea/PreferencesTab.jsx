@@ -100,8 +100,8 @@ const PreferencesTab = () => {
         {/* Language Setting */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-teal-600/20 rounded-lg">
-              <Globe className="h-6 w-6 text-teal-400" />
+            <div className="p-3 bg-neutral-700/20 rounded-lg">
+              <Globe className="h-6 w-6 text-neutral-300" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-medium text-white">Language</h3>
@@ -113,7 +113,7 @@ const PreferencesTab = () => {
                 name="language"
                 value={formData.language}
                 onChange={handleChange}
-                className="w-full sm:w-64 px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
+                className="w-full sm:w-64 px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
               >
                 {LANGUAGES.map((lang) => (
                   <option key={lang.code} value={lang.code}>
@@ -128,8 +128,8 @@ const PreferencesTab = () => {
         {/* Timezone Setting */}
         <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-teal-600/20 rounded-lg">
-              <Clock className="h-6 w-6 text-teal-400" />
+            <div className="p-3 bg-neutral-700/20 rounded-lg">
+              <Clock className="h-6 w-6 text-neutral-300" />
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-medium text-white">Timezone</h3>
@@ -142,7 +142,7 @@ const PreferencesTab = () => {
                   name="timezone"
                   value={formData.timezone}
                   onChange={handleChange}
-                  className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
+                  className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors appearance-none cursor-pointer"
                 >
                   {COMMON_TIMEZONES.map((tz) => (
                     <option key={tz.value} value={tz.value}>
@@ -162,7 +162,7 @@ const PreferencesTab = () => {
                   <button
                     type="button"
                     onClick={handleUseDetectedTimezone}
-                    className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
+                    className="text-sm text-neutral-300 hover:text-neutral-200 transition-colors"
                   >
                     Use detected timezone: {detectedTimezone}
                   </button>
@@ -177,7 +177,7 @@ const PreferencesTab = () => {
           <button
             type="submit"
             disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

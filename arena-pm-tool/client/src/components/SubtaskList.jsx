@@ -272,13 +272,13 @@ function SubtaskList({ taskId, categoryId }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-700">Subtasks</h3>
+        <h3 className="text-sm font-medium text-neutral-700">Subtasks</h3>
         {totalCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">{completedCount}/{totalCount}</span>
-            <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+            <span className="text-xs text-neutral-500">{completedCount}/{totalCount}</span>
+            <div className="w-20 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-green-500 rounded-full transition-all duration-300"
+                className="h-full bg-neutral-900 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -290,7 +290,7 @@ function SubtaskList({ taskId, categoryId }) {
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <InlineSpinner />
-          <span className="ml-2 text-sm text-gray-500">Loading subtasks...</span>
+          <span className="ml-2 text-sm text-neutral-500">Loading subtasks...</span>
         </div>
       ) : (
         <div className="space-y-1">
@@ -304,7 +304,7 @@ function SubtaskList({ taskId, categoryId }) {
               key={subtask.id}
               className={`
                 group flex flex-col gap-1 px-2 py-2 rounded-lg
-                hover:bg-gray-50 transition
+                hover:bg-neutral-50 transition
                 ${subtask.status === 'completed' ? 'opacity-60' : ''}
               `}
             >
@@ -319,8 +319,8 @@ function SubtaskList({ taskId, categoryId }) {
                     flex-shrink-0 w-5 h-5 rounded border-2
                     flex items-center justify-center transition-all
                     ${subtask.status === 'completed'
-                      ? 'bg-green-500 border-green-500'
-                      : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                      ? 'bg-neutral-900 border-neutral-900'
+                      : 'border-neutral-300 hover:border-neutral-500'
                     }
                     ${togglingIds.has(subtask.id) ? 'opacity-60 cursor-not-allowed' : ''}
                   `}
@@ -341,14 +341,14 @@ function SubtaskList({ taskId, categoryId }) {
                     onChange={(e) => setEditingTitle(e.target.value)}
                     onBlur={handleSaveEdit}
                     onKeyDown={handleEditKeyDown}
-                    className="flex-1 text-sm bg-transparent border-b border-blue-500 focus:outline-none"
+                    className="flex-1 text-sm bg-transparent border-b border-neutral-900 focus:outline-none"
                   />
                 ) : (
                   <span
                     onClick={() => handleStartEdit(subtask)}
                     className={`
                       flex-1 text-sm cursor-text
-                      ${subtask.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-700'}
+                      ${subtask.status === 'completed' ? 'line-through text-neutral-500' : 'text-neutral-700'}
                     `}
                   >
                     {subtask.title}
@@ -360,7 +360,7 @@ function SubtaskList({ taskId, categoryId }) {
                   onClick={() => handleDeleteSubtask(subtask.id)}
                   disabled={deletingIds.has(subtask.id)}
                   className={`
-                    flex-shrink-0 p-1 text-gray-400 hover:text-red-500
+                    flex-shrink-0 p-1 text-neutral-400 hover:text-red-500
                     hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition
                     ${deletingIds.has(subtask.id) ? 'opacity-100' : ''}
                   `}
@@ -390,7 +390,7 @@ function SubtaskList({ taskId, categoryId }) {
 
                   {/* Priority Dropdown */}
                   {activePriorityDropdown === subtask.id && (
-                    <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-150 rounded-lg shadow-lg z-50 animate-fade-in">
+                    <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
                       <div className="py-1">
                         {priorities.map((priority) => (
                           <button
@@ -404,7 +404,7 @@ function SubtaskList({ taskId, categoryId }) {
                               {priority}
                             </span>
                             {subtask.priority === priority && (
-                              <Check size={12} className="text-teal-600" />
+                              <Check size={12} className="text-neutral-900" />
                             )}
                           </button>
                         ))}
@@ -460,7 +460,7 @@ function SubtaskList({ taskId, categoryId }) {
                           {(subtask.assignees || []).slice(0, 2).map((assignee, idx) => (
                             <div
                               key={assignee.id}
-                              className="w-4 h-4 rounded-full bg-teal-500 flex items-center justify-center text-white text-[9px] font-medium border border-white"
+                              className="w-4 h-4 rounded-full bg-neutral-600 flex items-center justify-center text-white text-[9px] font-medium border border-white"
                               style={{ zIndex: 2 - idx }}
                               title={assignee.name}
                             >
@@ -508,10 +508,10 @@ function SubtaskList({ taskId, categoryId }) {
 
       {/* Add Subtask */}
       {isAddingSubtask ? (
-        <div className="mt-2 px-2 py-2 bg-gray-50 rounded-lg">
+        <div className="mt-2 px-2 py-2 bg-neutral-50 rounded-lg">
           {/* Title input row */}
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded border-2 border-gray-200 flex-shrink-0" />
+            <div className="w-5 h-5 rounded border-2 border-neutral-200 flex-shrink-0" />
             <input
               ref={newSubtaskInputRef}
               type="text"
@@ -519,7 +519,7 @@ function SubtaskList({ taskId, categoryId }) {
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Subtask title"
-              className="flex-1 text-sm bg-transparent border-b border-gray-300 focus:border-blue-500 focus:outline-none py-1"
+              className="flex-1 text-sm bg-transparent border-b border-neutral-300 focus:border-neutral-900 focus:outline-none py-1"
               disabled={isCreating}
             />
           </div>
@@ -538,7 +538,7 @@ function SubtaskList({ taskId, categoryId }) {
               </button>
 
               {showNewPriorityDropdown && (
-                <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-150 rounded-lg shadow-lg z-50 animate-fade-in">
+                <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
                   <div className="py-1">
                     {priorities.map((priority) => (
                       <button
@@ -555,7 +555,7 @@ function SubtaskList({ taskId, categoryId }) {
                           {priority}
                         </span>
                         {newSubtaskPriority === priority && (
-                          <Check size={12} className="text-teal-600" />
+                          <Check size={12} className="text-neutral-900" />
                         )}
                       </button>
                     ))}
@@ -607,7 +607,7 @@ function SubtaskList({ taskId, categoryId }) {
                         return user ? (
                           <div
                             key={userId}
-                            className="w-4 h-4 rounded-full bg-teal-500 flex items-center justify-center text-white text-[9px] font-medium border border-white"
+                            className="w-4 h-4 rounded-full bg-neutral-600 flex items-center justify-center text-white text-[9px] font-medium border border-white"
                             style={{ zIndex: 2 - idx }}
                             title={user.name}
                           >
@@ -653,7 +653,7 @@ function SubtaskList({ taskId, categoryId }) {
             <button
               onClick={handleAddSubtask}
               disabled={!newSubtaskTitle.trim() || isCreating}
-              className="px-3 py-1.5 text-xs bg-teal-600 text-white rounded hover:bg-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              className="px-3 py-1.5 text-xs bg-neutral-900 text-white rounded hover:bg-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
               {isCreating ? (
                 <>
@@ -675,7 +675,7 @@ function SubtaskList({ taskId, categoryId }) {
                 setShowNewDatePicker(false);
                 setShowNewAssigneeDropdown(false);
               }}
-              className="px-3 py-1.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition"
+              className="px-3 py-1.5 text-xs text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded transition"
               disabled={isCreating}
             >
               Cancel
@@ -685,7 +685,7 @@ function SubtaskList({ taskId, categoryId }) {
       ) : (
         <button
           onClick={() => setIsAddingSubtask(true)}
-          className="flex items-center gap-2 px-2 py-2 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition mt-1 w-full"
+          className="flex items-center gap-2 px-2 py-2 text-sm text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50 rounded-lg transition mt-1 w-full"
         >
           <Plus size={16} />
           <span>Add subtask</span>

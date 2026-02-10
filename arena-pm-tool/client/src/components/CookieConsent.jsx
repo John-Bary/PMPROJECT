@@ -27,13 +27,13 @@ function CookieConsent() {
       <div className="max-w-lg mx-auto bg-neutral-900 text-white rounded-xl shadow-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <p className="text-sm text-neutral-300 flex-1">
           We use essential cookies only for authentication. No tracking. No ads.{' '}
-          <Link to="/privacy" className="text-teal-400 hover:text-teal-300 underline">
+          <Link to="/privacy" className="text-neutral-100 hover:text-white underline">
             Privacy Policy
           </Link>
         </p>
         <button
           onClick={handleAccept}
-          className="px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium rounded-lg transition-colors flex-shrink-0"
+          className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-900 text-sm font-medium rounded-lg transition-colors flex-shrink-0"
         >
           Got it
         </button>

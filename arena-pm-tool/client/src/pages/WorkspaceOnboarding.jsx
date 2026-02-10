@@ -224,8 +224,8 @@ function WorkspaceOnboarding() {
       case 'member':
         return {
           label: 'Member',
-          color: 'text-teal-400',
-          bgColor: 'bg-teal-500/10 border-teal-500/20',
+          color: 'text-neutral-300',
+          bgColor: 'bg-neutral-500/10 border-neutral-500/20',
           description: 'Can create and manage tasks and collaborate with the team.',
           permissions: [
             'Create, edit, and delete tasks',
@@ -257,7 +257,7 @@ function WorkspaceOnboarding() {
     return (
       <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-10 w-10 text-teal-500 animate-spin mx-auto mb-4" />
+          <Loader2 className="h-10 w-10 text-neutral-500 animate-spin mx-auto mb-4" />
           <p className="text-neutral-400">Preparing your onboarding...</p>
         </div>
       </div>
@@ -278,7 +278,7 @@ function WorkspaceOnboarding() {
                 setError(null);
                 fetchOnboarding();
               }}
-              className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+              className="px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
             >
               Try Again
             </button>
@@ -304,8 +304,8 @@ function WorkspaceOnboarding() {
       <header className="border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-teal-400" />
+            <div className="w-8 h-8 rounded-lg bg-neutral-700 flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-neutral-300" />
             </div>
             <span className="text-sm font-medium text-neutral-300">
               {workspace.name}
@@ -320,9 +320,9 @@ function WorkspaceOnboarding() {
                   key={step.id}
                   className={`w-2 h-2 rounded-full transition-all ${
                     idx === currentStep
-                      ? 'w-6 bg-teal-500'
+                      ? 'w-6 bg-neutral-400'
                       : idx < currentStep
-                      ? 'bg-teal-500/60'
+                      ? 'bg-neutral-500'
                       : 'bg-neutral-700'
                   }`}
                 />
@@ -345,7 +345,7 @@ function WorkspaceOnboarding() {
         {/* Progress bar */}
         <div className="h-0.5 bg-neutral-800">
           <div
-            className="h-full bg-teal-500 transition-all duration-500 ease-out"
+            className="h-full bg-neutral-400 transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -357,8 +357,8 @@ function WorkspaceOnboarding() {
           {/* Step 1: Welcome */}
           {currentStep === 0 && (
             <div className="text-center animate-fade-in">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/10 flex items-center justify-center mx-auto mb-8">
-                <Sparkles className="h-10 w-10 text-teal-400" />
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-neutral-700 to-neutral-800 border border-neutral-700 flex items-center justify-center mx-auto mb-8">
+                <Sparkles className="h-10 w-10 text-neutral-300" />
               </div>
 
               <h1 className="text-3xl sm:text-4xl font-bold text-white mb-3">
@@ -394,7 +394,7 @@ function WorkspaceOnboarding() {
 
               <button
                 onClick={handleNext}
-                className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-colors text-lg"
+                className="inline-flex items-center gap-2 px-8 py-3 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors text-lg"
               >
                 Get Started
                 <ArrowRight className="h-5 w-5" />
@@ -421,7 +421,7 @@ function WorkspaceOnboarding() {
                 {/* Avatar */}
                 <div className="flex justify-center mb-6">
                   <label className="relative cursor-pointer group">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-neutral-700 group-hover:border-teal-500 transition-colors">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-neutral-700 group-hover:border-neutral-500 transition-colors">
                       {avatarPreview ? (
                         <img
                           src={avatarPreview}
@@ -437,7 +437,7 @@ function WorkspaceOnboarding() {
                         </div>
                       )}
                     </div>
-                    <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center border-2 border-neutral-900 group-hover:bg-teal-500 transition-colors">
+                    <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center border-2 border-neutral-900 group-hover:bg-neutral-400 transition-colors">
                       <Camera className="h-3.5 w-3.5 text-white" />
                     </div>
                     <input
@@ -460,7 +460,7 @@ function WorkspaceOnboarding() {
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Enter your first name"
-                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-colors"
                     />
                   </div>
                   <div>
@@ -472,7 +472,7 @@ function WorkspaceOnboarding() {
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Enter your last name"
-                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 transition-colors"
+                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-colors"
                     />
                   </div>
                 </div>
@@ -494,7 +494,7 @@ function WorkspaceOnboarding() {
                 <button
                   onClick={handleProfileSave}
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 text-white font-medium rounded-xl transition-colors"
                 >
                   {isSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -527,8 +527,8 @@ function WorkspaceOnboarding() {
               {/* Feature cards */}
               <div className="grid gap-4 sm:grid-cols-2 max-w-lg mx-auto mb-8">
                 <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-5 hover:border-neutral-700 transition-colors">
-                  <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center mb-3">
-                    <FolderKanban className="h-5 w-5 text-teal-400" />
+                  <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center mb-3">
+                    <FolderKanban className="h-5 w-5 text-neutral-300" />
                   </div>
                   <h3 className="font-semibold text-white mb-1">Task Board</h3>
                   <p className="text-sm text-neutral-400">
@@ -607,7 +607,7 @@ function WorkspaceOnboarding() {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors"
                 >
                   Continue
                   <ArrowRight className="h-4 w-4" />
@@ -653,7 +653,7 @@ function WorkspaceOnboarding() {
                   <ul className="space-y-2.5">
                     {roleInfo.permissions.map((perm, idx) => (
                       <li key={idx} className="flex items-start gap-2.5">
-                        <Check className="h-4 w-4 text-teal-400 mt-0.5 flex-shrink-0" />
+                        <Check className="h-4 w-4 text-neutral-300 mt-0.5 flex-shrink-0" />
                         <span className="text-sm text-neutral-300">{perm}</span>
                       </li>
                     ))}
@@ -676,7 +676,7 @@ function WorkspaceOnboarding() {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-xl transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors"
                 >
                   Continue
                   <ArrowRight className="h-4 w-4" />
@@ -704,16 +704,16 @@ function WorkspaceOnboarding() {
                 <button
                   onClick={handleComplete}
                   disabled={isSaving}
-                  className="w-full flex items-center gap-4 bg-neutral-900 border border-neutral-800 hover:border-teal-500/30 rounded-xl p-4 transition-colors text-left group"
+                  className="w-full flex items-center gap-4 bg-neutral-900 border border-neutral-800 hover:border-neutral-500/30 rounded-xl p-4 transition-colors text-left group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
-                    <FolderKanban className="h-5 w-5 text-teal-400" />
+                  <div className="w-10 h-10 rounded-lg bg-neutral-800 flex items-center justify-center flex-shrink-0">
+                    <FolderKanban className="h-5 w-5 text-neutral-300" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-white">Open the Task Board</p>
                     <p className="text-sm text-neutral-500">View and manage tasks across categories</p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-neutral-600 group-hover:text-teal-400 transition-colors flex-shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-neutral-600 group-hover:text-neutral-300 transition-colors flex-shrink-0" />
                 </button>
 
                 <button
@@ -759,7 +759,7 @@ function WorkspaceOnboarding() {
                 <button
                   onClick={handleComplete}
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white font-medium rounded-xl transition-colors text-lg"
+                  className="inline-flex items-center gap-2 px-8 py-3 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 text-white font-medium rounded-xl transition-colors text-lg"
                 >
                   {isSaving ? (
                     <Loader2 className="h-5 w-5 animate-spin" />

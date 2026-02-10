@@ -40,13 +40,13 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-xl p-6 sm:p-8">
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 sm:p-8">
           {/* Invite Banner */}
           {inviteToken && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 text-center">
-              <p className="text-sm text-blue-700">
+            <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
+              <p className="text-sm text-neutral-700">
                 Sign in to accept your workspace invitation
               </p>
             </div>
@@ -54,14 +54,14 @@ function Login() {
 
           {/* Logo/Header */}
           <div className="text-center mb-6 sm:mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Todoria</h1>
-            <p className="text-gray-600 mt-2 text-sm sm:text-base">Sign in to your account</p>
+            <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
+            <p className="text-neutral-600 mt-2 text-sm sm:text-base">Sign in to your account</p>
           </div>
 
           {/* Login Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
                 Email Address
               </label>
               <input
@@ -71,13 +71,13 @@ function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
                 placeholder="enter your email address"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
                 Password
               </label>
               <input
@@ -87,7 +87,7 @@ function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2.5 sm:py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
                 placeholder="Enter your password"
               />
             </div>
@@ -95,7 +95,7 @@ function Login() {
             <div className="flex justify-end">
               <Link
                 to="/forgot-password"
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-neutral-900 hover:text-neutral-700 font-medium"
               >
                 Forgot password?
               </Link>
@@ -104,7 +104,7 @@ function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+              className="w-full bg-neutral-900 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
             >
               {isLoading && <ButtonSpinner />}
               {isLoading ? 'Signing in...' : 'Sign In'}
@@ -112,11 +112,11 @@ function Login() {
           </form>
 
           {/* Register Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
+          <p className="mt-6 text-center text-sm text-neutral-600">
             Don't have an account?{' '}
             <Link
               to={inviteToken ? `/register?invite=${encodeURIComponent(inviteToken)}` : '/register'}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-neutral-900 hover:text-neutral-700 font-medium"
             >
               Sign up
             </Link>
