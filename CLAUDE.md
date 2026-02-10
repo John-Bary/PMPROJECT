@@ -11,14 +11,15 @@ Todoria is a multi-workspace project management SaaS application. It provides ta
 
 ### Frontend (React)
 - **Framework**: React 19 with Create React App
-- **Styling**: Tailwind CSS 3.4
+- **Styling**: Tailwind CSS 3.4 (indigo primary palette, Inter font)
 - **State Management**: Zustand 5
 - **Routing**: React Router DOM 7
 - **HTTP Client**: Axios (with CSRF + cookie auth)
 - **Drag & Drop**: @hello-pangea/dnd
+- **Animations**: framer-motion (modal/page transitions)
 - **Date Handling**: date-fns, react-day-picker
 - **Icons**: lucide-react
-- **Notifications**: react-hot-toast
+- **Notifications**: sonner (toast.success/error/info)
 - **Error Tracking**: @sentry/react
 - **Virtualization**: react-window
 
@@ -297,14 +298,25 @@ REACT_APP_API_URL=http://localhost:5001/api
 10. **Monitoring** — Sentry error tracking, Pino structured logging, health check endpoint
 11. **Background jobs** — Task reminders, email queue processor, database backups, data retention
 
+## UI Design System
+
+- **Primary color**: Indigo scale (`primary-50` #EEF2FF through `primary-900`, main: `primary-600` #4F46E5)
+- **Typography**: Inter font (400/500/600/700), loaded via Google Fonts with system stack fallback
+- **Layout**: Collapsible sidebar navigation (260px expanded / 64px collapsed) with mobile overlay
+- **Surfaces**: White cards with `border-[#E8EBF0]`, `rounded-xl`, layered shadows (`shadow-card`, `shadow-elevated`, `shadow-modal`)
+- **Priority colors**: Urgent (red), High (orange), Medium (amber), Low (blue) — used in pill badges and card left borders
+- **Animations**: framer-motion for modal open/close (`scale: 0.98→1`), page view crossfades via `AnimatePresence`
+- **Navigation**: `/` renders public LandingPage; `/login` for auth; `/dashboard` for main app (sidebar with Board/List/Calendar views)
+- **Dark-theme pages**: AcceptInvite, WorkspaceOnboarding, UserArea/* use `bg-neutral-900` containers intentionally
+
 ## Code Style
 
 - Functional components with hooks
 - Zustand for global state (all stores are workspace-aware)
-- HttpOnly cookie auth — no tokens in localStorage
+- HttpOnly cookie auth — no tokens in localStorage; user data sanitized via `sanitizeUserForStorage()` before localStorage (strips email, keeps id/name/role/avatarUrl/emailVerified)
 - CSRF token auto-fetched and attached to mutations via Axios interceptor
-- `react-hot-toast` for all user notifications
-- Tailwind CSS utility classes (custom teal primary palette, Apple-inspired design)
+- `sonner` for all user notifications (`import { toast } from 'sonner'`; use `toast.success()`, `toast.error()`)
+- Tailwind CSS utility classes with custom design tokens defined in `tailwind.config.js` (colors, shadows, fonts)
 - `withErrorHandling` wrapper for controller error handling on the server
 - `AppError` class for operational errors with status codes
 - Pino logger (not console.log/console.error) on the server
@@ -357,7 +369,9 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), con
 ### Frontend (Jest + React Testing Library)
 - Store tests: `client/src/store/__tests__/` (auth, task, category stores)
 - Component tests: `ErrorBoundary.test.js`, `SubtaskList.test.js`
+- App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - API tests: `client/src/utils/api.test.js`
+- 7 test suites, 53 tests total
 
 ### Backend (Jest + supertest)
 - Controller tests: `server/controllers/__tests__/` (auth, billing, category, comment, task)
