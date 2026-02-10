@@ -61,7 +61,7 @@ const getOnboardingStatus = async (req, res) => {
         [workspaceId, req.user.id]
       );
     } catch (insertErr) {
-      console.warn('Onboarding progress table may not exist yet, using defaults:', insertErr.message);
+      logger.warn('Onboarding progress table may not exist yet, using defaults: %s', insertErr.message);
       onboardingTableExists = false;
     }
 
@@ -96,7 +96,7 @@ const getOnboardingStatus = async (req, res) => {
         [workspaceId, req.user.id]
       );
     } catch (inviteErr) {
-      console.warn('Could not query invitation info for onboarding:', inviteErr.message);
+      logger.warn('Could not query invitation info for onboarding: %s', inviteErr.message);
     }
 
     // Get onboarding progress — fall back to null if table doesn't exist
@@ -109,7 +109,7 @@ const getOnboardingStatus = async (req, res) => {
           [workspaceId, req.user.id]
         );
       } catch (progressErr) {
-        console.warn('Could not query onboarding progress, using defaults:', progressErr.message);
+        logger.warn('Could not query onboarding progress, using defaults: %s', progressErr.message);
       }
     }
 
@@ -123,14 +123,14 @@ const getOnboardingStatus = async (req, res) => {
         [req.user.id]
       );
     } catch (userErr) {
-      console.warn('Could not query full user profile, falling back:', userErr.message);
+      logger.warn('Could not query full user profile, falling back: %s', userErr.message);
       try {
         userResult = await query(
           `SELECT id, name, email, avatar_color FROM users WHERE id = $1`,
           [req.user.id]
         );
       } catch (fallbackErr) {
-        console.warn('User profile fallback also failed:', fallbackErr.message);
+        logger.warn('User profile fallback also failed: %s', fallbackErr.message);
       }
     }
 
@@ -147,7 +147,7 @@ const getOnboardingStatus = async (req, res) => {
         [workspaceId]
       );
     } catch (membersErr) {
-      console.warn('Could not query workspace members for onboarding:', membersErr.message);
+      logger.warn('Could not query workspace members for onboarding: %s', membersErr.message);
     }
 
     // Get workspace stats — each sub-select is safe on its own but the
@@ -162,7 +162,7 @@ const getOnboardingStatus = async (req, res) => {
         [workspaceId]
       );
     } catch (statsErr) {
-      console.warn('Could not query workspace stats for onboarding:', statsErr.message);
+      logger.warn('Could not query workspace stats for onboarding: %s', statsErr.message);
     }
 
     const progress = progressResult.rows[0] || null;
@@ -262,7 +262,7 @@ const startOnboarding = async (req, res) => {
       );
       progressRow = result.rows[0];
     } catch (progressErr) {
-      console.warn('Could not upsert onboarding progress (table may not exist yet):', progressErr.message);
+      logger.warn('Could not upsert onboarding progress (table may not exist yet): %s', progressErr.message);
     }
 
     res.json({
@@ -347,7 +347,7 @@ const updateProgress = async (req, res) => {
       );
       progress = result.rows[0];
     } catch (progressErr) {
-      console.warn('Could not update onboarding progress (table may not exist yet):', progressErr.message);
+      logger.warn('Could not update onboarding progress (table may not exist yet): %s', progressErr.message);
     }
 
     res.json({
@@ -407,7 +407,7 @@ const completeOnboarding = async (req, res) => {
         [workspaceId, req.user.id, TOTAL_STEPS, JSON.stringify(ONBOARDING_STEPS)]
       );
     } catch (progressErr) {
-      console.warn('Could not update onboarding progress table (may not exist yet):', progressErr.message);
+      logger.warn('Could not update onboarding progress table (may not exist yet): %s', progressErr.message);
     }
 
     // Mark onboarding as completed in workspace_members
@@ -419,7 +419,7 @@ const completeOnboarding = async (req, res) => {
         [workspaceId, req.user.id]
       );
     } catch (memberErr) {
-      console.warn('Could not update onboarding_completed_at column (may not exist yet):', memberErr.message);
+      logger.warn('Could not update onboarding_completed_at column (may not exist yet): %s', memberErr.message);
     }
 
     await client.query('COMMIT');
@@ -475,7 +475,7 @@ const skipOnboarding = async (req, res) => {
         [workspaceId, req.user.id]
       );
     } catch (progressErr) {
-      console.warn('Could not update onboarding progress table (may not exist yet):', progressErr.message);
+      logger.warn('Could not update onboarding progress table (may not exist yet): %s', progressErr.message);
     }
 
     // Also mark completed in workspace_members so we don't prompt again
@@ -487,7 +487,7 @@ const skipOnboarding = async (req, res) => {
         [workspaceId, req.user.id]
       );
     } catch (memberErr) {
-      console.warn('Could not update onboarding_completed_at column (may not exist yet):', memberErr.message);
+      logger.warn('Could not update onboarding_completed_at column (may not exist yet): %s', memberErr.message);
     }
 
     await client.query('COMMIT');

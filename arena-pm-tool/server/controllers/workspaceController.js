@@ -361,7 +361,7 @@ const deleteWorkspace = async (req, res) => {
 
       await client.query('COMMIT');
 
-      console.log(`Workspace ${id} deleted by user ${req.user.id}. Cascaded: ${counts.member_count} members, ${counts.task_count} tasks, ${counts.category_count} categories.`);
+      logger.info(`Workspace ${id} deleted by user ${req.user.id}. Cascaded: ${counts.member_count} members, ${counts.task_count} tasks, ${counts.category_count} categories.`);
     } catch (txError) {
       await client.query('ROLLBACK');
       throw txError;

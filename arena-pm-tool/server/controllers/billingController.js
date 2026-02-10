@@ -4,6 +4,7 @@
 const { query, getClient } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 const logger = require('../lib/logger');
+const { sendTrialEndingEmail } = require('../utils/emailService');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -336,7 +337,7 @@ const handleWebhook = async (req, res) => {
         const workspaceId = subscription.metadata?.workspace_id;
 
         if (!workspaceId) {
-          console.warn('Webhook: subscription event missing workspace_id metadata');
+          logger.warn('Webhook: subscription event missing workspace_id metadata');
           break;
         }
 
@@ -458,8 +459,40 @@ const handleWebhook = async (req, res) => {
         const subscription = event.data.object;
         const workspaceId = subscription.metadata?.workspace_id;
         if (workspaceId) {
-          console.log(`Trial ending soon for workspace ${workspaceId}`);
-          // TODO: Send trial-ending notification email to workspace admin
+          logger.info({ workspaceId }, 'Trial ending soon for workspace');
+
+          try {
+            // Look up the workspace admin's email
+            const adminResult = await client.query(
+              `SELECT u.email, u.name
+               FROM workspace_members wm
+               JOIN users u ON u.id = wm.user_id
+               WHERE wm.workspace_id = $1 AND wm.role = 'admin'
+               LIMIT 1`,
+              [workspaceId]
+            );
+
+            if (adminResult.rows.length > 0) {
+              const admin = adminResult.rows[0];
+              const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '');
+              const billingUrl = `${clientUrl}/settings/billing`;
+              const trialEndDate = subscription.trial_end
+                ? new Date(subscription.trial_end * 1000)
+                : null;
+
+              await sendTrialEndingEmail({
+                to: admin.email,
+                userName: admin.name,
+                trialEndDate,
+                billingUrl
+              });
+
+              logger.info({ workspaceId, to: admin.email }, 'Trial ending email sent');
+            }
+          } catch (emailError) {
+            // Log but don't fail the webhook if the email fails
+            logger.error({ err: emailError, workspaceId }, 'Failed to send trial ending email');
+          }
         }
         break;
       }

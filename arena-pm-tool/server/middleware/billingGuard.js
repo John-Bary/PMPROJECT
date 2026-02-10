@@ -3,6 +3,7 @@
 // Returns 402 Payment Required for expired/canceled subscriptions.
 
 const { query } = require('../config/database');
+const logger = require('../lib/logger');
 
 /**
  * Get workspace_id from the request (body, query, or params).
@@ -69,7 +70,7 @@ const requireActiveSubscription = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Billing guard error:', error);
+    logger.error({ err: error }, 'Billing guard error');
     // Don't block the request on billing check failure — fail open
     // so users aren't locked out due to a billing system bug
     next();

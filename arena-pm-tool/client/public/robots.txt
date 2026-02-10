@@ -1,3 +1,9 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /user
+Disallow: /billing
+Disallow: /onboarding
+Disallow: /verify-email
+Disallow: /accept-invite
+Sitemap: https://www.todoria.com/sitemap.xml

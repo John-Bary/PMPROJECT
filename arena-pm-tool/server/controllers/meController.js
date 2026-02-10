@@ -4,8 +4,8 @@
 const { query } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const path = require('path');
-const fs = require('fs');
 const logger = require('../lib/logger');
+const { supabaseAdmin } = require('../config/supabase');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -298,7 +298,9 @@ const updateNotifications = async (req, res) => {
   }
 };
 
-// Upload avatar
+// Upload avatar (Supabase Storage)
+const AVATAR_BUCKET = 'avatars';
+
 const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
@@ -308,22 +310,53 @@ const uploadAvatar = async (req, res) => {
       });
     }
 
-    // Get the current avatar to delete it
+    if (!supabaseAdmin) {
+      return res.status(500).json({
+        status: 'error',
+        message: 'File storage is not configured.'
+      });
+    }
+
+    // Delete old avatar from Supabase Storage if it exists
     const currentUser = await query(
       'SELECT avatar_url FROM users WHERE id = $1',
       [req.user.id]
     );
 
     if (currentUser.rows.length > 0 && currentUser.rows[0].avatar_url) {
-      // Delete old avatar file
-      const oldPath = path.join(__dirname, '..', currentUser.rows[0].avatar_url);
-      if (fs.existsSync(oldPath)) {
-        fs.unlinkSync(oldPath);
+      const oldUrl = currentUser.rows[0].avatar_url;
+      // Extract file path from the Supabase public URL
+      const bucketPath = oldUrl.split(`/storage/v1/object/public/${AVATAR_BUCKET}/`)[1];
+      if (bucketPath) {
+        await supabaseAdmin.storage.from(AVATAR_BUCKET).remove([bucketPath]);
       }
     }
 
-    // Store the relative path
-    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    // Upload to Supabase Storage
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const fileName = `${req.user.id}-${Date.now()}${ext}`;
+
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from(AVATAR_BUCKET)
+      .upload(fileName, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+
+    if (uploadError) {
+      logger.error({ err: uploadError }, 'Supabase Storage upload error');
+      return res.status(500).json({
+        status: 'error',
+        message: 'Error uploading avatar.'
+      });
+    }
+
+    // Get the public URL
+    const { data: publicUrlData } = supabaseAdmin.storage
+      .from(AVATAR_BUCKET)
+      .getPublicUrl(fileName);
+
+    const avatarUrl = publicUrlData.publicUrl;
 
     const result = await query(
       'UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING avatar_url',
@@ -347,20 +380,20 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-// Delete avatar
+// Delete avatar (Supabase Storage)
 const deleteAvatar = async (req, res) => {
   try {
-    // Get the current avatar to delete it
+    // Get the current avatar to delete from storage
     const currentUser = await query(
       'SELECT avatar_url FROM users WHERE id = $1',
       [req.user.id]
     );
 
-    if (currentUser.rows.length > 0 && currentUser.rows[0].avatar_url) {
-      // Delete avatar file
-      const avatarPath = path.join(__dirname, '..', currentUser.rows[0].avatar_url);
-      if (fs.existsSync(avatarPath)) {
-        fs.unlinkSync(avatarPath);
+    if (currentUser.rows.length > 0 && currentUser.rows[0].avatar_url && supabaseAdmin) {
+      const oldUrl = currentUser.rows[0].avatar_url;
+      const bucketPath = oldUrl.split(`/storage/v1/object/public/${AVATAR_BUCKET}/`)[1];
+      if (bucketPath) {
+        await supabaseAdmin.storage.from(AVATAR_BUCKET).remove([bucketPath]);
       }
     }
 
