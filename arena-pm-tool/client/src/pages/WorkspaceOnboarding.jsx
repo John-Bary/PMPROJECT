@@ -9,6 +9,9 @@ import {
 import { workspacesAPI, meAPI } from '../utils/api';
 import useAuthStore from '../store/authStore';
 import { toast } from 'sonner';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Label } from 'components/ui/label';
 
 const STEPS = [
   { id: 'welcome', label: 'Welcome', icon: Sparkles },
@@ -273,21 +276,23 @@ function WorkspaceOnboarding() {
           <h2 className="text-xl font-semibold text-white mb-2">Unable to Load</h2>
           <p className="text-neutral-400 mb-6">{error || 'Could not load onboarding data.'}</p>
           <div className="flex items-center justify-center gap-3">
-            <button
+            <Button
+              variant="secondary"
               onClick={() => {
                 setError(null);
                 fetchOnboarding();
               }}
-              className="px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
+              className="bg-neutral-700 hover:bg-neutral-600 text-white"
             >
               Try Again
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => navigate('/dashboard', { replace: true })}
-              className="px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg transition-colors"
+              className="bg-neutral-800 hover:bg-neutral-700 text-white"
             >
               Go to Dashboard
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -333,12 +338,14 @@ function WorkspaceOnboarding() {
               {currentStep + 1}/{STEPS.length}
             </span>
 
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={handleSkip}
-              className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors"
+              className="text-xs text-neutral-500 hover:text-neutral-300"
             >
               Skip
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -392,13 +399,14 @@ function WorkspaceOnboarding() {
                 </div>
               </div>
 
-              <button
+              <Button
                 onClick={handleNext}
-                className="inline-flex items-center gap-2 px-8 py-3 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors text-lg"
+                size="lg"
+                className="bg-neutral-700 hover:bg-neutral-600 text-white text-lg"
               >
                 Get Started
                 <ArrowRight className="h-5 w-5" />
-              </button>
+              </Button>
             </div>
           )}
 
@@ -452,27 +460,27 @@ function WorkspaceOnboarding() {
                 {/* Name fields */}
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-1.5">
+                    <Label className="text-neutral-300 mb-1.5">
                       First Name
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="text"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
                       placeholder="Enter your first name"
-                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-colors"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-neutral-500 focus:ring-neutral-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-1.5">
+                    <Label className="text-neutral-300 mb-1.5">
                       Last Name
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       type="text"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       placeholder="Enter your last name"
-                      className="w-full px-4 py-2.5 bg-neutral-800 border border-neutral-700 rounded-lg text-white placeholder:text-neutral-500 focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 transition-colors"
+                      className="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus:border-neutral-500 focus:ring-neutral-500"
                     />
                   </div>
                 </div>
@@ -484,17 +492,14 @@ function WorkspaceOnboarding() {
 
               {/* Actions */}
               <div className="flex items-center justify-between mt-8 max-w-md mx-auto">
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-neutral-400 hover:text-white transition-colors"
-                >
+                <Button variant="ghost" onClick={handleBack} className="text-neutral-400 hover:text-white">
                   <ArrowLeft className="h-4 w-4" />
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleProfileSave}
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 text-white font-medium rounded-xl transition-colors"
+                  className="bg-neutral-700 hover:bg-neutral-600 text-white"
                 >
                   {isSaving ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -504,7 +509,7 @@ function WorkspaceOnboarding() {
                       <ArrowRight className="h-4 w-4" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -598,20 +603,17 @@ function WorkspaceOnboarding() {
 
               {/* Actions */}
               <div className="flex items-center justify-between max-w-lg mx-auto">
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-neutral-400 hover:text-white transition-colors"
-                >
+                <Button variant="ghost" onClick={handleBack} className="text-neutral-400 hover:text-white">
                   <ArrowLeft className="h-4 w-4" />
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleNext}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors"
+                  className="bg-neutral-700 hover:bg-neutral-600 text-white"
                 >
                   Continue
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -667,20 +669,17 @@ function WorkspaceOnboarding() {
 
               {/* Actions */}
               <div className="flex items-center justify-between mt-8 max-w-md mx-auto">
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-neutral-400 hover:text-white transition-colors"
-                >
+                <Button variant="ghost" onClick={handleBack} className="text-neutral-400 hover:text-white">
                   <ArrowLeft className="h-4 w-4" />
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleNext}
-                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-xl transition-colors"
+                  className="bg-neutral-700 hover:bg-neutral-600 text-white"
                 >
                   Continue
                   <ArrowRight className="h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -749,17 +748,15 @@ function WorkspaceOnboarding() {
 
               {/* Main CTA */}
               <div className="flex items-center justify-between max-w-md mx-auto">
-                <button
-                  onClick={handleBack}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-neutral-400 hover:text-white transition-colors"
-                >
+                <Button variant="ghost" onClick={handleBack} className="text-neutral-400 hover:text-white">
                   <ArrowLeft className="h-4 w-4" />
                   Back
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={handleComplete}
                   disabled={isSaving}
-                  className="inline-flex items-center gap-2 px-8 py-3 bg-neutral-700 hover:bg-neutral-600 disabled:opacity-50 text-white font-medium rounded-xl transition-colors text-lg"
+                  size="lg"
+                  className="bg-neutral-700 hover:bg-neutral-600 text-white text-lg"
                 >
                   {isSaving ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -769,7 +766,7 @@ function WorkspaceOnboarding() {
                       <ArrowRight className="h-5 w-5" />
                     </>
                   )}
-                </button>
+                </Button>
               </div>
             </div>
           )}

@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import AssigneeListItem from './AssigneeListItem';
+import { Check } from 'lucide-react';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from 'components/ui/command';
 
 /**
  * A reusable assignee dropdown component with proper positioning,
@@ -25,8 +27,6 @@ function AssigneeDropdown({
   maxHeight = 240,
 }) {
   const dropdownRef = useRef(null);
-  const listRef = useRef(null);
-  const [focusIndex, setFocusIndex] = useState(-1);
   const [position, setPosition] = useState({ top: 0, left: 0, placement: 'bottom' });
 
   // Calculate position relative to trigger element
@@ -35,7 +35,7 @@ function AssigneeDropdown({
 
     const rect = triggerRef.current.getBoundingClientRect();
     const dropdownWidth = 224; // w-56 = 14rem = 224px
-    const dropdownHeight = Math.min(maxHeight, users.length * 44 + 36); // Estimate height
+    const dropdownHeight = Math.min(maxHeight, users.length * 44 + 76); // Estimate height (includes search input)
 
     // Check horizontal overflow
     const rightOverflow = rect.left + dropdownWidth > window.innerWidth;
@@ -97,79 +97,23 @@ function AssigneeDropdown({
     };
   }, [onClose, triggerRef]);
 
-  // Keyboard navigation
+  // Keyboard: Escape to close
   useEffect(() => {
     const handleKeyDown = (event) => {
-      // Only handle if dropdown or its children have focus
-      if (!dropdownRef.current?.contains(document.activeElement) &&
-          document.activeElement !== document.body) {
-        return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        triggerRef?.current?.focus();
       }
-
-      switch (event.key) {
-        case 'Escape':
-          event.preventDefault();
-          event.stopPropagation();
-          onClose();
-          triggerRef?.current?.focus();
-          break;
-        case 'ArrowDown':
-          event.preventDefault();
-          setFocusIndex((prev) =>
-            prev < users.length - 1 ? prev + 1 : 0
-          );
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          setFocusIndex((prev) =>
-            prev > 0 ? prev - 1 : users.length - 1
-          );
-          break;
-        case 'Home':
-          event.preventDefault();
-          setFocusIndex(0);
-          break;
-        case 'End':
-          event.preventDefault();
-          setFocusIndex(users.length - 1);
-          break;
-        case 'Tab':
-          // Allow tab to close the dropdown
-          onClose();
-          break;
-        default:
-          break;
+      if (event.key === 'Tab') {
+        onClose();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [focusIndex, users, onClose, triggerRef]);
-
-  // Focus management - scroll focused item into view
-  useEffect(() => {
-    if (focusIndex >= 0) {
-      const item = listRef.current?.querySelector(`[data-index="${focusIndex}"]`);
-      if (item) {
-        item.focus();
-        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      }
-    }
-  }, [focusIndex]);
-
-  // Focus first item on open (only runs once on mount)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (users.length > 0) {
-        // Find first selected item or default to first item
-        const firstSelectedIndex = users.findIndex(u => selectedIds.includes(u.id));
-        setFocusIndex(firstSelectedIndex >= 0 ? firstSelectedIndex : 0);
-      }
-    }, 50);
-
-    return () => clearTimeout(timeoutId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [onClose, triggerRef]);
 
   const isSelected = (userId) => selectedIds.includes(userId);
 
@@ -199,40 +143,40 @@ function AssigneeDropdown({
         maxHeight: `${maxHeight}px`,
       }}
     >
-      {/* Header */}
-      <div className="px-3 py-2 text-xs font-medium text-neutral-500 border-b border-neutral-100 bg-neutral-50/50">
-        {variant === 'multi' ? 'Select assignees' : 'Select assignee'}
-      </div>
-
-      {/* List */}
-      <div
-        ref={listRef}
-        className="overflow-y-auto"
-        style={{ maxHeight: `${maxHeight - 36}px` }}
-      >
-        {users.length > 0 ? (
-          users.map((user, index) => (
-            <div
-              key={user.id}
-              data-index={index}
-              tabIndex={focusIndex === index ? 0 : -1}
-              className="outline-none"
-            >
-              <AssigneeListItem
-                user={user}
-                isSelected={isSelected(user.id)}
-                onToggle={handleToggle}
-                variant={variant}
-                groupName={`assignee-dropdown-${variant}`}
-              />
-            </div>
-          ))
-        ) : (
-          <div className="px-3 py-4 text-sm text-neutral-500 text-center">
-            No users available
-          </div>
-        )}
-      </div>
+      <Command className="rounded-lg">
+        <CommandInput placeholder="Search users..." className="h-9" />
+        <CommandList style={{ maxHeight: `${maxHeight - 44}px` }}>
+          <CommandEmpty>No users found.</CommandEmpty>
+          <CommandGroup heading={variant === 'multi' ? 'Select assignees' : 'Select assignee'}>
+            {users.map((user) => (
+              <CommandItem
+                key={user.id}
+                value={user.name}
+                onSelect={() => handleToggle(user.id)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <div className={`
+                  flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all
+                  ${isSelected(user.id)
+                    ? 'bg-primary-600 border-primary-600'
+                    : 'border-neutral-300'
+                  }
+                `}>
+                  {isSelected(user.id) && <Check size={10} className="text-white" />}
+                </div>
+                <Avatar className="h-6 w-6">
+                  <AvatarFallback className="text-xs bg-neutral-600 text-white font-semibold">
+                    {user.name?.charAt(0).toUpperCase() || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <span className={`text-sm truncate ${isSelected(user.id) ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
+                  {user.name}
+                </span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
     </div>
   );
 

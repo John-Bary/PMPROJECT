@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import './DatePicker.css';
+import { Button } from 'components/ui/button';
 
 function DatePicker({ selected, onSelect, onClose, triggerRef }) {
   const portalRef = useRef(null);
@@ -116,14 +117,16 @@ function DatePicker({ selected, onSelect, onClose, triggerRef }) {
       <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white border border-neutral-200 rounded-lg shadow-sm p-4 z-[9999]">
         <div className="flex items-center justify-between mb-2">
           <span className="font-medium text-neutral-900">Select Date</span>
-          <button
+          <Button
             onClick={onClose}
-            className="p-1 text-neutral-400 hover:text-neutral-600"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-neutral-400 hover:text-neutral-600"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Button>
         </div>
         <DayPicker
           mode="single"

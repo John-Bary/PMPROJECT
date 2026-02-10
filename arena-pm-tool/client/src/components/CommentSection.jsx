@@ -1,10 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Send, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
+import { Send, MoreHorizontal, Pencil, Trash2, Loader2 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import { commentsAPI } from '../utils/api';
 import { InlineSpinner } from './Loader';
 import { toast } from 'sonner';
+import { Button } from 'components/ui/button';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from 'components/ui/dropdown-menu';
 
 function CommentSection({ taskId }) {
   const { user } = useAuthStore();
@@ -14,11 +22,9 @@ function CommentSection({ taskId }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editingContent, setEditingContent] = useState('');
-  const [menuOpenId, setMenuOpenId] = useState(null);
   const [deletingIds, setDeletingIds] = useState(new Set());
   const textareaRef = useRef(null);
   const editTextareaRef = useRef(null);
-  const menuRef = useRef(null);
 
   // Fetch comments
   const fetchComments = useCallback(async () => {
@@ -52,18 +58,6 @@ function CommentSection({ taskId }) {
     }
   }, [editingCommentId]);
 
-  // Close menu on click outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setMenuOpenId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const handleSubmitComment = async () => {
     if (!newComment.trim() || isSubmitting) return;
 
@@ -91,7 +85,6 @@ function CommentSection({ taskId }) {
   const handleStartEdit = (comment) => {
     setEditingCommentId(comment.id);
     setEditingContent(comment.content);
-    setMenuOpenId(null);
   };
 
   const handleSaveEdit = async () => {
@@ -118,7 +111,6 @@ function CommentSection({ taskId }) {
     if (deletingIds.has(commentId)) return;
 
     setDeletingIds(prev => new Set([...prev, commentId]));
-    setMenuOpenId(null);
     try {
       await commentsAPI.delete(commentId);
       await fetchComments();
@@ -134,8 +126,6 @@ function CommentSection({ taskId }) {
       });
     }
   };
-
-  const getAvatarColor = () => 'bg-neutral-600';
 
   const formatCommentTime = (dateString) => {
     const date = new Date(dateString);
@@ -154,9 +144,11 @@ function CommentSection({ taskId }) {
 
       {/* Comment Input */}
       <div className="flex gap-3 mb-6">
-        <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-semibold ${getAvatarColor(user?.name)}`}>
-          {user?.name?.charAt(0).toUpperCase() || '?'}
-        </div>
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarFallback className="bg-neutral-600 text-white text-sm font-semibold">
+            {user?.name?.charAt(0).toUpperCase() || '?'}
+          </AvatarFallback>
+        </Avatar>
         <div className="flex-1">
           <textarea
             ref={textareaRef}
@@ -172,14 +164,14 @@ function CommentSection({ taskId }) {
             <span className="text-xs text-neutral-400">
               Press {navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'}+Enter to send
             </span>
-            <button
+            <Button
               onClick={handleSubmitComment}
               disabled={!newComment.trim() || isSubmitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              size="sm"
             >
               {isSubmitting ? (
                 <>
-                  <InlineSpinner size="sm" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Sending...
                 </>
               ) : (
@@ -188,7 +180,7 @@ function CommentSection({ taskId }) {
                   Comment
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -207,9 +199,11 @@ function CommentSection({ taskId }) {
         <div className="space-y-4">
           {comments.map((comment) => (
             <div key={comment.id} className="flex gap-3 group">
-              <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-sm font-semibold ${getAvatarColor(comment.authorName)}`}>
-                {comment.authorName?.charAt(0).toUpperCase() || '?'}
-              </div>
+              <Avatar className="h-8 w-8 flex-shrink-0">
+                <AvatarFallback className="bg-neutral-600 text-white text-sm font-semibold">
+                  {comment.authorName?.charAt(0).toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-neutral-900">
@@ -224,30 +218,31 @@ function CommentSection({ taskId }) {
 
                   {/* Actions Menu */}
                   {user?.id === comment.authorId && !editingCommentId && (
-                    <div className="relative ml-auto" ref={menuOpenId === comment.id ? menuRef : null}>
-                      <button
-                        onClick={() => setMenuOpenId(menuOpenId === comment.id ? null : comment.id)}
-                        className="p-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <MoreHorizontal size={16} />
-                      </button>
-                      {menuOpenId === comment.id && (
-                        <div className="absolute right-0 mt-1 w-32 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
+                    <div className="ml-auto">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
                           <button
+                            className="p-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <MoreHorizontal size={16} />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-32">
+                          <DropdownMenuItem
                             onClick={() => handleStartEdit(comment)}
-                            className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 rounded-t-lg"
+                            className="flex items-center gap-2 cursor-pointer"
                           >
                             <Pencil size={14} />
                             Edit
-                          </button>
-                          <button
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
                             onClick={() => handleDeleteComment(comment.id)}
                             disabled={deletingIds.has(comment.id)}
-                            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-b-lg"
+                            className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
                           >
                             {deletingIds.has(comment.id) ? (
                               <>
-                                <InlineSpinner size="xs" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 Deleting...
                               </>
                             ) : (
@@ -256,9 +251,9 @@ function CommentSection({ taskId }) {
                                 Delete
                               </>
                             )}
-                          </button>
-                        </div>
-                      )}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   )}
                 </div>
@@ -274,19 +269,22 @@ function CommentSection({ taskId }) {
                       rows={2}
                     />
                     <div className="flex gap-2 mt-2">
-                      <button
+                      <Button
                         onClick={handleSaveEdit}
                         disabled={!editingContent.trim()}
-                        className="px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition disabled:opacity-50"
+                        size="sm"
+                        className="h-7 text-xs"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={handleCancelEdit}
-                        className="px-3 py-1 text-neutral-600 text-xs hover:bg-neutral-100 rounded transition"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (

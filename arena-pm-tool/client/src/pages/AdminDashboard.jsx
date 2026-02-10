@@ -2,19 +2,23 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Users, FolderOpen, ClipboardList, CreditCard, Loader2 } from 'lucide-react';
 import { adminAPI } from '../utils/api';
+import { Button } from 'components/ui/button';
+import { Card, CardContent } from 'components/ui/card';
 
 function StatCard({ label, value, sub, icon: Icon, color = 'neutral' }) {
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-5">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="p-2 rounded-lg bg-neutral-50">
-          <Icon size={18} className="text-neutral-500" />
+    <Card>
+      <CardContent className="p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2 rounded-lg bg-neutral-50">
+            <Icon size={18} className="text-neutral-500" />
+          </div>
+          <span className="text-sm font-medium text-neutral-500">{label}</span>
         </div>
-        <span className="text-sm font-medium text-neutral-500">{label}</span>
-      </div>
-      <p className="text-2xl font-bold text-neutral-900">{value}</p>
-      {sub && <p className="text-sm text-neutral-400 mt-1">{sub}</p>}
-    </div>
+        <p className="text-2xl font-bold text-neutral-900">{value}</p>
+        {sub && <p className="text-sm text-neutral-400 mt-1">{sub}</p>}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -63,9 +67,11 @@ function AdminDashboard() {
       <header className="bg-white border-b border-neutral-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-all" aria-label="Back to dashboard">
-              <ArrowLeft size={20} />
-            </Link>
+            <Button asChild variant="ghost" size="icon" aria-label="Back to dashboard">
+              <Link to="/dashboard">
+                <ArrowLeft size={20} />
+              </Link>
+            </Button>
             <h1 className="text-xl font-bold text-neutral-900">Admin Dashboard</h1>
           </div>
         </div>

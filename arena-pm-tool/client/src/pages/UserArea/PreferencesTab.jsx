@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Globe, Clock, Loader2 } from 'lucide-react';
+import { Button } from 'components/ui/button';
+import { Card, CardContent } from 'components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
 import useAuthStore from '../../store/authStore';
 
 const LANGUAGES = [
@@ -71,9 +74,12 @@ const PreferencesTab = () => {
     }
   }, [formData, user]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleLanguageChange = (value) => {
+    setFormData((prev) => ({ ...prev, language: value }));
+  };
+
+  const handleTimezoneChange = (value) => {
+    setFormData((prev) => ({ ...prev, timezone: value }));
   };
 
   const handleUseDetectedTimezone = () => {
@@ -87,6 +93,12 @@ const PreferencesTab = () => {
     await updatePreferences(formData);
   };
 
+  // Build the full list of timezone options, including detected if not already present
+  const timezoneOptions = [...COMMON_TIMEZONES];
+  if (detectedTimezone && !COMMON_TIMEZONES.find((tz) => tz.value === detectedTimezone)) {
+    timezoneOptions.push({ value: detectedTimezone, label: `${detectedTimezone} (Detected)` });
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -98,96 +110,87 @@ const PreferencesTab = () => {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Language Setting */}
-        <div className="bg-white border border-[#E8EBF0] rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-neutral-50 rounded-lg">
-              <Globe className="h-6 w-6 text-neutral-700" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-neutral-900">Language</h3>
-              <p className="mt-1 text-sm text-neutral-500 mb-4">
-                Select your preferred language for the interface.
-              </p>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-neutral-50 rounded-lg">
+                <Globe className="h-6 w-6 text-neutral-700" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-neutral-900">Language</h3>
+                <p className="mt-1 text-sm text-neutral-500 mb-4">
+                  Select your preferred language for the interface.
+                </p>
 
-              <select
-                name="language"
-                value={formData.language}
-                onChange={handleChange}
-                className="w-full sm:w-64 px-4 py-2.5 bg-white border border-[#E8EBF0] rounded-lg text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors appearance-none cursor-pointer"
-              >
-                {LANGUAGES.map((lang) => (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
-
-        {/* Timezone Setting */}
-        <div className="bg-white border border-[#E8EBF0] rounded-xl p-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 bg-neutral-50 rounded-lg">
-              <Clock className="h-6 w-6 text-neutral-700" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-lg font-medium text-neutral-900">Timezone</h3>
-              <p className="mt-1 text-sm text-neutral-500 mb-4">
-                Set your timezone for due dates and reminders.
-              </p>
-
-              <div className="space-y-3">
-                <select
-                  name="timezone"
-                  value={formData.timezone}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2.5 bg-white border border-[#E8EBF0] rounded-lg text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors appearance-none cursor-pointer"
-                >
-                  {COMMON_TIMEZONES.map((tz) => (
-                    <option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </option>
-                  ))}
-                  {/* Include detected timezone if not in list */}
-                  {detectedTimezone &&
-                    !COMMON_TIMEZONES.find((tz) => tz.value === detectedTimezone) && (
-                      <option value={detectedTimezone}>
-                        {detectedTimezone} (Detected)
-                      </option>
-                    )}
-                </select>
-
-                {detectedTimezone && detectedTimezone !== formData.timezone && (
-                  <button
-                    type="button"
-                    onClick={handleUseDetectedTimezone}
-                    className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                  >
-                    Use detected timezone: {detectedTimezone}
-                  </button>
-                )}
+                <Select value={formData.language} onValueChange={handleLanguageChange}>
+                  <SelectTrigger className="w-full sm:w-64">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LANGUAGES.map((lang) => (
+                      <SelectItem key={lang.code} value={lang.code}>
+                        {lang.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
+        {/* Timezone Setting */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-neutral-50 rounded-lg">
+                <Clock className="h-6 w-6 text-neutral-700" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-medium text-neutral-900">Timezone</h3>
+                <p className="mt-1 text-sm text-neutral-500 mb-4">
+                  Set your timezone for due dates and reminders.
+                </p>
+
+                <div className="space-y-3">
+                  <Select value={formData.timezone} onValueChange={handleTimezoneChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select timezone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timezoneOptions.map((tz) => (
+                        <SelectItem key={tz.value} value={tz.value}>
+                          {tz.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {detectedTimezone && detectedTimezone !== formData.timezone && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="h-auto p-0 text-sm text-neutral-600 hover:text-neutral-900"
+                      onClick={handleUseDetectedTimezone}
+                    >
+                      Use detected timezone: {detectedTimezone}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Submit Button */}
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <span>Save Preferences</span>
-            )}
-          </button>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? 'Saving...' : 'Save Preferences'}
+          </Button>
         </div>
       </form>
     </div>

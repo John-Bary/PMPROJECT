@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import useFocusTrap from '../hooks/useFocusTrap';
 import { format } from 'date-fns';
 import {
   X, Check, Calendar, User, FolderOpen, Flag,
-  ChevronDown, MoreHorizontal, Trash2, AlertCircle
+  ChevronDown, MoreHorizontal, Trash2, AlertCircle, Loader2
 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -15,8 +13,10 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
 import CommentSection from './CommentSection';
-import { ButtonSpinner, InlineSpinner } from './Loader';
+import { InlineSpinner } from './Loader';
 import { toast } from 'sonner';
+import { Dialog, DialogContent } from 'components/ui/dialog';
+import { Button } from 'components/ui/button';
 
 const priorityConfig = {
   urgent: { label: 'Urgent', color: 'text-red-700 font-medium', dot: 'bg-red-600' },
@@ -51,10 +51,6 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   const categoryDropdownRef = useRef(null);
   const priorityDropdownRef = useRef(null);
   const moreMenuRef = useRef(null);
-  const modalRef = useRef(null);
-  const focusTrapRef = useRef(null);
-
-  useFocusTrap(focusTrapRef, isOpen);
 
   const dueDateObj = toLocalDate(task?.dueDate);
   const formattedDueDate = formatDueDateLong(task?.dueDate);
@@ -78,32 +74,6 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
     }
     fetchCategories();
   }, [currentWorkspaceId, fetchUsers, fetchCategories]);
-
-  // Handle escape key to close modal
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        if (isEditingTitle || isEditingDescription) {
-          setIsEditingTitle(false);
-          setIsEditingDescription(false);
-          setEditedTitle(task?.title || '');
-          setEditedDescription(task?.description || '');
-        } else {
-          onClose();
-        }
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, isEditingTitle, isEditingDescription, task, onClose]);
 
   // Close dropdowns on click outside
   useEffect(() => {
@@ -140,12 +110,6 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
       descriptionRef.current.focus();
     }
   }, [isEditingDescription]);
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   const handleSaveTitle = async () => {
     if (editedTitle.trim() && editedTitle !== task.title) {
@@ -270,38 +234,15 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
     onDelete?.(task);
   };
 
-  if (!isOpen || !task) return null;
+  if (!task) return null;
 
   const currentCategory = categories.find(c => c.id === task.categoryId);
   const currentPriority = priorityConfig[task.priority] || priorityConfig.medium;
 
   return (
-    <div
-      ref={focusTrapRef}
-      className="fixed inset-0 z-50 overflow-y-auto"
-      onClick={handleBackdropClick}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="task-detail-title"
-    >
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/20" />
-
-      {/* Modal Container */}
-      <div className="flex min-h-full items-start justify-center p-0 sm:p-4 sm:pt-20">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.2 }}
-          ref={modalRef}
-          className="relative bg-white sm:rounded-xl shadow-md w-full h-[100dvh] sm:h-auto sm:max-w-2xl sm:max-h-[85vh] overflow-hidden flex flex-col"
-          onClick={(e) => e.stopPropagation()}
-        >
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="sm:max-w-2xl sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 [&>button]:hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
             <div className="flex items-center gap-2">
@@ -602,23 +543,24 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       placeholder="Add a description..."
                     />
                     <div className="flex gap-2 mt-2">
-                      <button
+                      <Button
                         onClick={handleSaveDescription}
                         disabled={isSaving}
-                        className="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition disabled:opacity-50 flex items-center gap-2"
+                        size="sm"
                       >
-                        {isSaving && <ButtonSpinner />}
+                        {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => {
                           setEditedDescription(task.description || '');
                           setIsEditingDescription(false);
                         }}
-                        className="px-3 py-1.5 text-neutral-600 text-sm hover:bg-neutral-100 rounded-lg transition"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -670,8 +612,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               )}
             </div>
           </div>
-        </motion.div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Date Picker Portal */}
       {showDatePicker && (
@@ -682,7 +624,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
           triggerRef={datePickerRef}
         />
       )}
-    </div>
+    </>
   );
 }
 

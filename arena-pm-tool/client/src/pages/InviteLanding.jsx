@@ -4,6 +4,9 @@ import { Users, LogIn, UserPlus, Loader2, XCircle, Clock, CheckCircle, ArrowRigh
 import { workspacesAPI } from '../utils/api';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import useAuthStore from '../store/authStore';
+import { Button } from 'components/ui/button';
+import { Card, CardContent } from 'components/ui/card';
+import { Badge } from 'components/ui/badge';
 
 function InviteLanding() {
   const { token } = useParams();
@@ -69,213 +72,207 @@ function InviteLanding() {
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6 sm:p-8">
-          {/* Logo */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
-          </div>
-
-          {/* Loading State */}
-          {status === 'loading' && (
-            <div className="text-center py-8">
-              <div className="flex justify-center mb-4">
-                <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
-              </div>
-              <p className="text-neutral-500">Loading invitation details...</p>
+        <Card>
+          <CardContent className="p-6 sm:p-8">
+            {/* Logo */}
+            <div className="text-center mb-6">
+              <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
             </div>
-          )}
 
-          {/* Valid Invitation */}
-          {status === 'valid' && inviteData && (
-            <div className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center">
-                  <Users className="h-7 w-7 text-neutral-900" />
+            {/* Loading State */}
+            {status === 'loading' && (
+              <div className="text-center py-8">
+                <div className="flex justify-center mb-4">
+                  <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
                 </div>
+                <p className="text-neutral-500">Loading invitation details...</p>
               </div>
+            )}
 
-              <h2 className="text-xl font-semibold text-neutral-900 mb-2">
-                You've been invited to join
-              </h2>
-              <p className="text-2xl font-bold text-neutral-900 mb-2">
-                {inviteData.workspaceName}
-              </p>
-              {inviteData.inviterName && (
-                <p className="text-sm text-neutral-500 mb-6">
-                  Invited by {inviteData.inviterName}
+            {/* Valid Invitation */}
+            {status === 'valid' && inviteData && (
+              <div className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center">
+                    <Users className="h-7 w-7 text-neutral-900" />
+                  </div>
+                </div>
+
+                <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+                  You've been invited to join
+                </h2>
+                <p className="text-2xl font-bold text-neutral-900 mb-2">
+                  {inviteData.workspaceName}
                 </p>
-              )}
+                {inviteData.inviterName && (
+                  <p className="text-sm text-neutral-500 mb-6">
+                    Invited by {inviteData.inviterName}
+                  </p>
+                )}
 
-              {inviteData.role && (
-                <div className="inline-block bg-neutral-100 text-neutral-700 text-xs font-medium px-3 py-1 rounded-full mb-6 capitalize">
-                  Role: {inviteData.role}
+                {inviteData.role && (
+                  <div className="mb-6">
+                    <Badge variant="secondary" className="capitalize">
+                      Role: {inviteData.role}
+                    </Badge>
+                  </div>
+                )}
+
+                {isAuthenticated ? (
+                  /* Already logged in — show direct join button */
+                  <div>
+                    <Button onClick={handleJoinWorkspace} className="w-full">
+                      <span>Join {inviteData.workspaceName}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  /* Not logged in — show sign in / sign up choices */
+                  <div className="space-y-3">
+                    <Button asChild className="w-full">
+                      <Link to={`/login?invite=${encodeURIComponent(token)}`}>
+                        <LogIn className="h-4 w-4" />
+                        <span>I have an account — Sign In</span>
+                      </Link>
+                    </Button>
+
+                    <Button asChild variant="outline" className="w-full border-2 border-primary-600">
+                      <Link to={`/register?invite=${encodeURIComponent(token)}${inviteData.invitedEmail ? `&email=${encodeURIComponent(inviteData.invitedEmail)}` : ''}`}>
+                        <UserPlus className="h-4 w-4" />
+                        <span>I'm new here — Sign Up</span>
+                      </Link>
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Joining State */}
+            {status === 'joining' && (
+              <div className="text-center py-8">
+                <div className="flex justify-center mb-4">
+                  <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
                 </div>
-              )}
+                <h2 className="text-lg font-semibold text-neutral-900 mb-1">
+                  Joining workspace...
+                </h2>
+                <p className="text-neutral-500">Please wait while we add you to the team.</p>
+              </div>
+            )}
 
-              {isAuthenticated ? (
-                /* Already logged in — show direct join button */
-                <div>
-                  <button
-                    onClick={handleJoinWorkspace}
-                    className="w-full bg-primary-600 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    <span>Join {inviteData.workspaceName}</span>
+            {/* Join Error State */}
+            {status === 'join-error' && (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                    <XCircle className="h-7 w-7 text-red-500" />
+                  </div>
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                  Could not join workspace
+                </h2>
+                <p className="text-neutral-500 mb-6">{joinError}</p>
+                <Button asChild variant="secondary">
+                  <Link to="/dashboard">
+                    Go to Dashboard
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+            {/* Expired Invitation */}
+            {status === 'expired' && inviteData && (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Clock className="h-7 w-7 text-amber-500" />
+                  </div>
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                  Invitation Expired
+                </h2>
+                <p className="text-neutral-500 mb-1">
+                  The invitation to join <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span> has expired.
+                </p>
+                <p className="text-sm text-neutral-400 mb-6">
+                  Ask {inviteData.inviterName || 'your team admin'} to send a new invitation.
+                </p>
+                <Button asChild variant="secondary">
+                  <Link to="/login">
+                    Go to Sign In
+                  </Link>
+                </Button>
+              </div>
+            )}
+
+            {/* Already Accepted Invitation */}
+            {status === 'accepted' && inviteData && (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="h-7 w-7 text-green-500" />
+                  </div>
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                  Already Joined
+                </h2>
+                <p className="text-neutral-500 mb-6">
+                  You've already joined <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span>.
+                </p>
+                <Button asChild>
+                  <Link to="/dashboard">
+                    <span>Go to Dashboard</span>
                     <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                /* Not logged in — show sign in / sign up choices */
-                <div className="space-y-3">
-                  <Link
-                    to={`/login?invite=${encodeURIComponent(token)}`}
-                    className="w-full bg-primary-600 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    <LogIn className="h-4 w-4" />
-                    <span>I have an account — Sign In</span>
                   </Link>
+                </Button>
+              </div>
+            )}
 
-                  <Link
-                    to={`/register?invite=${encodeURIComponent(token)}${inviteData.invitedEmail ? `&email=${encodeURIComponent(inviteData.invitedEmail)}` : ''}`}
-                    className="w-full bg-white text-neutral-900 py-2.5 px-4 rounded-lg border-2 border-primary-600 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    <span>I'm new here — Sign Up</span>
+            {/* Invalid Token */}
+            {status === 'invalid' && (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                    <XCircle className="h-7 w-7 text-red-500" />
+                  </div>
+                </div>
+                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                  Invalid Invitation Link
+                </h2>
+                <p className="text-neutral-500 mb-6">
+                  This invite link is invalid or has already been used. Please check the link you received or ask your team admin to send a new invitation.
+                </p>
+                <Button asChild variant="secondary">
+                  <Link to="/login">
+                    Go to Sign In
                   </Link>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Joining State */}
-          {status === 'joining' && (
-            <div className="text-center py-8">
-              <div className="flex justify-center mb-4">
-                <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
+                </Button>
               </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-1">
-                Joining workspace...
-              </h2>
-              <p className="text-neutral-500">Please wait while we add you to the team.</p>
-            </div>
-          )}
+            )}
 
-          {/* Join Error State */}
-          {status === 'join-error' && (
-            <div className="text-center py-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="h-7 w-7 text-red-500" />
+            {/* Generic Error */}
+            {status === 'error' && (
+              <div className="text-center py-6">
+                <div className="flex justify-center mb-4">
+                  <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
+                    <XCircle className="h-7 w-7 text-red-500" />
+                  </div>
                 </div>
+                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                  Something went wrong
+                </h2>
+                <p className="text-neutral-500 mb-6">
+                  We couldn't load the invitation details. Please try again or contact support.
+                </p>
+                <Button asChild variant="secondary">
+                  <Link to="/login">
+                    Go to Sign In
+                  </Link>
+                </Button>
               </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                Could not join workspace
-              </h2>
-              <p className="text-neutral-500 mb-6">{joinError}</p>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-lg transition"
-              >
-                Go to Dashboard
-              </Link>
-            </div>
-          )}
-
-          {/* Expired Invitation */}
-          {status === 'expired' && inviteData && (
-            <div className="text-center py-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
-                  <Clock className="h-7 w-7 text-amber-500" />
-                </div>
-              </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                Invitation Expired
-              </h2>
-              <p className="text-neutral-500 mb-1">
-                The invitation to join <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span> has expired.
-              </p>
-              <p className="text-sm text-neutral-400 mb-6">
-                Ask {inviteData.inviterName || 'your team admin'} to send a new invitation.
-              </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-lg transition"
-              >
-                Go to Sign In
-              </Link>
-            </div>
-          )}
-
-          {/* Already Accepted Invitation */}
-          {status === 'accepted' && inviteData && (
-            <div className="text-center py-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle className="h-7 w-7 text-green-500" />
-                </div>
-              </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                Already Joined
-              </h2>
-              <p className="text-neutral-500 mb-6">
-                You've already joined <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span>.
-              </p>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition"
-              >
-                <span>Go to Dashboard</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          )}
-
-          {/* Invalid Token */}
-          {status === 'invalid' && (
-            <div className="text-center py-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="h-7 w-7 text-red-500" />
-                </div>
-              </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                Invalid Invitation Link
-              </h2>
-              <p className="text-neutral-500 mb-6">
-                This invite link is invalid or has already been used. Please check the link you received or ask your team admin to send a new invitation.
-              </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-lg transition"
-              >
-                Go to Sign In
-              </Link>
-            </div>
-          )}
-
-          {/* Generic Error */}
-          {status === 'error' && (
-            <div className="text-center py-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="h-7 w-7 text-red-500" />
-                </div>
-              </div>
-              <h2 className="text-lg font-semibold text-neutral-900 mb-2">
-                Something went wrong
-              </h2>
-              <p className="text-neutral-500 mb-6">
-                We couldn't load the invitation details. Please try again or contact support.
-              </p>
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-2 px-5 py-2 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-medium rounded-lg transition"
-              >
-                Go to Sign In
-              </Link>
-            </div>
-          )}
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

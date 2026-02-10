@@ -3,6 +3,9 @@ import { Loader2 } from 'lucide-react';
 import { workspacesAPI } from '../../utils/api';
 import useWorkspaceStore from '../../store/workspaceStore';
 import { formatDistanceToNow } from 'date-fns';
+import { Card, CardContent } from 'components/ui/card';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import { Separator } from 'components/ui/separator';
 
 function formatAction(activity) {
   const title = activity.metadata?.title;
@@ -51,44 +54,51 @@ const ActivityTab = () => {
         <p className="text-neutral-500 mt-1">Activity feed for your current workspace.</p>
       </div>
 
-      <div className="rounded-xl border border-[#E8EBF0] bg-white p-6">
-        {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-neutral-500" />
-          </div>
-        ) : !currentWorkspaceId ? (
-          <p className="text-sm text-neutral-400 text-center py-8">No workspace selected.</p>
-        ) : activities.length === 0 ? (
-          <p className="text-sm text-neutral-400 text-center py-8">No activity yet.</p>
-        ) : (
-          <ul className="space-y-4">
-            {activities.map((activity) => {
-              const userName = activity.user?.firstName && activity.user?.lastName
-                ? `${activity.user.firstName} ${activity.user.lastName}`
-                : activity.user?.name || 'Someone';
+      <Card>
+        <CardContent className="p-6">
+          {isLoading ? (
+            <div className="flex justify-center py-12">
+              <Loader2 size={24} className="animate-spin text-neutral-500" />
+            </div>
+          ) : !currentWorkspaceId ? (
+            <p className="text-sm text-neutral-400 text-center py-8">No workspace selected.</p>
+          ) : activities.length === 0 ? (
+            <p className="text-sm text-neutral-400 text-center py-8">No activity yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {activities.map((activity, index) => {
+                const userName = activity.user?.firstName && activity.user?.lastName
+                  ? `${activity.user.firstName} ${activity.user.lastName}`
+                  : activity.user?.name || 'Someone';
 
-              return (
-                <li key={activity.id} className="flex items-start gap-3 text-sm">
-                  <div className="w-7 h-7 rounded-full bg-neutral-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-neutral-700">
-                      {userName.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-neutral-600">
-                      <span className="font-medium text-neutral-900">{userName}</span>{' '}
-                      {formatAction(activity)}
-                    </p>
-                    <p className="text-xs text-neutral-400 mt-0.5">
-                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                    </p>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                return (
+                  <li key={activity.id}>
+                    <div className="flex items-start gap-3 text-sm">
+                      <Avatar className="h-7 w-7 mt-0.5">
+                        <AvatarFallback className="bg-neutral-50 text-neutral-700 text-xs font-medium">
+                          {userName.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-neutral-600">
+                          <span className="font-medium text-neutral-900">{userName}</span>{' '}
+                          {formatAction(activity)}
+                        </p>
+                        <p className="text-xs text-neutral-400 mt-0.5">
+                          {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                    {index < activities.length - 1 && (
+                      <Separator className="mt-4" />
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

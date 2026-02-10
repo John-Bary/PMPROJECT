@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import useCategoryStore from '../store/categoryStore';
-import { ButtonSpinner } from './Loader';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from 'components/ui/dialog';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Label } from 'components/ui/label';
 
 const AVAILABLE_COLORS = [
   { name: 'Indigo', value: '#6366F1' },
@@ -80,112 +82,83 @@ function CategoryModal({ isOpen, onClose, category = null }) {
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/20"
-        onClick={handleClose}
-      ></motion.div>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditMode ? 'Edit Category' : 'New Category'}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditMode ? 'Update the category details below.' : 'Create a new category for organizing tasks.'}
+          </DialogDescription>
+        </DialogHeader>
 
-      <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.2 }}
-          className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
-          <div className="p-4 sm:p-6">
-            {/* Mobile drag handle indicator */}
-            <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-semibold text-neutral-900">
-                {isEditMode ? 'Edit Category' : 'New Category'}
-              </h2>
-              <button
-                onClick={handleClose}
-                className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-all duration-150"
-                disabled={isSubmitting}
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit}>
-              {/* Category Name */}
-              <div className="mb-4">
-                <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-1">
-                  Category Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2.5 sm:py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 text-base sm:text-sm"
-                  placeholder="e.g., Work, Personal, Shopping"
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-
-              {/* Color Picker */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Color
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {AVAILABLE_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, color: color.value })}
-                      className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 ${
-                        formData.color === color.value
-                          ? 'ring-2 ring-primary-600 ring-offset-2'
-                          : 'hover:ring-2 hover:ring-neutral-300 hover:ring-offset-1'
-                      }`}
-                      style={{ backgroundColor: color.value }}
-                      title={color.name}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="flex-1 px-4 py-2.5 sm:py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 text-sm sm:text-base active:scale-[0.98]"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2.5 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting && <ButtonSpinner />}
-                  {isSubmitting
-                    ? (isEditMode ? 'Updating...' : 'Creating...')
-                    : (isEditMode ? 'Update' : 'Create')
-                  }
-                </button>
-              </div>
-            </form>
+        {/* Form */}
+        <form onSubmit={handleSubmit}>
+          {/* Category Name */}
+          <div className="mb-4 space-y-2">
+            <Label htmlFor="name">
+              Category Name
+            </Label>
+            <Input
+              type="text"
+              id="name"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g., Work, Personal, Shopping"
+              required
+              disabled={isSubmitting}
+            />
           </div>
-        </motion.div>
-      </div>
-    </div>
+
+          {/* Color Picker */}
+          <div className="mb-6">
+            <Label className="mb-2 block">
+              Color
+            </Label>
+            <div className="flex flex-wrap gap-3">
+              {AVAILABLE_COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  onClick={() => setFormData({ ...formData, color: color.value })}
+                  className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 ${
+                    formData.color === color.value
+                      ? 'ring-2 ring-primary-600 ring-offset-2'
+                      : 'hover:ring-2 hover:ring-neutral-300 hover:ring-offset-1'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting
+                ? (isEditMode ? 'Updating...' : 'Creating...')
+                : (isEditMode ? 'Update' : 'Create')
+              }
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

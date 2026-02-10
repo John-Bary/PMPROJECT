@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye } from 'lucide-react';
+import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye, Loader2 } from 'lucide-react';
 import { DragDropContext, Droppable } from '@hello-pangea/dnd';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -11,10 +11,22 @@ import TaskDetailModal from './TaskDetailModal';
 import CategoryModal from './CategoryModal';
 import AddCategoryButton from './AddCategoryButton';
 import FilterDropdown from './FilterDropdown';
-import { InlineSpinner, TaskColumnSkeleton, ButtonSpinner } from './Loader';
+import { InlineSpinner, TaskColumnSkeleton } from './Loader';
 import EmptyState from './EmptyState';
 import { useTaskActions } from '../hooks/useTaskActions';
 import { useTaskFilters } from '../hooks/useTaskFilters';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from 'components/ui/alert-dialog';
 
 function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
   const {
@@ -310,17 +322,18 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             )}
           </div>
 
-          {/* Add Task Button - Always visible */}
-          <button
+          {/* Add Task Button */}
+          <Button
             onClick={() => openCreateTask(getSuggestedCategoryId())}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white text-sm font-medium rounded-xl h-10 hover:bg-primary-700 hover:shadow-elevated active:scale-[0.98] transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
+            size="lg"
+            className="flex-shrink-0"
             title={!userCanEdit ? 'View-only access' : ''}
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
             <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : !userCanEdit ? 'View Only' : 'Add Task'}</span>
             <span className="sm:hidden">{!userCanEdit ? 'View' : 'Add'}</span>
-          </button>
+          </Button>
         </div>
 
         {/* Search and Filter Row */}
@@ -328,13 +341,13 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
           {/* Search Bar */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-            <input
+            <Input
               ref={searchInputRef}
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search tasks... (⌘K)"
-              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm bg-white border border-[#E8EBF0] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 h-10 disabled:bg-neutral-50 transition-all duration-150"
+              placeholder="Search tasks... (Cmd+K)"
+              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 h-10"
               disabled={disableControls}
             />
             {searchInput && (
@@ -347,7 +360,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                 <X size={18} />
               </button>
             )}
-            {!searchInput && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-gray-100 rounded-md px-1.5 py-0.5 text-[11px] font-mono text-[#94A3B8]">⌘K</span>}
+            {!searchInput && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-gray-100 rounded-md px-1.5 py-0.5 text-[11px] font-mono text-[#94A3B8]">Cmd+K</span>}
           </div>
 
           {/* Filter Dropdown */}
@@ -530,14 +543,14 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             {/* Load More Button */}
             {hasMore && (
               <div className="flex justify-center mt-4">
-                <button
+                <Button
                   onClick={loadMoreTasks}
                   disabled={isLoadingMore}
-                  className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                  variant="outline"
                 >
-                  {isLoadingMore && <ButtonSpinner />}
+                  {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isLoadingMore ? 'Loading...' : 'Load more'}
-                </button>
+                </Button>
               </div>
             )}
             </>
@@ -561,78 +574,54 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
       />
 
       {/* Delete Task Confirmation Modal */}
-      {deletingTask && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
-          <div
-            className="fixed inset-0 bg-black/20 transition-opacity"
-            onClick={cancelDelete}
-          ></div>
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-xl shadow-md max-w-md w-full p-6 animate-scale-in">
-              <h3 id="delete-task-title" className="text-lg font-semibold text-neutral-900 mb-2">
-                Delete Task
-              </h3>
-              <p className="text-neutral-600 mb-6">
-                Are you sure you want to delete "{deletingTask.title}"? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={cancelDelete}
-                  className="flex-1 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-all duration-200"
-                  disabled={isDeletingTask}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isDeletingTask}
-                >
-                  {isDeletingTask && <ButtonSpinner />}
-                  {isDeletingTask ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!deletingTask} onOpenChange={(open) => { if (!open) cancelDelete(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingTask?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingTask}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeletingTask}
+              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeletingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeletingTask ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Delete Category Confirmation Modal */}
-      {deletingCategory && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div
-            className="fixed inset-0 bg-black/20 transition-opacity"
-            onClick={cancelDeleteCategory}
-          ></div>
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-xl shadow-md max-w-md w-full p-6 animate-scale-in">
-              <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-                Delete Category
-              </h3>
-              <p className="text-neutral-600 mb-6">
-                Are you sure you want to delete the category "{deletingCategory.name}"? All tasks in this category will need to be reassigned.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={cancelDeleteCategory}
-                  className="flex-1 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-all duration-200"
-                  disabled={isDeletingCategory}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDeleteCategory}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isDeletingCategory}
-                >
-                  {isDeletingCategory && <ButtonSpinner />}
-                  {isDeletingCategory ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!deletingCategory} onOpenChange={(open) => { if (!open) cancelDeleteCategory(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the category "{deletingCategory?.name}"? All tasks in this category will need to be reassigned.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingCategory}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteCategory}
+              disabled={isDeletingCategory}
+              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+            >
+              {isDeletingCategory && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeletingCategory ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Task Detail Modal */}
       <TaskDetailModal

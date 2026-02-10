@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import ErrorBoundary from './components/ErrorBoundary';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
+import { TooltipProvider } from 'components/ui/tooltip';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -47,6 +48,7 @@ function App() {
       />
 
       <ErrorBoundary>
+        <TooltipProvider>
         <WorkspaceProvider>
           <CookieConsent />
           <Suspense fallback={<PageLoader />}>
@@ -144,6 +146,7 @@ function App() {
             </Routes>
           </Suspense>
         </WorkspaceProvider>
+        </TooltipProvider>
       </ErrorBoundary>
     </Router>
   );

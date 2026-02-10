@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { User, Settings, Bell, CheckSquare, ArrowLeft, Users, Shield, Activity } from 'lucide-react';
+import { cn } from 'lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from 'components/ui/avatar';
+import { Button } from 'components/ui/button';
 import useAuthStore from '../../store/authStore';
 import ProfileTab from './ProfileTab';
 import PreferencesTab from './PreferencesTab';
@@ -50,13 +53,15 @@ const UserArea = () => {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Back to Dashboard */}
-            <NavLink
-              to="/dashboard"
-              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span className="hidden sm:inline">Back to Dashboard</span>
-            </NavLink>
+            <Button variant="ghost" asChild>
+              <NavLink
+                to="/dashboard"
+                className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900"
+              >
+                <ArrowLeft className="h-5 w-5" />
+                <span className="hidden sm:inline">Back to Dashboard</span>
+              </NavLink>
+            </Button>
 
             {/* Title */}
             <h1 className="text-lg font-semibold text-neutral-900">Settings</h1>
@@ -66,17 +71,17 @@ const UserArea = () => {
 
             {/* User info (desktop) */}
             <div className="hidden lg:flex items-center gap-3">
-              {user?.avatarUrl ? (
-                <img
-                  src={`${apiBaseUrl}${user.avatarUrl}`}
-                  alt="Avatar"
-                  className="h-8 w-8 rounded-full object-cover"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
+              <Avatar className="h-8 w-8">
+                {user?.avatarUrl ? (
+                  <AvatarImage
+                    src={`${apiBaseUrl}${user.avatarUrl}`}
+                    alt="Avatar"
+                  />
+                ) : null}
+                <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
                   {getInitials(user?.firstName, user?.lastName, user?.name)}
-                </div>
-              )}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-sm text-neutral-700">
                 {user?.firstName && user?.lastName
                   ? `${user.firstName} ${user.lastName}`
@@ -95,11 +100,12 @@ const UserArea = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                cn(
+                  "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0",
                   isActive
-                    ? 'bg-primary-50 text-primary-600'
-                    : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
-                }`
+                    ? "bg-white text-neutral-900 shadow-sm"
+                    : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                )
               }
             >
               <item.icon className="h-4 w-4" />
@@ -113,21 +119,22 @@ const UserArea = () => {
         <div className="flex gap-8">
           {/* Sidebar Navigation (Desktop) */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
-            <nav className="sticky top-24 space-y-1">
+            <nav className="sticky top-24 flex flex-col gap-1">
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    cn(
+                      "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all",
                       isActive
-                        ? 'bg-primary-50 text-primary-600 border border-primary-200'
-                        : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border border-transparent'
-                    }`
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                    )
                   }
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
                 </NavLink>
               ))}
             </nav>

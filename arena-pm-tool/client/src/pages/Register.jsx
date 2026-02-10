@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../store/authStore';
-import { ButtonSpinner } from '../components/Loader';
+import { Loader2 } from 'lucide-react';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Label } from 'components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from 'components/ui/card';
 
 function Register() {
   const navigate = useNavigate();
@@ -95,145 +99,132 @@ function Register() {
   return (
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-8">
-          {/* Invite Banner */}
-          {inviteToken && (
-            <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
-              <p className="text-sm text-neutral-700">
-                Create an account to accept your workspace invitation
-              </p>
-            </div>
-          )}
-
-          {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
-            <p className="text-neutral-600 mt-2">Create your account</p>
-          </div>
-
-          {/* Register Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-neutral-700 mb-2">
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border ${
-                  errors.name ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
-                placeholder="John Doe"
-              />
-              {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border ${
-                  errors.email ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
-                placeholder="your@email.com"
-              />
-              {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border ${
-                  errors.password ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
-                placeholder="Must include uppercase, lowercase, and a digit"
-              />
-              {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full px-4 py-2 border ${
-                  errors.confirmPassword ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
-                placeholder="Re-enter your password"
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            {/* Terms of Service */}
-            <div>
-              <label className="flex items-start gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptedTerms}
-                  onChange={(e) => {
-                    setAcceptedTerms(e.target.checked);
-                    if (errors.terms) setErrors({ ...errors, terms: '' });
-                  }}
-                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600"
+        <Card className="shadow-sm">
+          <CardHeader className="text-center">
+            {/* Invite Banner */}
+            {inviteToken && (
+              <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
+                <p className="text-sm text-neutral-700">
+                  Create an account to accept your workspace invitation
+                </p>
+              </div>
+            )}
+            <CardTitle className="text-xl">Todoria</CardTitle>
+            <CardDescription>Create your account</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Register Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div>
+                <Label htmlFor="name" className="mb-2">
+                  Full Name
+                </Label>
+                <Input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className={errors.name ? 'border-red-500' : ''}
+                  placeholder="John Doe"
                 />
-                <span className="text-sm text-neutral-600">
-                  I agree to the{' '}
-                  <Link to="/terms" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
-                    Privacy Policy
-                  </Link>
-                </span>
-              </label>
-              {errors.terms && <p className="mt-1 text-sm text-red-600">{errors.terms}</p>}
-            </div>
+                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+              </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
-            >
-              {isLoading && <ButtonSpinner />}
-              {isLoading ? 'Creating account...' : 'Create Account'}
-            </button>
-          </form>
+              <div>
+                <Label htmlFor="email" className="mb-2">
+                  Email Address
+                </Label>
+                <Input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={errors.email ? 'border-red-500' : ''}
+                  placeholder="your@email.com"
+                />
+                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+              </div>
 
-          {/* Login Link */}
-          <p className="mt-6 text-center text-sm text-neutral-600">
-            Already have an account?{' '}
-            <Link
-              to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login'}
-              className="text-neutral-900 hover:text-neutral-700 font-medium"
-            >
-              Sign in
-            </Link>
-          </p>
-        </div>
+              <div>
+                <Label htmlFor="password" className="mb-2">
+                  Password
+                </Label>
+                <Input
+                  type="password"
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={errors.password ? 'border-red-500' : ''}
+                  placeholder="Must include uppercase, lowercase, and a digit"
+                />
+                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="confirmPassword" className="mb-2">
+                  Confirm Password
+                </Label>
+                <Input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className={errors.confirmPassword ? 'border-red-500' : ''}
+                  placeholder="Re-enter your password"
+                />
+                {errors.confirmPassword && (
+                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                )}
+              </div>
+
+              {/* Terms of Service */}
+              <div>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={acceptedTerms}
+                    onChange={(e) => {
+                      setAcceptedTerms(e.target.checked);
+                      if (errors.terms) setErrors({ ...errors, terms: '' });
+                    }}
+                    className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600"
+                  />
+                  <span className="text-sm text-neutral-600">
+                    I agree to the{' '}
+                    <Link to="/terms" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
+                      Privacy Policy
+                    </Link>
+                  </span>
+                </label>
+                {errors.terms && <p className="mt-1 text-sm text-red-600">{errors.terms}</p>}
+              </div>
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? 'Creating account...' : 'Create Account'}
+              </Button>
+            </form>
+
+            {/* Login Link */}
+            <p className="mt-6 text-center text-sm text-neutral-600">
+              Already have an account?{' '}
+              <Link
+                to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login'}
+                className="text-neutral-900 hover:text-neutral-700 font-medium"
+              >
+                Sign in
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

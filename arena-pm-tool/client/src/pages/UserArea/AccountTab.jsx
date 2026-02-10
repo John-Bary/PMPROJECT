@@ -4,6 +4,20 @@ import { meAPI } from '../../utils/api';
 import useAuthStore from '../../store/authStore';
 import useWorkspaceStore from '../../store/workspaceStore';
 import { toast } from 'sonner';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Label } from 'components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from 'components/ui/alert-dialog';
 
 const AccountTab = () => {
   const { logout } = useAuthStore();
@@ -126,189 +140,173 @@ const AccountTab = () => {
       </div>
 
       {/* Change Password */}
-      <form onSubmit={handleChangePassword} className="bg-white border border-[#E8EBF0] rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Lock className="h-5 w-5 text-neutral-500" />
-          <h3 className="text-lg font-medium text-neutral-900">Change Password</h3>
-        </div>
-
-        <div className="space-y-4 max-w-md">
-          <div>
-            <label htmlFor="currentPassword" className="block text-sm font-medium text-neutral-700 mb-2">
-              Current Password
-            </label>
-            <input
-              type="password"
-              id="currentPassword"
-              name="currentPassword"
-              value={passwordForm.currentPassword}
-              onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
-                passwordErrors.currentPassword ? 'border-red-500' : 'border-[#E8EBF0]'
-              }`}
-              placeholder="Enter current password"
-            />
-            {passwordErrors.currentPassword && (
-              <p className="mt-1 text-sm text-red-400">{passwordErrors.currentPassword}</p>
-            )}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Lock className="h-5 w-5 text-neutral-500" />
+            <CardTitle className="text-lg">Change Password</CardTitle>
           </div>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleChangePassword}>
+            <div className="space-y-4 max-w-md">
+              <div className="space-y-2">
+                <Label htmlFor="currentPassword">Current Password</Label>
+                <Input
+                  type="password"
+                  id="currentPassword"
+                  name="currentPassword"
+                  value={passwordForm.currentPassword}
+                  onChange={handlePasswordChange}
+                  className={passwordErrors.currentPassword ? 'border-red-500' : ''}
+                  placeholder="Enter current password"
+                />
+                {passwordErrors.currentPassword && (
+                  <p className="text-sm text-red-400">{passwordErrors.currentPassword}</p>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="newPassword" className="block text-sm font-medium text-neutral-700 mb-2">
-              New Password
-            </label>
-            <input
-              type="password"
-              id="newPassword"
-              name="newPassword"
-              value={passwordForm.newPassword}
-              onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
-                passwordErrors.newPassword ? 'border-red-500' : 'border-[#E8EBF0]'
-              }`}
-              placeholder="At least 8 characters"
-            />
-            {passwordErrors.newPassword && (
-              <p className="mt-1 text-sm text-red-400">{passwordErrors.newPassword}</p>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">New Password</Label>
+                <Input
+                  type="password"
+                  id="newPassword"
+                  name="newPassword"
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange}
+                  className={passwordErrors.newPassword ? 'border-red-500' : ''}
+                  placeholder="At least 8 characters"
+                />
+                {passwordErrors.newPassword && (
+                  <p className="text-sm text-red-400">{passwordErrors.newPassword}</p>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
-              Confirm New Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={passwordForm.confirmPassword}
-              onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
-                passwordErrors.confirmPassword ? 'border-red-500' : 'border-[#E8EBF0]'
-              }`}
-              placeholder="Confirm new password"
-            />
-            {passwordErrors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-400">{passwordErrors.confirmPassword}</p>
-            )}
-          </div>
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            type="submit"
-            disabled={isChangingPassword}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isChangingPassword ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Changing...</span>
-              </>
-            ) : (
-              <span>Change Password</span>
-            )}
-          </button>
-        </div>
-      </form>
-
-      {/* Export Data */}
-      <div className="bg-white border border-[#E8EBF0] rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Download className="h-5 w-5 text-neutral-500" />
-          <h3 className="text-lg font-medium text-neutral-900">Export Data</h3>
-        </div>
-
-        <p className="text-sm text-neutral-600 mb-4">
-          Download all your tasks as a CSV file. This includes task titles, descriptions, statuses, priorities, due dates, and categories.
-        </p>
-
-        <button
-          onClick={handleExportCsv}
-          disabled={isExporting}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E8EBF0] text-neutral-700 hover:bg-neutral-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isExporting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Exporting...</span>
-            </>
-          ) : (
-            <>
-              <Download className="h-4 w-4" />
-              <span>Export Tasks as CSV</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Delete Account */}
-      <div className="bg-white border border-red-200 rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Trash2 className="h-5 w-5 text-red-400" />
-          <h3 className="text-lg font-medium text-red-400">Delete Account</h3>
-        </div>
-
-        <p className="text-sm text-neutral-600 mb-4">
-          Permanently delete your account and all associated data. This action cannot be undone.
-        </p>
-
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg transition-colors"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Delete My Account</span>
-          </button>
-        ) : (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="text-sm font-medium text-red-600">Are you absolutely sure?</p>
-                <p className="text-sm text-neutral-600 mt-1">
-                  This will permanently delete your account, all tasks, workspaces, and data. Enter your password to confirm.
-                </p>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                <Input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange}
+                  className={passwordErrors.confirmPassword ? 'border-red-500' : ''}
+                  placeholder="Confirm new password"
+                />
+                {passwordErrors.confirmPassword && (
+                  <p className="text-sm text-red-400">{passwordErrors.confirmPassword}</p>
+                )}
               </div>
             </div>
 
-            <input
-              type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              className="w-full max-w-md px-4 py-2.5 bg-white border border-red-200 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
-              placeholder="Enter your password to confirm"
-            />
-
-            <div className="flex gap-3">
-              <button
-                onClick={handleDeleteAccount}
-                disabled={isDeleting || !deletePassword}
-                className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isDeleting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    <span>Deleting...</span>
-                  </>
-                ) : (
-                  <span>Yes, Delete My Account</span>
-                )}
-              </button>
-              <button
-                onClick={() => {
-                  setShowDeleteConfirm(false);
-                  setDeletePassword('');
-                }}
-                className="px-4 py-2.5 bg-white border border-[#E8EBF0] text-neutral-700 hover:bg-neutral-50 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="mt-6 flex justify-end">
+              <Button type="submit" disabled={isChangingPassword}>
+                {isChangingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isChangingPassword ? 'Changing...' : 'Change Password'}
+              </Button>
             </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Export Data */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Download className="h-5 w-5 text-neutral-500" />
+            <CardTitle className="text-lg">Export Data</CardTitle>
           </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-neutral-600 mb-4">
+            Download all your tasks as a CSV file. This includes task titles, descriptions, statuses, priorities, due dates, and categories.
+          </p>
+
+          <Button variant="outline" onClick={handleExportCsv} disabled={isExporting}>
+            {isExporting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                Export Tasks as CSV
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Delete Account */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Trash2 className="h-5 w-5 text-red-400" />
+            <CardTitle className="text-lg text-red-400">Delete Account</CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-neutral-600 mb-4">
+            Permanently delete your account and all associated data. This action cannot be undone.
+          </p>
+
+          <Button
+            variant="destructive"
+            className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete My Account
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Delete Account AlertDialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-red-100">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+              </div>
+              <div>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription className="mt-1">
+                  This will permanently delete your account, all tasks, workspaces, and data. Enter your password to confirm.
+                </AlertDialogDescription>
+              </div>
+            </div>
+          </AlertDialogHeader>
+
+          <Input
+            type="password"
+            value={deletePassword}
+            onChange={(e) => setDeletePassword(e.target.value)}
+            className="max-w-md border-red-200 focus:ring-red-500"
+            placeholder="Enter your password to confirm"
+          />
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeletePassword('');
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || !deletePassword}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting ? 'Deleting...' : 'Yes, Delete My Account'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

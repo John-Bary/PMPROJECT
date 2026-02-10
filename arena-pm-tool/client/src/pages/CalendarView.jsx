@@ -4,6 +4,7 @@ import useTaskStore from '../store/taskStore';
 import useHolidayStore from '../store/holidayStore';
 import TaskModal from '../components/TaskModal';
 import { PageLoader } from '../components/Loader';
+import { Button } from 'components/ui/button';
 
 function CalendarView() {
   const { tasks, isLoading: loading, fetchTasks, updateTask } = useTaskStore();
@@ -377,22 +378,26 @@ function CalendarView() {
             <span className="md:hidden">{getMobileHeaderTitle()}</span>
           </h2>
           <div className="flex items-center gap-1 sm:gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goToPrevious}
-              className="p-1.5 sm:p-2 hover:bg-[#F8F9FC] rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
+              className="h-8 w-8 sm:h-9 sm:w-9 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Previous month' : 'Previous week'}
               aria-label={viewMode === 'month' ? 'Previous month' : 'Previous week'}
             >
               <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={goToNext}
-              className="p-1.5 sm:p-2 hover:bg-[#F8F9FC] rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
+              className="h-8 w-8 sm:h-9 sm:w-9 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Next month' : 'Next week'}
               aria-label={viewMode === 'month' ? 'Next month' : 'Next week'}
             >
               <ChevronRight size={18} className="sm:w-5 sm:h-5" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -455,12 +460,13 @@ function CalendarView() {
             </button>
           </div>
 
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={goToToday}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm border border-[#E8EBF0] text-neutral-700 rounded-lg hover:bg-[#F8F9FC] hover:border-neutral-300 transition-all duration-200"
           >
             Today
-          </button>
+          </Button>
         </div>
       </div>
 
