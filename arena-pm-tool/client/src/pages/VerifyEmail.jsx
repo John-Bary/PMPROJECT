@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authAPI } from '../utils/api';
 import { PageLoader } from '../components/Loader';
+import useAuthStore from '../store/authStore';
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const [status, setStatus] = useState('loading'); // loading, success, error
+  const { isAuthenticated, fetchCurrentUser } = useAuthStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!token) {
@@ -25,6 +28,15 @@ function VerifyEmail() {
 
     verify();
   }, [token]);
+
+  // After successful verification, refresh auth state and redirect if logged in
+  useEffect(() => {
+    if (status === 'success' && isAuthenticated) {
+      fetchCurrentUser().then(() => {
+        navigate('/dashboard', { replace: true });
+      });
+    }
+  }, [status, isAuthenticated, fetchCurrentUser, navigate]);
 
   if (status === 'loading') {
     return <PageLoader />;
@@ -45,12 +57,16 @@ function VerifyEmail() {
               <p className="text-gray-600 text-sm mb-6">
                 Your email has been successfully verified. You can now access all features.
               </p>
-              <Link
-                to="/dashboard"
-                className="inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition font-medium"
-              >
-                Go to Dashboard
-              </Link>
+              {isAuthenticated ? (
+                <p className="text-gray-500 text-sm">Redirecting to dashboard...</p>
+              ) : (
+                <Link
+                  to="/login"
+                  className="inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition font-medium"
+                >
+                  Go to Login
+                </Link>
+              )}
             </>
           ) : (
             <>
