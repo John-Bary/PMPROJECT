@@ -48,7 +48,7 @@ arena-pm-tool/
 │   │   ├── contexts/            # React contexts (WorkspaceContext)
 │   │   ├── hooks/               # Custom hooks (focus trap, keyboard shortcuts, task actions/filters)
 │   │   ├── pages/               # Page components (22 files)
-│   │   │   └── UserArea/        # User settings sub-pages
+│   │   │   └── UserArea/        # User settings sub-pages (Profile, Preferences, Notifications, My Tasks, Team, Activity, Account)
 │   │   ├── store/               # Zustand stores (auth, task, category, workspace, billing, user, holiday)
 │   │   ├── types/               # TypeScript type definitions
 │   │   ├── utils/               # Helpers (api, analytics, dateUtils, priorityStyles, supabase)
@@ -288,13 +288,14 @@ REACT_APP_API_URL=http://localhost:5001/api
 1. **Multi-workspace** — Create/switch workspaces, invite members, role-based access (admin/member/viewer)
 2. **Task management** — CRUD with subtasks, multiple assignees, priorities, categories, comments
 3. **Three views** — Board (drag & drop Kanban), List, Calendar
-4. **Stripe billing** — Free & Pro plans with seat-based pricing, plan limits enforcement
-5. **Onboarding** — Guided workspace setup flow for new users
-6. **Email system** — Queue-based with templates for verification, invites, reminders, assignments
-7. **GDPR compliance** — Data export, account deletion, audit logging, ToS/privacy acceptance tracking
-8. **Security** — httpOnly JWT cookies, CSRF protection, rate limiting, Helmet headers, Zod validation
-9. **Monitoring** — Sentry error tracking, Pino structured logging, health check endpoint
-10. **Background jobs** — Task reminders, email queue processor, database backups, data retention
+4. **Activity feed** — Workspace activity log accessible from Settings > Activity tab (`/user/activity`)
+5. **Stripe billing** — Free & Pro plans with seat-based pricing, plan limits enforcement
+6. **Onboarding** — Guided workspace setup flow for new users
+7. **Email system** — Queue-based with templates for verification, invites, reminders, assignments
+8. **GDPR compliance** — Data export, account deletion, audit logging, ToS/privacy acceptance tracking
+9. **Security** — httpOnly JWT cookies, CSRF protection, rate limiting, Helmet headers, Zod validation
+10. **Monitoring** — Sentry error tracking, Pino structured logging, health check endpoint
+11. **Background jobs** — Task reminders, email queue processor, database backups, data retention
 
 ## Code Style
 
