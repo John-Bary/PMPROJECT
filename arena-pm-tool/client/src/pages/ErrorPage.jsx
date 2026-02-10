@@ -41,7 +41,7 @@ function ErrorPage({ statusCode, title, message, onRetry }) {
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <button
             onClick={handleHome}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-900 text-white font-medium shadow-sm hover:bg-neutral-800 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 text-white font-medium shadow-sm hover:bg-primary-700 transition-colors"
           >
             <Home size={18} />
             Go to dashboard

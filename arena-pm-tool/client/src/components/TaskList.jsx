@@ -279,7 +279,7 @@ function TaskList() {
     <>
       {/* Viewer Mode Banner */}
       {!userCanEdit && (
-        <div className="mb-4 px-4 py-3 border border-neutral-200 rounded-lg flex items-center gap-3 text-neutral-600">
+        <div className="mb-4 px-4 py-3 border border-[#E8EBF0] rounded-lg flex items-center gap-3 text-neutral-600">
           <Eye className="h-4 w-4 flex-shrink-0" />
           <p className="text-sm">View only — contact an admin for edit access.</p>
         </div>
@@ -302,7 +302,7 @@ function TaskList() {
           {/* Add Task Button - Always visible */}
           <button
             onClick={() => openCreateTask(getSuggestedCategoryId())}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white text-sm font-medium rounded-xl h-10 hover:bg-primary-700 hover:shadow-elevated active:scale-[0.98] transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
             title={!userCanEdit ? 'View-only access' : ''}
           >
@@ -323,7 +323,7 @@ function TaskList() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search tasks... (⌘K)"
-              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:bg-neutral-50 transition-all duration-150"
+              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm bg-white border border-[#E8EBF0] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 h-10 disabled:bg-neutral-50 transition-all duration-150"
               disabled={disableControls}
             />
             {searchInput && (
@@ -336,6 +336,7 @@ function TaskList() {
                 <X size={18} />
               </button>
             )}
+            {!searchInput && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-gray-100 rounded-md px-1.5 py-0.5 text-[11px] font-mono text-[#94A3B8]">⌘K</span>}
           </div>
 
           {/* Filter Dropdown */}

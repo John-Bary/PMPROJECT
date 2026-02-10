@@ -5,7 +5,7 @@ import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue } from '../utils/dateUtils';
-import { getPriorityColor } from '../utils/priorityStyles';
+import { getPriorityColor, priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
@@ -26,6 +26,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const dueDateObj = toLocalDate(task.dueDate);
   const dueDate = formatDueDate(task.dueDate);
   const isOverdue = checkIsOverdue(task.dueDate, task.status);
+
+  const avatarColors = ['bg-primary-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -205,9 +207,9 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {...provided.draggableProps}
           {...(canEdit ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-white border border-neutral-200 rounded-lg p-3 sm:p-4 hover:border-neutral-300 transition-all duration-200 cursor-pointer ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
-            isCompleted ? 'opacity-60' : ''
-          } ${snapshot.isDragging ? 'shadow-sm border-neutral-300 cursor-grabbing' : ''}`}
+          className={`bg-white border border-[#E8EBF0] rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
+            isCompleted ? 'opacity-50' : ''
+          } ${snapshot.isDragging ? 'shadow-elevated' : ''}`}
         >
           {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
           {canEdit && (
@@ -237,7 +239,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           onClick={handleToggleComplete}
           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
             isCompleted
-              ? 'bg-neutral-900 border-neutral-900'
+              ? 'bg-primary-600 border-primary-600'
               : 'border-neutral-300 hover:border-neutral-500'
           } ${isToggling || !canEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={isToggling || !canEdit}
@@ -259,7 +261,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
-            className="flex-1 pr-16 font-medium text-neutral-900 border-b-2 border-neutral-900 focus:outline-none bg-transparent"
+            className="flex-1 pr-16 font-medium text-neutral-900 border-b-2 border-primary-600 focus:outline-none bg-transparent"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -296,9 +298,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         <div className="relative" ref={priorityDropdownRef}>
           <button
             onClick={handlePriorityClick}
-            className={`px-2 py-0.5 sm:py-1 rounded text-xs font-medium border hover:opacity-80 transition flex items-center gap-1 ${getPriorityColor(
-              task.priority
-            )}`}
+            className={`px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium border hover:opacity-80 transition flex items-center gap-1 ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}
             title="Change priority"
           >
             {task.priority}
@@ -317,11 +317,11 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                       task.priority === priority ? 'bg-neutral-100' : ''
                     }`}
                   >
-                    <span className={`px-2 py-1 rounded border ${getPriorityColor(priority)}`}>
+                    <span className={`px-2 py-1 rounded-md border ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
                       {priority}
                     </span>
                     {task.priority === priority && (
-                      <Check size={14} className="text-neutral-900" />
+                      <Check size={14} className="text-primary-600" />
                     )}
                   </button>
                 ))}
@@ -372,7 +372,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                   {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
                     <div
                       key={assignee.id}
-                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-600 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]} flex items-center justify-center text-white text-xs font-medium border-2 border-white`}
                       style={{ zIndex: 3 - idx }}
                       title={assignee.name}
                     >

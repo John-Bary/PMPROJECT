@@ -1,7 +1,7 @@
 // Task State Management with Zustand
 import { create } from 'zustand';
 import { tasksAPI } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import useWorkspaceStore from './workspaceStore';
 import analytics, { EVENTS } from '../utils/analytics';
 

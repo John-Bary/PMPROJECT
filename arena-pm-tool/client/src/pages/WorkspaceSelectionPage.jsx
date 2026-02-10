@@ -58,21 +58,21 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
   };
 
   const getWorkspaceColor = () => {
-    return 'bg-neutral-900';
+    return 'bg-primary-600';
   };
 
   return (
     <div
       className={`relative group bg-white rounded-xl border-2 transition-all duration-200 cursor-pointer hover:shadow-lg ${
         isSelected
-          ? 'border-neutral-900 ring-2 ring-neutral-900/20 shadow-md'
+          ? 'border-primary-600 ring-2 ring-primary-600/20 shadow-md'
           : 'border-neutral-200 hover:border-neutral-300'
       }`}
       onClick={() => onSelect(workspace.id)}
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-neutral-900 rounded-full flex items-center justify-center shadow-md">
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-md">
           <Check className="w-4 h-4 text-white" />
         </div>
       )}
@@ -167,7 +167,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
             e.stopPropagation();
             onSelect(workspace.id);
           }}
-          className="w-full py-2 bg-neutral-900 hover:bg-neutral-800 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           <span>Open Workspace</span>
           <ChevronRight className="w-4 h-4" />
@@ -261,7 +261,7 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter workspace name"
               disabled={isLoading}
-              className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:opacity-50"
+              className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 disabled:opacity-50"
               autoFocus
             />
             <div className="flex gap-3 mt-6">
@@ -276,7 +276,7 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
               <button
                 type="submit"
                 disabled={isLoading || !name.trim() || name.trim() === workspace?.name}
-                className="flex-1 px-4 py-2.5 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {isLoading ? 'Saving...' : 'Save'}
@@ -388,7 +388,7 @@ function WorkspaceSelectionPage() {
           </p>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-xl transition-colors shadow-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors shadow-sm"
           >
             <Plus className="w-5 h-5" />
             Create Your First Workspace
@@ -479,7 +479,7 @@ function WorkspaceSelectionPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search workspaces..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
             />
           </div>
 
@@ -513,7 +513,7 @@ function WorkspaceSelectionPage() {
             {/* Create button */}
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-lg transition-colors shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-sm"
             >
               <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">New Workspace</span>
@@ -557,7 +557,7 @@ function WorkspaceSelectionPage() {
                   index !== filteredWorkspaces.length - 1 ? 'border-b border-neutral-100' : ''
                 } ${workspace.id === currentWorkspaceId ? 'bg-neutral-100' : ''}`}
               >
-                <div className={`w-12 h-12 rounded-lg bg-neutral-900 flex items-center justify-center text-white font-bold`}>
+                <div className={`w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold`}>
                   {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                 </div>
                 <div className="flex-1 min-w-0">

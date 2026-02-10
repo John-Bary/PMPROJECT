@@ -3,7 +3,7 @@ import { Lock, Download, Trash2, Loader2, AlertTriangle } from 'lucide-react';
 import { meAPI } from '../../utils/api';
 import useAuthStore from '../../store/authStore';
 import useWorkspaceStore from '../../store/workspaceStore';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const AccountTab = () => {
   const { logout } = useAuthStore();

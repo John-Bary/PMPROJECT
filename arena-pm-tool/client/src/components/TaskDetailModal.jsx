@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import useFocusTrap from '../hooks/useFocusTrap';
 import { format } from 'date-fns';
 import {
@@ -15,7 +16,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
 import CommentSection from './CommentSection';
 import { ButtonSpinner, InlineSpinner } from './Loader';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const priorityConfig = {
   urgent: { label: 'Urgent', color: 'text-neutral-900 font-medium', dot: 'bg-red-500' },
@@ -284,11 +285,19 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
       aria-labelledby="task-detail-title"
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/20 transition-opacity" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20" />
 
       {/* Modal Container */}
       <div className="flex min-h-full items-start justify-center p-4 pt-16 sm:pt-20">
-        <div
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
           ref={modalRef}
           className="relative bg-white rounded-xl shadow-md w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
@@ -303,7 +312,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
                   ${isCompleted
-                    ? 'bg-neutral-900 border-neutral-900'
+                    ? 'bg-primary-600 border-primary-600'
                     : 'border-neutral-300 hover:border-neutral-500'
                   }
                   ${isTogglingComplete ? 'opacity-60 cursor-not-allowed' : ''}
@@ -375,7 +384,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                         setIsEditingTitle(false);
                       }
                     }}
-                    className="w-full text-xl font-semibold text-neutral-900 border-b-2 border-neutral-900 focus:outline-none bg-transparent pb-1"
+                    className="w-full text-xl font-semibold text-neutral-900 border-b-2 border-primary-600 focus:outline-none bg-transparent pb-1"
                     placeholder="Task title"
                   />
                 ) : (
@@ -588,7 +597,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       ref={descriptionRef}
                       value={editedDescription}
                       onChange={(e) => setEditedDescription(e.target.value)}
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 resize-none"
                       rows={4}
                       placeholder="Add a description..."
                     />
@@ -596,7 +605,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       <button
                         onClick={handleSaveDescription}
                         disabled={isSaving}
-                        className="px-3 py-1.5 bg-neutral-900 text-white text-sm rounded-lg hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2"
+                        className="px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition disabled:opacity-50 flex items-center gap-2"
                       >
                         {isSaving && <ButtonSpinner />}
                         Save
@@ -661,7 +670,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Date Picker Portal */}

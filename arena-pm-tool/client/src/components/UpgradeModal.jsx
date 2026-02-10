@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Sparkles } from 'lucide-react';
 import useBillingStore from '../store/billingStore';
 import { ButtonSpinner } from './Loader';
@@ -36,7 +37,7 @@ const plans = [
     ],
     cta: 'Upgrade to Pro',
     popular: true,
-    className: 'border-neutral-900 ring-2 ring-neutral-100',
+    className: 'border-primary-600 ring-2 ring-primary-100',
   },
 ];
 
@@ -68,13 +69,21 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="upgrade-modal-title">
-      <div
-        className="fixed inset-0 bg-black/20 transition-opacity"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20"
         onClick={onClose}
       />
 
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-md w-full max-w-3xl max-h-[90vh] overflow-y-auto animate-scale-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="relative bg-white rounded-xl shadow-md w-full max-w-3xl max-h-[90vh] overflow-y-auto">
           <div className="p-6 sm:p-8">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
@@ -111,7 +120,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                   >
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                        <span className="bg-neutral-900 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                        <span className="bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                           Most Popular
                         </span>
                       </div>
@@ -119,7 +128,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2">
-                        {Icon && <Icon size={20} className="text-neutral-900" />}
+                        {Icon && <Icon size={20} className="text-primary-600" />}
                         <h3 className="text-lg font-semibold text-neutral-900">{plan.name}</h3>
                       </div>
                       <p className="text-sm text-neutral-500">{plan.description}</p>
@@ -133,7 +142,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                     <ul className="space-y-3 mb-6 flex-1">
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2 text-sm">
-                          <Check size={16} className="text-neutral-900 flex-shrink-0 mt-0.5" />
+                          <Check size={16} className="text-primary-600 flex-shrink-0 mt-0.5" />
                           <span className="text-neutral-700">{feature}</span>
                         </li>
                       ))}
@@ -162,7 +171,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                       <button
                         onClick={() => handleUpgrade(plan.id)}
                         disabled={isLoading}
-                        className="w-full py-2.5 rounded-lg font-medium text-sm bg-neutral-900 text-white hover:bg-neutral-800 transition-all disabled:opacity-50 flex items-center justify-center"
+                        className="w-full py-2.5 rounded-lg font-medium text-sm bg-primary-600 text-white hover:bg-primary-700 transition-all disabled:opacity-50 flex items-center justify-center"
                       >
                         {isLoading && <ButtonSpinner />}
                         {isLoading ? 'Redirecting...' : plan.cta}
@@ -191,7 +200,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
               All plans include SSL encryption and daily backups. Cancel anytime.
             </p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

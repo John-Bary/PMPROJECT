@@ -19,9 +19,9 @@ function EmptyState({
   };
 
   const toneClasses = {
-    default: 'bg-white border border-neutral-200 rounded-lg',
-    muted: 'bg-neutral-50 border border-neutral-200 rounded-lg',
-    ghost: 'bg-white/70 border border-neutral-200 rounded-lg',
+    default: 'bg-white border border-[#E8EBF0] rounded-xl',
+    muted: 'bg-[#F8F9FC] border border-[#E8EBF0] rounded-xl',
+    ghost: 'bg-white/70 border-2 border-dashed border-[#D1D5DB] rounded-xl',
   };
 
   const alignment = align === 'left' ? 'items-start text-left' : 'items-center text-center';
@@ -36,7 +36,7 @@ function EmptyState({
       } ${className}`}
     >
       {Icon && (
-        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-neutral-100 text-neutral-500">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-50 text-primary-500">
           <Icon size={20} />
         </div>
       )}
@@ -53,7 +53,7 @@ function EmptyState({
             <button
               type="button"
               onClick={primaryAction.onClick}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-1 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1 active:scale-[0.98]"
             >
               {PrimaryIcon && <PrimaryIcon size={16} />}
               <span>{primaryAction.label}</span>
@@ -64,7 +64,7 @@ function EmptyState({
             <button
               type="button"
               onClick={secondaryAction.onClick}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-1 active:scale-[0.98]"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-[#E8EBF0] text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1 active:scale-[0.98]"
             >
               {SecondaryIcon && <SecondaryIcon size={16} />}
               <span>{secondaryAction.label}</span>

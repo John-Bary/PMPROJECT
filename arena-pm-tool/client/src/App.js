@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react';
 import analytics from './utils/analytics';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from 'sonner';
 import ErrorBoundary from './components/ErrorBoundary';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import Login from './pages/Login';
@@ -34,43 +34,16 @@ function App() {
     analytics.init();
   }, []);
 
-  const toastOptions = {
-    duration: 3200,
-    style: {
-      background: '#0f172a',
-      color: '#e2e8f0',
-      border: '1px solid #1f2937',
-      boxShadow: '0 14px 44px rgba(0, 0, 0, 0.4)',
-      padding: '12px 14px',
-    },
-    success: {
-      duration: 3000,
-      iconTheme: {
-        primary: '#22c55e',
-        secondary: '#0f172a',
-      },
-      style: {
-        borderColor: '#16a34a',
-      },
-    },
-    error: {
-      duration: 4200,
-      iconTheme: {
-        primary: '#ef4444',
-        secondary: '#0f172a',
-      },
-      style: {
-        borderColor: '#b91c1c',
-      },
-    },
-  };
-
   return (
     <Router>
       <Toaster
         position="top-right"
-        gutter={12}
-        toastOptions={toastOptions}
+        richColors
+        toastOptions={{
+          classNames: {
+            toast: 'font-sans rounded-xl shadow-elevated',
+          },
+        }}
       />
 
       <ErrorBoundary>

@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { workspacesAPI, meAPI } from '../utils/api';
 import useAuthStore from '../store/authStore';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const STEPS = [
   { id: 'welcome', label: 'Welcome', icon: Sparkles },

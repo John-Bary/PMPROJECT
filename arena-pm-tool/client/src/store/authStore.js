@@ -1,7 +1,7 @@
 // Authentication State Management with Zustand
 import { create } from 'zustand';
 import { authAPI, meAPI, resetAuthInterceptorFlag } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import analytics, { EVENTS } from '../utils/analytics';
 
 // DATA-01: Only store minimal user fields in localStorage to reduce exposure

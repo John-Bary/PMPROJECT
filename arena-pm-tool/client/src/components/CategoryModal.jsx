@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import useCategoryStore from '../store/categoryStore';
 import { ButtonSpinner } from './Loader';
@@ -81,13 +82,21 @@ function CategoryModal({ isOpen, onClose, category = null }) {
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/20 transition-opacity"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20"
         onClick={handleClose}
-      ></div>
+      ></motion.div>
 
       <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
           <div className="p-4 sm:p-6">
             {/* Mobile drag handle indicator */}
             <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
@@ -118,7 +127,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2.5 sm:py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150 text-base sm:text-sm"
+                  className="w-full px-3 py-2.5 sm:py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 text-base sm:text-sm"
                   placeholder="e.g., Work, Personal, Shopping"
                   required
                   disabled={isSubmitting}
@@ -138,7 +147,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
                       onClick={() => setFormData({ ...formData, color: color.value })}
                       className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 ${
                         formData.color === color.value
-                          ? 'ring-2 ring-neutral-900 ring-offset-2'
+                          ? 'ring-2 ring-primary-600 ring-offset-2'
                           : 'hover:ring-2 hover:ring-neutral-300 hover:ring-offset-1'
                       }`}
                       style={{ backgroundColor: color.value }}
@@ -160,7 +169,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2.5 sm:py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
+                  className="flex-1 px-4 py-2.5 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
                   disabled={isSubmitting}
                 >
                   {isSubmitting && <ButtonSpinner />}
@@ -172,7 +181,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
               </div>
             </form>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -70,7 +70,7 @@ function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirm
                 className={`flex-1 px-4 py-2.5 sm:py-2 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98] ${
                   isDestructive
                     ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-neutral-900 hover:bg-neutral-800'
+                    : 'bg-primary-600 hover:bg-primary-700'
                 }`}
                 disabled={isLoading}
               >
@@ -133,7 +133,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
             value={member.role}
             onChange={(e) => handleRoleChange(e.target.value)}
             disabled={isChangingRole}
-            className="text-sm border border-neutral-200 rounded-lg px-3 py-1.5 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:opacity-50"
+            className="text-sm border border-neutral-200 rounded-lg px-3 py-1.5 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 disabled:opacity-50"
           >
             {ROLE_OPTIONS.map((role) => (
               <option key={role.value} value={role.value}>
@@ -305,7 +305,7 @@ function TeamSettings() {
         {isAdmin && (
           <button
             onClick={() => setIsInviteModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
           >
             <UserPlus className="h-4 w-4" />
             <span>Invite Member</span>

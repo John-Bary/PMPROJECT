@@ -117,7 +117,7 @@ function InviteLanding() {
                 <div>
                   <button
                     onClick={handleJoinWorkspace}
-                    className="w-full bg-neutral-900 text-white py-2.5 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
+                    className="w-full bg-primary-600 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
                   >
                     <span>Join {inviteData.workspaceName}</span>
                     <ArrowRight className="h-4 w-4" />
@@ -128,7 +128,7 @@ function InviteLanding() {
                 <div className="space-y-3">
                   <Link
                     to={`/login?invite=${encodeURIComponent(token)}`}
-                    className="w-full bg-neutral-900 text-white py-2.5 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
+                    className="w-full bg-primary-600 text-white py-2.5 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
                   >
                     <LogIn className="h-4 w-4" />
                     <span>I have an account — Sign In</span>
@@ -136,7 +136,7 @@ function InviteLanding() {
 
                   <Link
                     to={`/register?invite=${encodeURIComponent(token)}${inviteData.invitedEmail ? `&email=${encodeURIComponent(inviteData.invitedEmail)}` : ''}`}
-                    className="w-full bg-white text-neutral-900 py-2.5 px-4 rounded-lg border-2 border-neutral-900 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
+                    className="w-full bg-white text-neutral-900 py-2.5 px-4 rounded-lg border-2 border-primary-600 hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition font-medium flex items-center justify-center gap-2"
                   >
                     <UserPlus className="h-4 w-4" />
                     <span>I'm new here — Sign Up</span>
@@ -222,7 +222,7 @@ function InviteLanding() {
               </p>
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium rounded-lg transition"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="h-4 w-4" />

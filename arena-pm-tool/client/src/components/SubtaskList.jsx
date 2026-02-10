@@ -278,7 +278,7 @@ function SubtaskList({ taskId, categoryId }) {
             <span className="text-xs text-neutral-500">{completedCount}/{totalCount}</span>
             <div className="w-20 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-neutral-900 rounded-full transition-all duration-300"
+                className="h-full bg-primary-600 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -319,7 +319,7 @@ function SubtaskList({ taskId, categoryId }) {
                     flex-shrink-0 w-5 h-5 rounded border-2
                     flex items-center justify-center transition-all
                     ${subtask.status === 'completed'
-                      ? 'bg-neutral-900 border-neutral-900'
+                      ? 'bg-primary-600 border-primary-600'
                       : 'border-neutral-300 hover:border-neutral-500'
                     }
                     ${togglingIds.has(subtask.id) ? 'opacity-60 cursor-not-allowed' : ''}
@@ -341,7 +341,7 @@ function SubtaskList({ taskId, categoryId }) {
                     onChange={(e) => setEditingTitle(e.target.value)}
                     onBlur={handleSaveEdit}
                     onKeyDown={handleEditKeyDown}
-                    className="flex-1 text-sm bg-transparent border-b border-neutral-900 focus:outline-none"
+                    className="flex-1 text-sm bg-transparent border-b border-primary-600 focus:outline-none"
                   />
                 ) : (
                   <span
@@ -404,7 +404,7 @@ function SubtaskList({ taskId, categoryId }) {
                               {priority}
                             </span>
                             {subtask.priority === priority && (
-                              <Check size={12} className="text-neutral-900" />
+                              <Check size={12} className="text-primary-600" />
                             )}
                           </button>
                         ))}
@@ -519,7 +519,7 @@ function SubtaskList({ taskId, categoryId }) {
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Subtask title"
-              className="flex-1 text-sm bg-transparent border-b border-neutral-300 focus:border-neutral-900 focus:outline-none py-1"
+              className="flex-1 text-sm bg-transparent border-b border-neutral-300 focus:border-primary-600 focus:outline-none py-1"
               disabled={isCreating}
             />
           </div>
@@ -555,7 +555,7 @@ function SubtaskList({ taskId, categoryId }) {
                           {priority}
                         </span>
                         {newSubtaskPriority === priority && (
-                          <Check size={12} className="text-neutral-900" />
+                          <Check size={12} className="text-primary-600" />
                         )}
                       </button>
                     ))}
@@ -653,7 +653,7 @@ function SubtaskList({ taskId, categoryId }) {
             <button
               onClick={handleAddSubtask}
               disabled={!newSubtaskTitle.trim() || isCreating}
-              className="px-3 py-1.5 text-xs bg-neutral-900 text-white rounded hover:bg-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
             >
               {isCreating ? (
                 <>

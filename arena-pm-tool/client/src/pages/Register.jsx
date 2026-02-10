@@ -125,7 +125,7 @@ function Register() {
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
                   errors.name ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
+                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
                 placeholder="John Doe"
               />
               {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
@@ -143,7 +143,7 @@ function Register() {
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
                   errors.email ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
+                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
                 placeholder="your@email.com"
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
@@ -161,7 +161,7 @@ function Register() {
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
                   errors.password ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
+                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
                 placeholder="Must include uppercase, lowercase, and a digit"
               />
               {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
@@ -179,7 +179,7 @@ function Register() {
                 onChange={handleChange}
                 className={`w-full px-4 py-2 border ${
                   errors.confirmPassword ? 'border-red-500' : 'border-neutral-300'
-                } rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition`}
+                } rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition`}
                 placeholder="Re-enter your password"
               />
               {errors.confirmPassword && (
@@ -197,7 +197,7 @@ function Register() {
                     setAcceptedTerms(e.target.checked);
                     if (errors.terms) setErrors({ ...errors, terms: '' });
                   }}
-                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-900"
+                  className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600"
                 />
                 <span className="text-sm text-neutral-600">
                   I agree to the{' '}
@@ -216,7 +216,7 @@ function Register() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-neutral-900 text-white py-2 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+              className="w-full bg-primary-600 text-white py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
             >
               {isLoading && <ButtonSpinner />}
               {isLoading ? 'Creating account...' : 'Create Account'}
