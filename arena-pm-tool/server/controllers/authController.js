@@ -163,6 +163,54 @@ const register = async (req, res) => {
       [workspace.id, newUser.id, 'admin']
     );
 
+    // Seed default categories
+    const categoriesResult = await client.query(`
+      INSERT INTO categories (name, color, position, created_by, workspace_id)
+      VALUES
+        ('To Do', '#3B82F6', 0, $1, $2),
+        ('In Progress', '#F59E0B', 1, $1, $2),
+        ('Completed', '#10B981', 2, $1, $2)
+      RETURNING id, name
+    `, [newUser.id, workspace.id]);
+
+    const categoryMap = {};
+    for (const row of categoriesResult.rows) {
+      categoryMap[row.name] = row.id;
+    }
+
+    // Seed default tasks
+    const tasksResult = await client.query(`
+      INSERT INTO tasks (title, category_id, priority, status, position, completed_at, created_by, workspace_id)
+      VALUES
+        ('Invite your team members', $1, 'medium', 'todo', 0, NULL, $4, $5),
+        ('Customize your categories', $1, 'low', 'todo', 1, NULL, $4, $5),
+        ('Explore the board', $2, 'medium', 'in_progress', 0, NULL, $4, $5),
+        ('Create your first workspace', $3, 'low', 'completed', 0, CURRENT_TIMESTAMP, $4, $5)
+      RETURNING id, title
+    `, [categoryMap['To Do'], categoryMap['In Progress'], categoryMap['Completed'], newUser.id, workspace.id]);
+
+    const taskMap = {};
+    for (const row of tasksResult.rows) {
+      taskMap[row.title] = row.id;
+    }
+
+    // Seed subtasks
+    await client.query(`
+      INSERT INTO tasks (title, category_id, priority, status, position, parent_task_id, created_by, workspace_id)
+      VALUES
+        ('Go to Team Settings', $1, 'low', 'todo', 0, $3, $5, $6),
+        ('Send an invitation link', $1, 'low', 'todo', 1, $3, $5, $6),
+        ('Try dragging a task to another column', $2, 'low', 'in_progress', 0, $4, $5, $6),
+        ('Click a task to see its details', $2, 'low', 'in_progress', 1, $4, $5, $6)
+    `, [
+      categoryMap['To Do'],
+      categoryMap['In Progress'],
+      taskMap['Invite your team members'],
+      taskMap['Explore the board'],
+      newUser.id,
+      workspace.id
+    ]);
+
     await client.query('COMMIT');
 
     // Generate tokens
@@ -172,17 +220,19 @@ const register = async (req, res) => {
     // Set httpOnly cookies
     setAuthCookies(res, token, refreshToken);
 
-    // Send verification email (async, don't block response)
+    // Send verification email (awaited so Vercel doesn't kill it before completion)
     const clientUrl = (process.env.CLIENT_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || 'https://www.todoria.com').replace(/\/+$/, '');
     const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
 
-    sendVerificationEmail({
-      to: newUser.email,
-      userName: newUser.name,
-      verificationUrl
-    }).catch(err => {
+    try {
+      await sendVerificationEmail({
+        to: newUser.email,
+        userName: newUser.name,
+        verificationUrl
+      });
+    } catch (err) {
       logger.warn({ err, email: newUser.email }, 'Failed to send verification email');
-    });
+    }
 
     // Return user data (without password) - token still returned for backward compat
     res.status(201).json({
