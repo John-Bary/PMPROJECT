@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { X, Plus } from 'lucide-react';
 import useFocusTrap from '../hooks/useFocusTrap';
 import useTaskStore from '../store/taskStore';
@@ -262,14 +263,22 @@ const TaskModal = ({
   return (
     <div ref={focusTrapRef} className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/20 transition-opacity"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20"
         onClick={handleClose}
-      ></div>
+      ></motion.div>
 
       {/* Modal */}
       <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="relative bg-white sm:rounded-xl shadow-md w-full h-[100dvh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
           <div className="p-4 sm:p-6">
             {/* Mobile drag handle indicator */}
             <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
@@ -303,7 +312,7 @@ const TaskModal = ({
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150 ${
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 ${
                   errors.title ? 'border-red-500' : 'border-neutral-200'
                 }`}
                 placeholder="Enter task title"
@@ -325,7 +334,7 @@ const TaskModal = ({
                 value={formData.description}
                 onChange={handleChange}
                 rows="3"
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
                 placeholder="Enter task description (optional)"
                 disabled={isSubmitting}
               ></textarea>
@@ -342,7 +351,7 @@ const TaskModal = ({
                   name="categoryId"
                   value={formData.categoryId}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150 ${
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 ${
                     errors.categoryId ? 'border-red-500' : 'border-neutral-200'
                   }`}
                   disabled={isSubmitting}
@@ -370,7 +379,7 @@ const TaskModal = ({
                 name="priority"
                 value={formData.priority}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
                 disabled={isSubmitting}
               >
                 <option value="low">Low</option>
@@ -421,7 +430,7 @@ const TaskModal = ({
                 <select
                   onChange={handleAddAssignee}
                   value=""
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150 appearance-none"
+                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 appearance-none"
                   disabled={isSubmitting || availableUsers.length === 0}
                 >
                   <option value="">
@@ -452,7 +461,7 @@ const TaskModal = ({
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition-all duration-150"
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
                 disabled={isSubmitting}
               />
             </div>
@@ -476,7 +485,7 @@ const TaskModal = ({
               </button>
               <button
                 type="submit"
-                className="flex-1 px-4 py-2.5 sm:py-2 bg-neutral-900 text-white rounded-lg hover:bg-neutral-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
+                className="flex-1 px-4 py-2.5 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
                 disabled={isSubmitting}
               >
                 {isSubmitting && <ButtonSpinner />}
@@ -488,14 +497,23 @@ const TaskModal = ({
             </div>
           </form>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Unsaved Changes Warning */}
       {showUnsavedWarning && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-warning-title">
-          <div className="fixed inset-0 bg-black/20" onClick={handleKeepEditing}></div>
-          <div className="relative bg-white rounded-xl shadow-md max-w-sm w-full p-6 animate-scale-in">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20" onClick={handleKeepEditing}></motion.div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.2 }}
+            className="relative bg-white rounded-xl shadow-md max-w-sm w-full p-6">
             <h3 id="unsaved-warning-title" className="text-lg font-semibold text-neutral-900 mb-2">Unsaved Changes</h3>
             <p className="text-neutral-600 text-sm mb-6">
               You have unsaved changes. Are you sure you want to discard them?
@@ -514,7 +532,7 @@ const TaskModal = ({
                 Discard
               </button>
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

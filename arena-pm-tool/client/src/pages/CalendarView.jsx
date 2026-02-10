@@ -16,6 +16,7 @@ function CalendarView() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [draggedTask, setDraggedTask] = useState(null);
   const [dragOverDay, setDragOverDay] = useState(null);
+  const [mobileViewMode, setMobileViewMode] = useState('day'); // 'day', '3day', 'week'
   const [isDragging, setIsDragging] = useState(false);
 
   // Get calendar data
@@ -108,12 +109,33 @@ function CalendarView() {
     }
   };
 
+  // Get mobile header title
+  const getMobileHeaderTitle = () => {
+    if (mobileViewMode === 'day') {
+      const d = currentDate;
+      return `${dayNames[d.getDay()]}, ${monthNamesShort[d.getMonth()]} ${d.getDate()}`;
+    } else if (mobileViewMode === '3day') {
+      const endDate = new Date(currentDate);
+      endDate.setDate(endDate.getDate() + 2);
+      if (currentDate.getMonth() === endDate.getMonth()) {
+        return `${monthNamesShort[currentDate.getMonth()]} ${currentDate.getDate()} - ${endDate.getDate()}`;
+      }
+      return `${monthNamesShort[currentDate.getMonth()]} ${currentDate.getDate()} - ${monthNamesShort[endDate.getMonth()]} ${endDate.getDate()}`;
+    }
+    return getHeaderTitle();
+  };
+
   // Navigation functions - view-aware
   const goToPrevious = () => {
-    if (viewMode === 'month') {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      const days = mobileViewMode === 'day' ? 1 : mobileViewMode === '3day' ? 3 : 7;
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() - days);
+      setCurrentDate(newDate);
+    } else if (viewMode === 'month') {
       setCurrentDate(new Date(year, month - 1, 1));
     } else {
-      // Move back 7 days
       const newDate = new Date(currentDate);
       newDate.setDate(newDate.getDate() - 7);
       setCurrentDate(newDate);
@@ -121,10 +143,15 @@ function CalendarView() {
   };
 
   const goToNext = () => {
-    if (viewMode === 'month') {
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      const days = mobileViewMode === 'day' ? 1 : mobileViewMode === '3day' ? 3 : 7;
+      const newDate = new Date(currentDate);
+      newDate.setDate(newDate.getDate() + days);
+      setCurrentDate(newDate);
+    } else if (viewMode === 'month') {
       setCurrentDate(new Date(year, month + 1, 1));
     } else {
-      // Move forward 7 days
       const newDate = new Date(currentDate);
       newDate.setDate(newDate.getDate() + 7);
       setCurrentDate(newDate);
@@ -232,9 +259,15 @@ function CalendarView() {
     setIsModalOpen(true);
   };
 
-  // Get priority color - uniform monochrome
-  const getPriorityColor = () => {
-    return 'bg-neutral-50 text-neutral-700 border-neutral-200';
+  // Get priority color - priority-tinted
+  const getPriorityColor = (priority) => {
+    const colors = {
+      urgent: 'bg-red-50 text-red-700 border-red-200',
+      high: 'bg-orange-50 text-orange-700 border-orange-200',
+      medium: 'bg-amber-50 text-amber-700 border-amber-200',
+      low: 'bg-green-50 text-green-700 border-green-200',
+    };
+    return colors[priority] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   // Check if date is today
@@ -317,8 +350,8 @@ function CalendarView() {
     calendarDays.push(day);
   }
 
-  // Get all tasks for current month (for mobile list view)
-  // Must be before any early returns to comply with React hooks rules
+  // Get all tasks for current month (used by mobile month view - now removed, kept for potential future use)
+  // eslint-disable-next-line no-unused-vars
   const tasksInMonth = useMemo(() => {
     const monthTasks = [];
     for (let day = 1; day <= daysInMonth; day++) {
@@ -340,12 +373,13 @@ function CalendarView() {
       <div className="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 sm:gap-4">
           <h2 className="text-lg sm:text-2xl font-semibold text-neutral-900">
-            {getHeaderTitle()}
+            <span className="hidden md:inline">{getHeaderTitle()}</span>
+            <span className="md:hidden">{getMobileHeaderTitle()}</span>
           </h2>
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={goToPrevious}
-              className="p-1.5 sm:p-2 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
+              className="p-1.5 sm:p-2 hover:bg-[#F8F9FC] rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Previous month' : 'Previous week'}
               aria-label={viewMode === 'month' ? 'Previous month' : 'Previous week'}
             >
@@ -353,7 +387,7 @@ function CalendarView() {
             </button>
             <button
               onClick={goToNext}
-              className="p-1.5 sm:p-2 hover:bg-neutral-100 rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
+              className="p-1.5 sm:p-2 hover:bg-[#F8F9FC] rounded-lg transition-all duration-150 text-neutral-600 hover:text-neutral-900"
               title={viewMode === 'month' ? 'Next month' : 'Next week'}
               aria-label={viewMode === 'month' ? 'Next month' : 'Next week'}
             >
@@ -363,33 +397,67 @@ function CalendarView() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* View Mode Toggle */}
-          <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+          {/* Desktop View Mode Toggle */}
+          <div className="hidden md:flex bg-[#F1F3F6] rounded-full p-1 gap-1">
             <button
               onClick={() => setViewMode('week')}
-              className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 viewMode === 'week'
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-neutral-50'
+                  ? 'bg-white text-[#0F172A] font-medium shadow-sm rounded-full'
+                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
               }`}
             >
               Weeks
             </button>
             <button
               onClick={() => setViewMode('month')}
-              className={`px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 viewMode === 'month'
-                  ? 'bg-neutral-900 text-white'
-                  : 'bg-white text-neutral-700 hover:bg-neutral-50'
+                  ? 'bg-white text-[#0F172A] font-medium shadow-sm rounded-full'
+                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
               }`}
             >
               Month
             </button>
           </div>
 
+          {/* Mobile View Mode Toggle */}
+          <div className="flex md:hidden bg-[#F1F3F6] rounded-full p-1 gap-1">
+            <button
+              onClick={() => setMobileViewMode('day')}
+              className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
+                mobileViewMode === 'day'
+                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
+                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+              }`}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => setMobileViewMode('3day')}
+              className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
+                mobileViewMode === '3day'
+                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
+                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+              }`}
+            >
+              3 Day
+            </button>
+            <button
+              onClick={() => setMobileViewMode('week')}
+              className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
+                mobileViewMode === 'week'
+                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
+                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+              }`}
+            >
+              Week
+            </button>
+          </div>
+
           <button
             onClick={goToToday}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm border border-[#E8EBF0] text-neutral-700 rounded-lg hover:bg-[#F8F9FC] hover:border-neutral-300 transition-all duration-200"
           >
             Today
           </button>
@@ -398,13 +466,13 @@ function CalendarView() {
 
       {/* Desktop Calendar Grid - Month View */}
       {viewMode === 'month' && (
-      <div className="hidden md:flex flex-1 bg-white rounded-lg border border-neutral-200 overflow-hidden flex-col">
+      <div className="hidden md:flex flex-1 bg-white rounded-2xl border border-[#E8EBF0] shadow-card overflow-hidden flex-col">
         {/* Day names header */}
-        <div className="grid grid-cols-7 border-b border-neutral-200">
+        <div className="grid grid-cols-7 border-b border-[#F1F3F6]">
           {dayNames.map((day) => (
             <div
               key={day}
-              className="py-3 text-center text-sm font-semibold text-neutral-600 border-r border-neutral-200 last:border-r-0"
+              className="py-3 text-center text-[13px] uppercase tracking-wide font-medium text-[#94A3B8] border-r border-[#F1F3F6] last:border-r-0"
             >
               {day}
             </div>
@@ -419,10 +487,10 @@ function CalendarView() {
             return (
               <div
                 key={index}
-                className={`border-r border-b border-neutral-200 last:border-r-0 p-2 transition-all duration-150 ${
-                  day ? 'bg-white hover:bg-neutral-50' : 'bg-neutral-50'
+                className={`border-r border-b border-[#F1F3F6] last:border-r-0 p-2 transition-all duration-150 ${
+                  day ? 'bg-white hover:bg-[#FAFBFE]' : 'bg-neutral-50'
                 } ${holiday ? 'bg-red-50/70' : ''} ${isToday(day) ? 'bg-neutral-100/50' : ''} ${
-                  dragOverDay === day ? 'bg-neutral-100 border-2 border-neutral-400' : ''
+                  dragOverDay === day ? 'bg-primary-50 border-2 border-primary-400' : ''
                 }`}
                 onDragOver={day ? (e) => handleDragOver(e, day) : undefined}
                 onDragLeave={day ? handleDragLeave : undefined}
@@ -440,7 +508,7 @@ function CalendarView() {
                       <div
                         className={`text-sm font-medium ${
                           isToday(day)
-                            ? 'flex items-center justify-center w-7 h-7 bg-neutral-900 text-white rounded-full'
+                            ? 'flex items-center justify-center w-7 h-7 bg-primary-600 text-white rounded-full'
                             : 'text-neutral-900'
                         }`}
                       >
@@ -488,7 +556,7 @@ function CalendarView() {
                                 onDragStart={(e) => handleDragStart(e, task)}
                                 onDragEnd={handleDragEnd}
                                 onClick={() => handleTaskClick(task)}
-                                className={`text-xs px-2 py-1 rounded-md border truncate cursor-move hover:opacity-80 transition-all duration-150 ${getPriorityColor(task.priority)}`}
+                                className={`text-xs px-2 py-1 rounded-md border line-clamp-2 cursor-move hover:opacity-80 transition-all duration-150 ${getPriorityColor(task.priority)}`}
                                 title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
                               >
                                 {task.title}
@@ -514,26 +582,26 @@ function CalendarView() {
 
       {/* Desktop Week View Grid */}
       {viewMode === 'week' && (
-        <div className="hidden md:flex flex-1 bg-white rounded-lg border border-neutral-200 overflow-hidden flex-col">
+        <div className="hidden md:flex flex-1 bg-white rounded-2xl border border-[#E8EBF0] shadow-card overflow-hidden flex-col">
           {/* Day headers with dates */}
-          <div className="grid grid-cols-7 border-b border-neutral-200">
+          <div className="grid grid-cols-7 border-b border-[#F1F3F6]">
             {weekDays.map((day, index) => {
               const holiday = getHolidayByDate(day.dateKey);
 
               return (
                 <div
                   key={index}
-                  className={`py-3 text-center border-r border-neutral-200 last:border-r-0 ${
+                  className={`py-3 text-center border-r border-[#F1F3F6] last:border-r-0 ${
                     holiday ? 'bg-red-50/50' : ''
                   } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : ''}`}
                 >
-                  <div className="text-xs font-semibold text-neutral-500 uppercase">
+                  <div className="text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">
                     {dayNames[day.dayOfWeek]}
                   </div>
                   <div
                     className={`text-lg font-medium mt-1 ${
                       isTodayDate(day.date)
-                        ? 'flex items-center justify-center w-8 h-8 bg-neutral-900 text-white rounded-full mx-auto'
+                        ? 'flex items-center justify-center w-8 h-8 bg-primary-600 text-white rounded-full mx-auto'
                         : 'text-neutral-900'
                     }`}
                   >
@@ -557,10 +625,10 @@ function CalendarView() {
               return (
                 <div
                   key={index}
-                  className={`border-r border-neutral-200 last:border-r-0 flex flex-col ${
+                  className={`border-r border-[#F1F3F6] last:border-r-0 flex flex-col ${
                     holiday ? 'bg-red-50/70' : ''
                   } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : 'bg-white'} ${
-                    dragOverDay === day.dateKey ? 'bg-neutral-100 border-2 border-neutral-400' : ''
+                    dragOverDay === day.dateKey ? 'bg-primary-50 border-2 border-primary-400' : ''
                   }`}
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -591,7 +659,7 @@ function CalendarView() {
                       setSelectedTask(null);
                       setIsModalOpen(true);
                     }}
-                    className="w-full p-2 text-sm text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 transition-all duration-150 border-b border-neutral-100 flex items-center justify-center gap-1"
+                    className="w-full p-2 text-sm text-neutral-500 hover:text-neutral-700 hover:bg-[#F8F9FC] transition-all duration-150 border-b border-[#F1F3F6] flex items-center justify-center gap-1"
                   >
                     <Plus size={14} />
                     <span>Add task</span>
@@ -609,7 +677,7 @@ function CalendarView() {
                         className={`text-xs px-2 py-1.5 rounded-md border cursor-move hover:opacity-80 transition-all duration-150 ${getPriorityColor(task.priority)}`}
                         title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
                       >
-                        <div className="truncate">{task.title}</div>
+                        <div>{task.title}</div>
                       </div>
                     ))}
                   </div>
@@ -620,51 +688,202 @@ function CalendarView() {
         </div>
       )}
 
-      {/* Mobile Calendar View - Month */}
-      {viewMode === 'month' && (
+      {/* Mobile Calendar Views */}
       <div className="md:hidden flex-1 flex flex-col">
-        {/* Mini Calendar Grid */}
-        <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden mb-4">
-          {/* Day names header */}
-          <div className="grid grid-cols-7 border-b border-neutral-200">
-            {dayNamesShort.map((day, index) => (
-              <div
-                key={index}
-                className="py-2 text-center text-xs font-semibold text-neutral-500"
-              >
-                {day}
+        {/* Day View */}
+        {mobileViewMode === 'day' && (
+          <div className="flex-1 flex flex-col">
+            {/* Day header */}
+            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden mb-4">
+              <div className={`px-4 py-4 text-center ${isTodayDate(currentDate) ? 'bg-primary-50' : ''}`}>
+                <div className="text-xs uppercase tracking-wide font-medium text-neutral-500">
+                  {dayNames[currentDate.getDay()]}
+                </div>
+                <div className={`text-3xl font-semibold mt-1 ${
+                  isTodayDate(currentDate) ? 'text-primary-600' : 'text-neutral-900'
+                }`}>
+                  {currentDate.getDate()}
+                </div>
+                <div className="text-sm text-neutral-500 mt-0.5">
+                  {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                </div>
+                {(() => {
+                  const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+                  const dd = String(currentDate.getDate()).padStart(2, '0');
+                  const dateKey = `${currentDate.getFullYear()}-${mm}-${dd}`;
+                  const holiday = getHolidayByDate(dateKey);
+                  return holiday ? (
+                    <div className="text-xs text-red-600 font-medium mt-1">
+                      {holiday.localName || holiday.name}
+                    </div>
+                  ) : null;
+                })()}
               </div>
-            ))}
-          </div>
+            </div>
 
-          {/* Calendar days - compact */}
-          <div className="grid grid-cols-7">
-            {calendarDays.map((day, index) => {
-              const dayTasks = day ? getTasksForDay(day) : [];
-              const hasTask = dayTasks.length > 0;
-              const holiday = day ? getHolidayForDay(day) : null;
+            {/* Tasks for this day */}
+            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden flex-1">
+              <div className="px-4 py-3 border-b border-[#E8EBF0] bg-[#F8F9FC] flex items-center justify-between">
+                <h3 className="font-semibold text-neutral-900 text-sm">Tasks</h3>
+                <button
+                  onClick={() => {
+                    const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(currentDate.getDate()).padStart(2, '0');
+                    setSelectedDate(`${currentDate.getFullYear()}-${mm}-${dd}`);
+                    setSelectedTask(null);
+                    setIsModalOpen(true);
+                  }}
+                  className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+                >
+                  <Plus size={14} />
+                  <span>Add</span>
+                </button>
+              </div>
+              <div className="divide-y divide-neutral-100 max-h-[500px] overflow-y-auto">
+                {(() => {
+                  const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
+                  const dd = String(currentDate.getDate()).padStart(2, '0');
+                  const dateKey = `${currentDate.getFullYear()}-${mm}-${dd}`;
+                  const dayTasks = tasksByDate[dateKey] || [];
+
+                  if (dayTasks.length > 0) {
+                    return dayTasks.map((task) => (
+                      <button
+                        key={task.id}
+                        onClick={() => handleTaskClick(task)}
+                        className={`w-full text-left px-4 py-3 transition-all duration-150 hover:opacity-80 ${getPriorityColor(task.priority)}`}
+                      >
+                        <div className="font-medium text-sm">{task.title}</div>
+                        {task.description && (
+                          <div className="text-xs opacity-75 mt-1 line-clamp-2">{task.description}</div>
+                        )}
+                        {task.assigneeName && (
+                          <div className="text-xs opacity-75 mt-1">
+                            Assigned to {task.assigneeName}
+                          </div>
+                        )}
+                      </button>
+                    ));
+                  }
+                  return (
+                    <div className="px-4 py-8 text-center text-neutral-500">
+                      <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
+                      <p className="text-sm">No tasks for this day</p>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3-Day View */}
+        {mobileViewMode === '3day' && (
+          <div className="flex-1 flex flex-col gap-3">
+            {[0, 1, 2].map((offset) => {
+              const dayDate = new Date(currentDate);
+              dayDate.setDate(currentDate.getDate() + offset);
+              const mm = String(dayDate.getMonth() + 1).padStart(2, '0');
+              const dd = String(dayDate.getDate()).padStart(2, '0');
+              const dateKey = `${dayDate.getFullYear()}-${mm}-${dd}`;
+              const dayTasks = tasksByDate[dateKey] || [];
+              const holiday = getHolidayByDate(dateKey);
+              const isCurrentDay = isTodayDate(dayDate);
 
               return (
-                <button
-                  key={index}
-                  onClick={() => day && handleDayClick(day)}
-                  disabled={!day}
-                  className={`p-2 text-center relative transition-all duration-150 ${
-                    day ? 'hover:bg-neutral-50' : ''
-                  } ${holiday ? 'bg-red-50/70' : ''} ${isToday(day) ? 'bg-neutral-100/50' : ''}`}
-                >
-                  {day && (
-                    <>
+                <div key={dateKey} className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden">
+                  {/* Day header */}
+                  <div className={`px-4 py-2.5 border-b border-[#E8EBF0] flex items-center justify-between ${
+                    isCurrentDay ? 'bg-primary-50' : 'bg-[#F8F9FC]'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-semibold ${isCurrentDay ? 'text-primary-600' : 'text-neutral-900'}`}>
+                        {dayNames[dayDate.getDay()]}, {monthNamesShort[dayDate.getMonth()]} {dayDate.getDate()}
+                      </span>
+                      {isCurrentDay && (
+                        <span className="text-xs px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded-full">Today</span>
+                      )}
+                      {holiday && (
+                        <span className="text-xs text-red-600 font-medium">{holiday.localName || holiday.name}</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedDate(dateKey);
+                        setSelectedTask(null);
+                        setIsModalOpen(true);
+                      }}
+                      className="p-1 text-neutral-400 hover:text-primary-600"
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+
+                  {/* Tasks */}
+                  {dayTasks.length > 0 ? (
+                    <div className="divide-y divide-neutral-100">
+                      {dayTasks.map((task) => (
+                        <button
+                          key={task.id}
+                          onClick={() => handleTaskClick(task)}
+                          className={`w-full text-left px-4 py-2.5 text-sm transition-all duration-150 hover:opacity-80 ${getPriorityColor(task.priority)}`}
+                        >
+                          <div className="font-medium">{task.title}</div>
+                          {task.assigneeName && (
+                            <div className="text-xs opacity-75 mt-0.5">
+                              Assigned to {task.assigneeName}
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-4 py-4 text-center text-neutral-400 text-sm">
+                      No tasks
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Week View (mobile) */}
+        {mobileViewMode === 'week' && (
+          <>
+            {/* Compact week selector */}
+            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden mb-4">
+              <div className="grid grid-cols-7 border-b border-[#E8EBF0]">
+                {weekDays.map((day, index) => {
+                  const dayTasks = getTasksForDateKey(day.dateKey);
+                  const hasTask = dayTasks.length > 0;
+                  const holiday = getHolidayByDate(day.dateKey);
+
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        setSelectedDate(day.dateKey);
+                        setSelectedTask(null);
+                        setIsModalOpen(true);
+                      }}
+                      className={`p-2 text-center transition-all duration-150 ${
+                        holiday ? 'bg-red-50/70' : ''
+                      } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : ''}`}
+                    >
+                      <span className="text-xs text-neutral-500 block">
+                        {dayNamesShort[day.dayOfWeek]}
+                      </span>
                       <span
-                        className={`text-sm ${
-                          isToday(day)
-                            ? 'flex items-center justify-center w-6 h-6 bg-neutral-900 text-white rounded-full mx-auto'
+                        className={`text-sm font-medium block ${
+                          isTodayDate(day.date)
+                            ? 'flex items-center justify-center w-6 h-6 bg-primary-600 text-white rounded-full mx-auto'
                             : holiday
                             ? 'text-red-600'
                             : 'text-neutral-900'
                         }`}
                       >
-                        {day}
+                        {day.dayNumber}
                       </span>
                       {hasTask && (
                         <div className="flex justify-center mt-1 gap-0.5">
@@ -672,195 +891,84 @@ function CalendarView() {
                             <div
                               key={i}
                               className={`w-1.5 h-1.5 rounded-full ${
-                                task.priority === 'high' || task.priority === 'urgent'
-                                  ? 'bg-[#c2410c]'
-                                  : task.priority === 'medium'
-                                  ? 'bg-[#a16207]'
-                                  : 'bg-neutral-400'
+                                task.priority === 'urgent' ? 'bg-red-600'
+                                  : task.priority === 'high' ? 'bg-orange-600'
+                                  : task.priority === 'medium' ? 'bg-amber-500'
+                                  : 'bg-green-600'
                               }`}
                             />
                           ))}
                         </div>
                       )}
-                      {/* Holiday indicator for mobile */}
                       {holiday && !hasTask && (
                         <div className="w-1.5 h-1.5 rounded-full bg-red-400 mx-auto mt-1" />
                       )}
-                    </>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Tasks List for Month */}
-        <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden flex-1">
-          <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50">
-            <h3 className="font-semibold text-neutral-900 text-sm">Tasks this month</h3>
-          </div>
-          <div className="divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
-            {tasksInMonth.length > 0 ? (
-              tasksInMonth.map(({ day, tasks: dayTasks }) => (
-                <div key={day} className="px-4 py-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar size={14} className="text-neutral-400" />
-                    <span className={`text-sm font-medium ${isToday(day) ? 'text-neutral-900' : 'text-neutral-700'}`}>
-                      {monthNames[month]} {day}
-                      {isToday(day) && <span className="ml-1 text-xs">(Today)</span>}
-                    </span>
-                  </div>
-                  <div className="space-y-2 pl-5">
-                    {dayTasks.map((task) => (
-                      <button
-                        key={task.id}
-                        onClick={() => handleTaskClick(task)}
-                        className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all duration-150 hover:opacity-80 ${getPriorityColor(task.priority)}`}
-                      >
-                        <div className="font-medium truncate">{task.title}</div>
-                        {task.assigneeName && (
-                          <div className="text-xs opacity-75 mt-0.5">
-                            Assigned to {task.assigneeName}
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="px-4 py-8 text-center text-neutral-500">
-                <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
-                <p className="text-sm">No tasks scheduled this month</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      )}
-
-      {/* Mobile Week View */}
-      {viewMode === 'week' && (
-        <div className="md:hidden flex-1 flex flex-col">
-          {/* Compact week selector */}
-          <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden mb-4">
-            <div className="grid grid-cols-7 border-b border-neutral-200">
-              {weekDays.map((day, index) => {
-                const dayTasks = getTasksForDateKey(day.dateKey);
-                const hasTask = dayTasks.length > 0;
-                const holiday = getHolidayByDate(day.dateKey);
-
-                return (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setSelectedDate(day.dateKey);
-                      setSelectedTask(null);
-                      setIsModalOpen(true);
-                    }}
-                    className={`p-2 text-center transition-all duration-150 ${
-                      holiday ? 'bg-red-50/70' : ''
-                    } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : ''}`}
-                  >
-                    <span className="text-xs text-neutral-500 block">
-                      {dayNamesShort[day.dayOfWeek]}
-                    </span>
-                    <span
-                      className={`text-sm font-medium block ${
-                        isTodayDate(day.date)
-                          ? 'flex items-center justify-center w-6 h-6 bg-neutral-900 text-white rounded-full mx-auto'
-                          : holiday
-                          ? 'text-red-600'
-                          : 'text-neutral-900'
-                      }`}
-                    >
-                      {day.dayNumber}
-                    </span>
-                    {hasTask && (
-                      <div className="flex justify-center mt-1 gap-0.5">
-                        {dayTasks.slice(0, 3).map((task, i) => (
-                          <div
-                            key={i}
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              task.priority === 'high' || task.priority === 'urgent'
-                                ? 'bg-[#c2410c]'
-                                : task.priority === 'medium'
-                                ? 'bg-[#a16207]'
-                                : 'bg-neutral-400'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    )}
-                    {/* Holiday indicator for mobile */}
-                    {holiday && !hasTask && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-400 mx-auto mt-1" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Tasks List for Week */}
-          <div className="bg-white rounded-lg border border-neutral-200 overflow-hidden flex-1">
-            <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50">
-              <h3 className="font-semibold text-neutral-900 text-sm">Tasks this week</h3>
-            </div>
-            <div className="divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
-              {(() => {
-                const tasksInWeek = weekDays
-                  .map((day) => ({
-                    day,
-                    tasks: getTasksForDateKey(day.dateKey),
-                  }))
-                  .filter(({ tasks }) => tasks.length > 0);
-
-                if (tasksInWeek.length > 0) {
-                  return tasksInWeek.map(({ day, tasks: dayTasks }) => (
-                    <div key={day.dateKey} className="px-4 py-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Calendar size={14} className="text-neutral-400" />
-                        <span
-                          className={`text-sm font-medium ${
-                            isTodayDate(day.date) ? 'text-neutral-900' : 'text-neutral-700'
-                          }`}
-                        >
-                          {dayNames[day.dayOfWeek]}, {monthNamesShort[day.month]} {day.dayNumber}
-                          {isTodayDate(day.date) && <span className="ml-1 text-xs">(Today)</span>}
-                        </span>
-                      </div>
-                      <div className="space-y-2 pl-5">
-                        {dayTasks.map((task) => (
-                          <button
-                            key={task.id}
-                            onClick={() => handleTaskClick(task)}
-                            className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all duration-150 hover:opacity-80 ${getPriorityColor(task.priority)}`}
-                          >
-                            <div className="font-medium truncate">{task.title}</div>
-                            {task.assigneeName && (
-                              <div className="text-xs opacity-75 mt-0.5">
-                                Assigned to {task.assigneeName}
-                              </div>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ));
-                } else {
-                  return (
-                    <div className="px-4 py-8 text-center text-neutral-500">
-                      <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
-                      <p className="text-sm">No tasks scheduled this week</p>
-                    </div>
+                    </button>
                   );
-                }
-              })()}
+                })}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+
+            {/* Tasks List for Week */}
+            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden flex-1">
+              <div className="px-4 py-3 border-b border-[#E8EBF0] bg-[#F8F9FC]">
+                <h3 className="font-semibold text-neutral-900 text-sm">Tasks this week</h3>
+              </div>
+              <div className="divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
+                {(() => {
+                  const tasksInWeek = weekDays
+                    .map((day) => ({
+                      day,
+                      tasks: getTasksForDateKey(day.dateKey),
+                    }))
+                    .filter(({ tasks }) => tasks.length > 0);
+
+                  if (tasksInWeek.length > 0) {
+                    return tasksInWeek.map(({ day, tasks: dayTasks }) => (
+                      <div key={day.dateKey} className="px-4 py-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Calendar size={14} className="text-neutral-400" />
+                          <span
+                            className={`text-sm font-medium ${
+                              isTodayDate(day.date) ? 'text-neutral-900' : 'text-neutral-700'
+                            }`}
+                          >
+                            {dayNames[day.dayOfWeek]}, {monthNamesShort[day.month]} {day.dayNumber}
+                            {isTodayDate(day.date) && <span className="ml-1 text-xs">(Today)</span>}
+                          </span>
+                        </div>
+                        <div className="space-y-2 pl-5">
+                          {dayTasks.map((task) => (
+                            <button
+                              key={task.id}
+                              onClick={() => handleTaskClick(task)}
+                              className={`w-full text-left px-3 py-2 rounded-lg border text-sm transition-all duration-150 hover:opacity-80 ${getPriorityColor(task.priority)}`}
+                            >
+                              <div className="font-medium truncate">{task.title}</div>
+                              {task.assigneeName && (
+                                <div className="text-xs opacity-75 mt-0.5">
+                                  Assigned to {task.assigneeName}
+                                </div>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ));
+                  } else {
+                    return (
+                      <div className="px-4 py-8 text-center text-neutral-500">
+                        <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
+                        <p className="text-sm">No tasks scheduled this week</p>
+                      </div>
+                    );
+                  }
+                })()}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Task Modal */}
       <TaskModal

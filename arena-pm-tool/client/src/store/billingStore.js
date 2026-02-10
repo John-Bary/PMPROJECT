@@ -1,7 +1,7 @@
 // Billing State Management with Zustand
 import { create } from 'zustand';
 import { billingAPI } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import useWorkspaceStore from './workspaceStore';
 
 // Helper to get current workspace ID

@@ -1,7 +1,8 @@
 import { act } from 'react';
 import useTaskStore from '../taskStore';
+import useWorkspaceStore from '../workspaceStore';
 import { tasksAPI } from '../../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 // Mock the API module
 jest.mock('../../utils/api', () => ({
@@ -14,14 +15,18 @@ jest.mock('../../utils/api', () => ({
   },
 }));
 
-// Mock react-hot-toast
-jest.mock('react-hot-toast', () => ({
-  success: jest.fn(),
-  error: jest.fn(),
+// Mock sonner
+jest.mock('sonner', () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+  }),
 }));
 
 describe('Task Store', () => {
   beforeEach(() => {
+    // Set workspace ID so store operations don't bail early
+    useWorkspaceStore.setState({ currentWorkspaceId: 'test-workspace-id' });
     // Reset store to initial state
     useTaskStore.setState({
       tasks: [],

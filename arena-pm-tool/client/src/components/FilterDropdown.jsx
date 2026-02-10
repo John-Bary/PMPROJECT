@@ -98,14 +98,14 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
         disabled={disabled}
         className={`flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 text-sm border rounded-lg transition-all duration-200 ${
           activeFilterCount > 0
-            ? 'border-neutral-400 bg-neutral-100 text-neutral-900'
-            : 'border-neutral-200 text-neutral-700 hover:bg-neutral-50'
+            ? 'border-primary-300 bg-primary-50 text-primary-700'
+            : 'border-[#E8EBF0] text-neutral-700 hover:bg-[#F8F9FC]'
         } ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`}
       >
         <Filter size={18} className="sm:w-5 sm:h-5" />
         <span className="hidden sm:inline">Filters</span>
         {activeFilterCount > 0 && (
-          <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-neutral-900 rounded-full">
+          <span className="flex items-center justify-center w-5 h-5 text-xs font-semibold text-white bg-primary-600 rounded-full">
             {activeFilterCount}
           </span>
         )}
@@ -118,7 +118,7 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
             className="fixed inset-0 bg-black bg-opacity-25 z-40 sm:hidden"
             onClick={() => setIsOpen(false)}
           />
-          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 sm:translate-y-0 sm:absolute sm:inset-auto sm:top-full sm:right-0 sm:mt-2 w-auto sm:w-72 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 max-h-[80vh] overflow-y-auto animate-fade-in">
+          <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 sm:translate-y-0 sm:absolute sm:inset-auto sm:top-full sm:right-0 sm:mt-2 w-auto sm:w-72 bg-white border border-[#E8EBF0] rounded-xl shadow-elevated z-50 max-h-[80vh] overflow-y-auto animate-fade-in">
             <div className="p-4">
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
@@ -167,13 +167,13 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
                 {PRIORITY_OPTIONS.map((priority) => (
                   <label
                     key={priority}
-                    className="flex items-center gap-3 cursor-pointer hover:bg-neutral-100 p-2 rounded-lg active:bg-neutral-100 transition-all duration-150"
+                    className="flex items-center gap-3 cursor-pointer hover:bg-[#F8F9FC] p-2 rounded-lg active:bg-[#F8F9FC] transition-all duration-150"
                   >
                     <input
                       type="checkbox"
                       checked={filters.priorities.includes(priority)}
                       onChange={() => handleTogglePriority(priority)}
-                      className="w-5 h-5 sm:w-4 sm:h-4 text-neutral-900 border-neutral-300 rounded focus:ring-2 focus:ring-neutral-900/10"
+                      className="w-5 h-5 sm:w-4 sm:h-4 text-primary-600 border-neutral-300 rounded focus:ring-2 focus:ring-primary-500/20"
                     />
                     <span className="text-sm text-neutral-700">{priority}</span>
                   </label>
@@ -225,7 +225,7 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
             <div className="mt-4 sm:hidden">
               <button
                 onClick={() => setIsOpen(false)}
-                className="w-full py-2.5 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition-all duration-200"
+                className="w-full py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-all duration-200"
               >
                 Apply Filters
               </button>

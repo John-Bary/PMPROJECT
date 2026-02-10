@@ -70,7 +70,7 @@ function AssigneeListItem({
         hover:bg-neutral-50 active:bg-neutral-100
         transition-colors duration-150
         ${isSelected ? 'bg-neutral-100 hover:bg-neutral-200/70' : ''}
-        focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-inset
+        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-inset
       `}
     >
       {/* Checkbox/Radio visual indicator */}
@@ -91,7 +91,7 @@ function AssigneeListItem({
             transition-all duration-150
             ${variant === 'single' ? 'rounded-full' : 'rounded'}
             ${isSelected
-              ? 'bg-neutral-900 border-2 border-neutral-900'
+              ? 'bg-primary-600 border-2 border-primary-600'
               : 'border-2 border-neutral-300 bg-white'
             }
           `}

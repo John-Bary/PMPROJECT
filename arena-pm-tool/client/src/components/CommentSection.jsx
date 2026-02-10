@@ -4,7 +4,7 @@ import { Send, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import { commentsAPI } from '../utils/api';
 import { InlineSpinner } from './Loader';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 function CommentSection({ taskId }) {
   const { user } = useAuthStore();
@@ -164,7 +164,7 @@ function CommentSection({ taskId }) {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none text-sm"
+            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 resize-none text-sm"
             rows={2}
             disabled={isSubmitting}
           />
@@ -175,7 +175,7 @@ function CommentSection({ taskId }) {
             <button
               onClick={handleSubmitComment}
               disabled={!newComment.trim() || isSubmitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 text-white text-sm rounded-lg hover:bg-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -270,14 +270,14 @@ function CommentSection({ taskId }) {
                       ref={editTextareaRef}
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none text-sm"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 resize-none text-sm"
                       rows={2}
                     />
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={handleSaveEdit}
                         disabled={!editingContent.trim()}
-                        className="px-3 py-1 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition disabled:opacity-50"
+                        className="px-3 py-1 bg-primary-600 text-white text-xs rounded hover:bg-primary-700 transition disabled:opacity-50"
                       >
                         Save
                       </button>

@@ -18,7 +18,7 @@ import useBillingStore from '../store/billingStore';
 import PlanBadge from '../components/PlanBadge';
 import UpgradeModal from '../components/UpgradeModal';
 import { ButtonSpinner } from '../components/Loader';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
   const isUnlimited = !limit || limit === Infinity;
@@ -44,7 +44,7 @@ function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
         <div className="w-full bg-neutral-100 rounded-full h-2">
           <div
             className={`h-2 rounded-full transition-all ${
-              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-neutral-900`
+              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-primary-600`
             }`}
             style={{ width: `${percentage}%` }}
             role="progressbar"
@@ -214,7 +214,7 @@ function Billing() {
                 )}
                 <button
                   onClick={() => setIsUpgradeModalOpen(true)}
-                  className="px-6 py-2.5 bg-neutral-900 text-white font-medium rounded-lg hover:bg-neutral-800 transition-all shadow-sm text-sm"
+                  className="px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all shadow-sm text-sm"
                 >
                   {currentPlan === 'free' ? 'Upgrade Plan' : 'Change Plan'}
                 </button>

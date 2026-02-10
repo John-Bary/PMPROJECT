@@ -1,14 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import { Check, Calendar, ListTodo } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
+import { motion } from 'framer-motion';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue } from '../utils/dateUtils';
-import { priorityStyles, priorityDotColors } from '../utils/priorityStyles';
+import { priorityStyles, priorityDotColors, priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
+
+const avatarColors = ['bg-primary-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
 function TaskCard({
   task,
@@ -148,12 +151,13 @@ function TaskCard({
             {...provided.dragHandleProps}
             onClick={handleCardClick}
             className={`
-              bg-white rounded-lg border border-neutral-200
-              ${compact ? 'p-2' : 'p-3'}
-              hover:border-neutral-300
-              cursor-pointer transition-all duration-200
-              ${isCompleted ? 'opacity-60' : ''}
-              ${snapshot.isDragging ? 'shadow-sm border-neutral-300' : ''}
+              bg-white rounded-xl border border-[#E8EBF0] shadow-card
+              hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150
+              ${task.priority ? `border-l-[3px] ${priorityBorderColors[task.priority]}` : ''}
+              ${compact ? 'p-2' : 'p-4'}
+              cursor-pointer
+              ${isCompleted ? 'opacity-50' : ''}
+              ${snapshot.isDragging ? 'shadow-elevated border-[#E8EBF0]' : ''}
             `}
           >
             {/* Header: Checkbox + Title */}
@@ -161,10 +165,10 @@ function TaskCard({
               <button
                 onClick={handleToggleComplete}
                 className={`
-                  flex-shrink-0 w-5 h-5 rounded-full border-2
-                  flex items-center justify-center transition-all
+                  flex-shrink-0 w-5 h-5 rounded-md border-2
+                  flex items-center justify-center transition-all duration-150
                   ${isCompleted
-                    ? 'bg-neutral-900 border-neutral-900'
+                    ? 'bg-primary-600 border-primary-600'
                     : 'border-neutral-300 hover:border-neutral-500'
                   }
                   ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}
@@ -181,7 +185,7 @@ function TaskCard({
 
               <div className="flex-1 min-w-0">
                 <h4 className={`
-                  text-sm font-medium text-neutral-900 leading-tight
+                  text-sm font-medium text-[#0F172A] line-clamp-2 leading-tight
                   ${isCompleted ? 'line-through text-neutral-500' : ''}
                 `}>
                   {task.title}
@@ -201,9 +205,9 @@ function TaskCard({
               <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-neutral-500">
                 <ListTodo size={12} className="text-neutral-400" />
                 <span>{completedSubtasks}/{totalSubtasks}</span>
-                <div className="flex-1 h-1 bg-neutral-100 rounded-full overflow-hidden max-w-[60px]">
+                <div className="flex-1 h-0.5 bg-neutral-100 rounded-full overflow-hidden max-w-[60px]">
                   <div
-                    className="h-full bg-neutral-900 rounded-full transition-all"
+                    className="h-full bg-primary-500 rounded-full transition-all"
                     style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
                   />
                 </div>
@@ -217,9 +221,9 @@ function TaskCard({
                 <button
                   onClick={handlePriorityClick}
                   className={`
-                    px-1.5 py-0.5 rounded text-xs font-medium border
+                    px-2 py-0.5 rounded-md text-xs font-medium border
                     flex items-center gap-1 hover:opacity-80 transition
-                    ${priorityStyles[task.priority]}
+                    ${priorityPillStyles[task.priority]}
                   `}
                   title="Change priority"
                 >
@@ -260,7 +264,7 @@ function TaskCard({
                     flex items-center gap-1 px-1.5 py-0.5
                     rounded transition text-xs
                     ${isOverdue
-                      ? 'text-red-600 font-medium'
+                      ? 'text-red-500 font-medium'
                       : 'text-neutral-500 hover:bg-neutral-100'}
                   `}
                   title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
@@ -289,9 +293,9 @@ function TaskCard({
                       {(task.assignees || []).slice(0, 2).map((assignee, idx) => (
                         <div
                           key={assignee.id}
-                          className="w-6 h-6 rounded-full flex items-center justify-center
-                            text-white text-xs font-semibold border-2 border-white
-                            bg-neutral-600"
+                          className={`w-6 h-6 rounded-full flex items-center justify-center
+                            text-white text-[11px] font-semibold ring-1 ring-white
+                            ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]}`}
                           style={{ zIndex: 2 - idx }}
                           title={assignee.name}
                         >
@@ -300,7 +304,7 @@ function TaskCard({
                       ))}
                       {(task.assignees || []).length > 2 && (
                         <div
-                          className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold border-2 border-white"
+                          className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
                           title={`+${(task.assignees || []).length - 2} more`}
                         >
                           +{(task.assignees || []).length - 2}
@@ -309,7 +313,7 @@ function TaskCard({
                     </div>
                   ) : (
                     <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <span className="text-neutral-400 text-xs">?</span>
+                      <span className="text-neutral-400 text-[11px]">?</span>
                     </div>
                   )}
                 </button>

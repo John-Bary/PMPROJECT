@@ -90,7 +90,7 @@ function WorkspaceSwitcher({ className = '' }) {
         {isSwitching ? (
           <Loader2 size={16} className="w-6 h-6 animate-spin text-neutral-500" />
         ) : (
-          <div className="w-6 h-6 rounded bg-neutral-900 flex items-center justify-center text-xs font-medium text-white">
+          <div className="w-6 h-6 rounded bg-primary-600 flex items-center justify-center text-xs font-medium text-white">
             {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
           </div>
         )}
@@ -125,7 +125,7 @@ function WorkspaceSwitcher({ className = '' }) {
                              transition-colors text-left
                              ${workspace.id === currentWorkspace?.id ? 'bg-neutral-100' : ''}`}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-neutral-900 flex items-center justify-center
+                  <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center
                                  text-sm font-semibold text-white flex-shrink-0">
                     {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
@@ -139,7 +139,7 @@ function WorkspaceSwitcher({ className = '' }) {
                     </div>
                   </div>
                   {workspace.id === currentWorkspace?.id && (
-                    <Check className="w-5 h-5 text-neutral-900 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />
                   )}
                 </button>
               );

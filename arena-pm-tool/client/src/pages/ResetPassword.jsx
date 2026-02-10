@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { authAPI } from '../utils/api';
 import { ButtonSpinner } from '../components/Loader';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 function ResetPassword() {
   const [searchParams] = useSearchParams();
@@ -67,7 +67,7 @@ function ResetPassword() {
             </p>
             <Link
               to="/forgot-password"
-              className="inline-block bg-neutral-900 text-white py-2 px-6 rounded-lg hover:bg-neutral-800 transition font-medium"
+              className="inline-block bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 transition font-medium"
             >
               Request New Link
             </Link>
@@ -94,7 +94,7 @@ function ResetPassword() {
             </p>
             <button
               onClick={() => navigate('/login')}
-              className="inline-block bg-neutral-900 text-white py-2 px-6 rounded-lg hover:bg-neutral-800 transition font-medium"
+              className="inline-block bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 transition font-medium"
             >
               Sign In
             </button>
@@ -127,7 +127,7 @@ function ResetPassword() {
                 required
                 autoFocus
                 minLength={8}
-                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition text-base"
                 placeholder="Enter new password"
               />
               <p className="mt-1 text-xs text-neutral-500">
@@ -147,7 +147,7 @@ function ResetPassword() {
                 onChange={handleChange}
                 required
                 minLength={8}
-                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition text-base"
                 placeholder="Confirm new password"
               />
             </div>
@@ -155,7 +155,7 @@ function ResetPassword() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-neutral-900 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+              className="w-full bg-primary-600 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
             >
               {isLoading && <ButtonSpinner />}
               {isLoading ? 'Resetting...' : 'Reset Password'}

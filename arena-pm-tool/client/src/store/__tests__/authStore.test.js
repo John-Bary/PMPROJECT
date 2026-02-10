@@ -1,7 +1,14 @@
 import { act } from 'react';
 import useAuthStore from '../authStore';
 import { authAPI, meAPI } from '../../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
+
+// Mock analytics
+jest.mock('../../utils/analytics', () => ({
+  __esModule: true,
+  default: { identify: jest.fn(), track: jest.fn() },
+  EVENTS: { LOGIN: 'login', SIGNUP: 'signup', LOGOUT: 'logout' },
+}));
 
 // Mock the API module
 jest.mock('../../utils/api', () => ({
@@ -22,10 +29,12 @@ jest.mock('../../utils/api', () => ({
   resetAuthInterceptorFlag: jest.fn(),
 }));
 
-// Mock react-hot-toast
-jest.mock('react-hot-toast', () => ({
-  success: jest.fn(),
-  error: jest.fn(),
+// Mock sonner
+jest.mock('sonner', () => ({
+  toast: Object.assign(jest.fn(), {
+    success: jest.fn(),
+    error: jest.fn(),
+  }),
 }));
 
 // Mock localStorage
@@ -63,26 +72,27 @@ describe('Auth Store', () => {
       expect(useAuthStore.getState().isLoading).toBe(true);
     });
 
-    it('should store user and token in localStorage on success', async () => {
+    it('should store sanitized user in localStorage on success (no token — cookie auth)', async () => {
       const mockUser = { id: 1, name: 'Test User', email: 'test@test.com' };
-      const mockToken = 'test-token';
       authAPI.login.mockResolvedValue({
-        data: { data: { user: mockUser, token: mockToken } }
+        data: { data: { user: mockUser } }
       });
 
       await act(async () => {
         await useAuthStore.getState().login({ email: 'test@test.com', password: 'password' });
       });
 
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockUser));
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('token', mockToken);
+      // Store sanitizes user (strips email, adds role/avatarUrl/emailVerified)
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'user',
+        JSON.stringify({ id: 1, name: 'Test User', role: undefined, avatarUrl: undefined, emailVerified: undefined })
+      );
     });
 
     it('should update state correctly on success', async () => {
       const mockUser = { id: 1, name: 'Test User', email: 'test@test.com' };
-      const mockToken = 'test-token';
       authAPI.login.mockResolvedValue({
-        data: { data: { user: mockUser, token: mockToken } }
+        data: { data: { user: mockUser } }
       });
 
       await act(async () => {
@@ -91,7 +101,7 @@ describe('Auth Store', () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
-      expect(state.token).toBe(mockToken);
+      expect(state.token).toBeNull(); // Token managed via httpOnly cookies only
       expect(state.isAuthenticated).toBe(true);
       expect(state.isLoading).toBe(false);
       expect(state.error).toBeNull();
@@ -148,7 +158,7 @@ describe('Auth Store', () => {
       const state = useAuthStore.getState();
       expect(state.user).toEqual(mockUser);
       expect(state.isAuthenticated).toBe(true);
-      expect(toast.success).toHaveBeenCalledWith('Account created successfully!');
+      expect(toast.success).toHaveBeenCalledWith('Account created! Please check your email to verify.');
     });
 
     it('should handle registration error', async () => {
@@ -186,7 +196,7 @@ describe('Auth Store', () => {
       });
 
       expect(localStorageMock.removeItem).toHaveBeenCalledWith('user');
-      expect(localStorageMock.removeItem).toHaveBeenCalledWith('token');
+      // Token no longer stored in localStorage (cookie-only auth)
 
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
@@ -262,7 +272,11 @@ describe('Auth Store', () => {
 
       const state = useAuthStore.getState();
       expect(state.user).toEqual(updatedUser);
-      expect(localStorageMock.setItem).toHaveBeenCalledWith('user', JSON.stringify(updatedUser));
+      // localStorage stores sanitized user (strips email)
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'user',
+        JSON.stringify({ id: 1, name: 'Updated Name', role: undefined, avatarUrl: undefined, emailVerified: undefined })
+      );
       expect(toast.success).toHaveBeenCalledWith('Profile updated successfully');
     });
   });

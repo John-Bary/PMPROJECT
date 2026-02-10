@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { User, Settings, Bell, CheckSquare, ArrowLeft, Menu, X, Users, Shield, Activity } from 'lucide-react';
+import { useEffect } from 'react';
+import { Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { User, Settings, Bell, CheckSquare, ArrowLeft, Users, Shield, Activity } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import ProfileTab from './ProfileTab';
 import PreferencesTab from './PreferencesTab';
@@ -12,18 +12,10 @@ import TeamSettings from '../../components/TeamSettings';
 
 const UserArea = () => {
   const { user, fetchProfile } = useAuthStore();
-  const location = useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
   useEffect(() => {
     // Fetch full profile on mount to ensure we have all user data
     fetchProfile();
   }, [fetchProfile]);
-
-  // Close mobile menu when route changes
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
 
   const navItems = [
     { path: '/user/profile', label: 'Profile', icon: User },
@@ -32,7 +24,7 @@ const UserArea = () => {
     { path: '/user/tasks', label: 'My Tasks', icon: CheckSquare },
     { path: '/user/team', label: 'Team', icon: Users },
     { path: '/user/activity', label: 'Activity', icon: Activity },
-    { path: '/user/account', label: 'Account', icon: Shield },
+    { path: '/user/account', label: 'Billing & Account', icon: Shield },
   ];
 
   const getInitials = (firstName, lastName, name) => {
@@ -52,30 +44,25 @@ const UserArea = () => {
   const apiBaseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-[#F8F9FC]">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-neutral-800 bg-neutral-900/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-[#E8EBF0] bg-white/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Back to Dashboard */}
             <NavLink
               to="/dashboard"
-              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900 transition-colors"
             >
               <ArrowLeft className="h-5 w-5" />
               <span className="hidden sm:inline">Back to Dashboard</span>
             </NavLink>
 
             {/* Title */}
-            <h1 className="text-lg font-semibold text-white">Settings</h1>
+            <h1 className="text-lg font-semibold text-neutral-900">Settings</h1>
 
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-neutral-400 hover:text-white"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
+            {/* Spacer for mobile */}
+            <div className="lg:hidden w-9" />
 
             {/* User info (desktop) */}
             <div className="hidden lg:flex items-center gap-3">
@@ -86,11 +73,11 @@ const UserArea = () => {
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (
-                <div className="h-8 w-8 rounded-full bg-neutral-600 flex items-center justify-center text-white text-sm font-medium">
+                <div className="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
                   {getInitials(user?.firstName, user?.lastName, user?.name)}
                 </div>
               )}
-              <span className="text-sm text-neutral-300">
+              <span className="text-sm text-neutral-700">
                 {user?.firstName && user?.lastName
                   ? `${user.firstName} ${user.lastName}`
                   : user?.name}
@@ -100,29 +87,27 @@ const UserArea = () => {
         </div>
       </header>
 
-      {/* Mobile Navigation Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-30 bg-neutral-950/80 backdrop-blur-sm">
-          <nav className="absolute top-16 left-0 right-0 bg-neutral-900 border-b border-neutral-800 p-4 space-y-2">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-neutral-800 text-white'
-                      : 'text-neutral-400 hover:bg-neutral-800 hover:text-white'
-                  }`
-                }
-              >
-                <item.icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </NavLink>
-            ))}
-          </nav>
+      {/* Mobile Horizontal Tab Bar */}
+      <div className="lg:hidden sticky top-16 z-30 bg-white border-b border-[#E8EBF0]">
+        <div className="flex overflow-x-auto scrollbar-hide px-4 gap-1 py-2">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors flex-shrink-0 ${
+                  isActive
+                    ? 'bg-primary-50 text-primary-600'
+                    : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700'
+                }`
+              }
+            >
+              <item.icon className="h-4 w-4" />
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
         </div>
-      )}
+      </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex gap-8">
@@ -136,8 +121,8 @@ const UserArea = () => {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-neutral-800 text-white border border-neutral-700'
-                        : 'text-neutral-400 hover:bg-neutral-800/50 hover:text-white border border-transparent'
+                        ? 'bg-primary-50 text-primary-600 border border-primary-200'
+                        : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border border-transparent'
                     }`
                   }
                 >

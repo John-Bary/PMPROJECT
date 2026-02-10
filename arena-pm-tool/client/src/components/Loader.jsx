@@ -9,7 +9,7 @@ function Spinner({ size = 'md', className = '' }) {
 
   return (
     <div
-      className={`animate-spin rounded-full border-neutral-900 border-t-transparent ${sizeClasses[size]} ${className}`}
+      className={`animate-spin rounded-full border-primary-600 border-t-transparent ${sizeClasses[size]} ${className}`}
     ></div>
   );
 }
@@ -26,24 +26,24 @@ export function PageLoader() {
 // Skeleton loader for task items
 export function TaskSkeleton() {
   return (
-    <div className="bg-white rounded-lg p-4 border border-neutral-200 animate-pulse">
+    <div className="bg-white rounded-xl p-4 border border-[#E8EBF0] animate-pulse">
       <div className="flex items-start gap-3">
         {/* Checkbox skeleton */}
-        <div className="w-5 h-5 bg-neutral-200 rounded mt-1"></div>
+        <div className="w-5 h-5 bg-gray-100 rounded-md mt-1"></div>
 
         <div className="flex-1 space-y-3">
           {/* Title skeleton */}
-          <div className="h-5 bg-neutral-200 rounded w-3/4"></div>
+          <div className="h-5 bg-gray-100 rounded-lg w-3/4"></div>
 
           {/* Description skeleton */}
-          <div className="h-4 bg-neutral-200 rounded w-full"></div>
-          <div className="h-4 bg-neutral-200 rounded w-2/3"></div>
+          <div className="h-4 bg-gray-100 rounded-lg w-full"></div>
+          <div className="h-4 bg-gray-100 rounded-lg w-2/3"></div>
 
           {/* Meta info skeleton */}
           <div className="flex items-center gap-4 mt-3">
-            <div className="h-6 bg-neutral-200 rounded w-20"></div>
-            <div className="h-6 bg-neutral-200 rounded w-24"></div>
-            <div className="h-6 bg-neutral-200 rounded w-16"></div>
+            <div className="h-6 bg-gray-100 rounded-lg w-20"></div>
+            <div className="h-6 bg-gray-100 rounded-lg w-24"></div>
+            <div className="h-6 bg-gray-100 rounded-lg w-16"></div>
           </div>
         </div>
       </div>
@@ -67,9 +67,9 @@ export function TaskColumnSkeleton({ items = 3 }) {
     <div className="flex-shrink-0 w-80">
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-neutral-200"></div>
-          <div className="h-4 w-24 bg-neutral-200 rounded"></div>
-          <div className="h-4 w-8 bg-neutral-200 rounded"></div>
+          <div className="w-2 h-2 rounded-full bg-gray-100"></div>
+          <div className="h-4 w-24 bg-gray-100 rounded-lg"></div>
+          <div className="h-4 w-8 bg-gray-100 rounded-lg"></div>
         </div>
       </div>
       <div className="space-y-3">
@@ -86,26 +86,26 @@ export function TaskRowSkeleton() {
   return (
     <tr className="animate-pulse">
       <td className="px-4 py-3">
-        <div className="h-4 w-4 bg-neutral-200 rounded"></div>
+        <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-40 bg-neutral-200 rounded"></div>
-        <div className="h-3 w-28 bg-neutral-200 rounded mt-2"></div>
+        <div className="h-4 w-40 bg-gray-100 rounded-lg"></div>
+        <div className="h-3 w-28 bg-gray-100 rounded-lg mt-2"></div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-5 w-20 bg-neutral-200 rounded-full"></div>
+        <div className="h-5 w-20 bg-gray-100 rounded-full"></div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-5 w-24 bg-neutral-200 rounded-full"></div>
+        <div className="h-5 w-24 bg-gray-100 rounded-full"></div>
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-16 bg-neutral-200 rounded"></div>
+        <div className="h-4 w-16 bg-gray-100 rounded-lg"></div>
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex justify-end gap-2">
-          <div className="h-4 w-4 bg-neutral-200 rounded"></div>
-          <div className="h-4 w-4 bg-neutral-200 rounded"></div>
-          <div className="h-4 w-4 bg-neutral-200 rounded"></div>
+          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
+          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
+          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
         </div>
       </td>
     </tr>

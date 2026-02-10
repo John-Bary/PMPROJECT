@@ -334,14 +334,14 @@ function LandingPage() {
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition"
+                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition"
               />
               <input
                 type="email"
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 transition"
+                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition"
               />
               <button
                 type="submit"
@@ -532,7 +532,7 @@ function LandingPage() {
                       className="flex items-center gap-3 bg-white rounded-lg border border-neutral-200 px-3 py-2.5 shadow-xs"
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        task.status === 'completed' ? 'border-neutral-900 bg-neutral-900' : 'border-neutral-300'
+                        task.status === 'completed' ? 'border-primary-600 bg-primary-600' : 'border-neutral-300'
                       }`}>
                         {task.status === 'completed' && <Check size={10} className="text-white" />}
                       </div>
@@ -665,12 +665,12 @@ function LandingPage() {
                   key={plan.id}
                   className={`relative flex flex-col rounded-xl border-2 p-6 sm:p-8 bg-white ${
                     cardAnim(pricingInView, i).className
-                  } ${plan.highlighted ? 'border-neutral-900 ring-2 ring-neutral-100' : 'border-neutral-200'}`}
+                  } ${plan.highlighted ? 'border-primary-600 ring-2 ring-primary-100' : 'border-neutral-200'}`}
                   style={cardAnim(pricingInView, i).style}
                 >
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-neutral-900 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                      <span className="bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
                         {plan.badge}
                       </span>
                     </div>
@@ -678,7 +678,7 @@ function LandingPage() {
 
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
-                      {PlanIcon && <PlanIcon size={18} className="text-neutral-900" />}
+                      {PlanIcon && <PlanIcon size={18} className="text-primary-600" />}
                       <h3 className="text-lg font-semibold text-neutral-900">{plan.name}</h3>
                     </div>
                     <p className="text-sm text-neutral-500">{plan.description}</p>
@@ -692,7 +692,7 @@ function LandingPage() {
                   <ul className="space-y-3 mb-8 flex-1">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2.5 text-sm">
-                        <Check size={16} className="text-neutral-900 flex-shrink-0 mt-0.5" />
+                        <Check size={16} className="text-primary-600 flex-shrink-0 mt-0.5" />
                         <span className="text-neutral-700">{feature}</span>
                       </li>
                     ))}
@@ -702,7 +702,7 @@ function LandingPage() {
                     to="/register"
                     className={`w-full py-3 rounded-lg font-medium text-sm text-center transition-all block ${
                       plan.highlighted
-                        ? 'bg-neutral-900 text-white hover:bg-neutral-800'
+                        ? 'bg-primary-600 text-white hover:bg-primary-700'
                         : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
                     }`}
                   >

@@ -2,7 +2,7 @@
 // Uses Express API backend for workspace operations
 import { create } from 'zustand';
 import { workspacesAPI } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const WORKSPACE_STORAGE_KEY = 'arena_current_workspace_id';
 

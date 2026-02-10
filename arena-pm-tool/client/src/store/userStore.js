@@ -1,7 +1,7 @@
 // User State Management with Zustand
 import { create } from 'zustand';
 import { workspacesAPI } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 
 const useUserStore = create((set, get) => ({
   users: [],

@@ -55,24 +55,24 @@ const NotificationsTab = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-white">Notifications</h2>
-        <p className="mt-1 text-sm text-neutral-400">
+        <h2 className="text-2xl font-semibold text-neutral-900">Notifications</h2>
+        <p className="mt-1 text-sm text-neutral-500">
           Manage how and when you receive email notifications.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Email Notifications Toggle */}
-        <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
+        <div className="bg-white border border-[#E8EBF0] rounded-xl p-6">
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-neutral-700/20 rounded-lg">
-              <Mail className="h-6 w-6 text-neutral-300" />
+            <div className="p-3 bg-neutral-50 rounded-lg">
+              <Mail className="h-6 w-6 text-neutral-700" />
             </div>
             <div className="flex-1">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-white">Email Notifications</h3>
-                  <p className="mt-1 text-sm text-neutral-400">
+                  <h3 className="text-lg font-medium text-neutral-900">Email Notifications</h3>
+                  <p className="mt-1 text-sm text-neutral-500">
                     Receive email reminders about upcoming task due dates.
                   </p>
                 </div>
@@ -81,8 +81,8 @@ const NotificationsTab = () => {
                 <button
                   type="button"
                   onClick={handleToggle}
-                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 focus:ring-offset-neutral-900 ${
-                    formData.emailNotificationsEnabled ? 'bg-neutral-600' : 'bg-neutral-700'
+                  className={`relative inline-flex h-7 w-12 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 ${
+                    formData.emailNotificationsEnabled ? 'bg-primary-600' : 'bg-neutral-200'
                   }`}
                   role="switch"
                   aria-checked={formData.emailNotificationsEnabled}
@@ -101,17 +101,17 @@ const NotificationsTab = () => {
 
         {/* Digest Mode Selection */}
         <div
-          className={`bg-neutral-900 border border-neutral-800 rounded-xl p-6 transition-opacity ${
+          className={`bg-white border border-[#E8EBF0] rounded-xl p-6 transition-opacity ${
             formData.emailNotificationsEnabled ? 'opacity-100' : 'opacity-50 pointer-events-none'
           }`}
         >
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-neutral-700/20 rounded-lg">
-              <Bell className="h-6 w-6 text-neutral-300" />
+            <div className="p-3 bg-neutral-50 rounded-lg">
+              <Bell className="h-6 w-6 text-neutral-700" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-medium text-white">Notification Frequency</h3>
-              <p className="mt-1 text-sm text-neutral-400 mb-4">
+              <h3 className="text-lg font-medium text-neutral-900">Notification Frequency</h3>
+              <p className="mt-1 text-sm text-neutral-500 mb-4">
                 Choose how often you want to receive task reminder emails.
               </p>
 
@@ -120,8 +120,8 @@ const NotificationsTab = () => {
                 <label
                   className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                     formData.emailDigestMode === 'immediate'
-                      ? 'border-neutral-500 bg-neutral-700/10'
-                      : 'border-neutral-700 hover:border-neutral-600'
+                      ? 'border-primary-300 bg-primary-50'
+                      : 'border-[#E8EBF0] hover:border-neutral-300'
                   }`}
                 >
                   <input
@@ -130,11 +130,11 @@ const NotificationsTab = () => {
                     value="immediate"
                     checked={formData.emailDigestMode === 'immediate'}
                     onChange={() => handleDigestModeChange('immediate')}
-                    className="mt-1 h-4 w-4 text-neutral-400 border-neutral-600 focus:ring-neutral-500 focus:ring-offset-neutral-900"
+                    className="mt-1 h-4 w-4 text-primary-600 border-neutral-300 focus:ring-primary-500/20"
                   />
                   <div>
-                    <span className="text-white font-medium">Immediate</span>
-                    <p className="text-sm text-neutral-400 mt-0.5">
+                    <span className="text-neutral-900 font-medium">Immediate</span>
+                    <p className="text-sm text-neutral-500 mt-0.5">
                       Receive individual email reminders for each task as it approaches its due date.
                     </p>
                   </div>
@@ -144,8 +144,8 @@ const NotificationsTab = () => {
                 <label
                   className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                     formData.emailDigestMode === 'daily_digest'
-                      ? 'border-neutral-500 bg-neutral-700/10'
-                      : 'border-neutral-700 hover:border-neutral-600'
+                      ? 'border-primary-300 bg-primary-50'
+                      : 'border-[#E8EBF0] hover:border-neutral-300'
                   }`}
                 >
                   <input
@@ -154,11 +154,11 @@ const NotificationsTab = () => {
                     value="daily_digest"
                     checked={formData.emailDigestMode === 'daily_digest'}
                     onChange={() => handleDigestModeChange('daily_digest')}
-                    className="mt-1 h-4 w-4 text-neutral-400 border-neutral-600 focus:ring-neutral-500 focus:ring-offset-neutral-900"
+                    className="mt-1 h-4 w-4 text-primary-600 border-neutral-300 focus:ring-primary-500/20"
                   />
                   <div>
-                    <span className="text-white font-medium">Daily Digest</span>
-                    <p className="text-sm text-neutral-400 mt-0.5">
+                    <span className="text-neutral-900 font-medium">Daily Digest</span>
+                    <p className="text-sm text-neutral-500 mt-0.5">
                       Receive a single daily email summarizing all your upcoming tasks.
                     </p>
                   </div>
@@ -169,8 +169,8 @@ const NotificationsTab = () => {
         </div>
 
         {/* Info Box */}
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
-          <p className="text-sm text-neutral-400">
+        <div className="bg-neutral-50 border border-[#E8EBF0] rounded-xl p-4">
+          <p className="text-sm text-neutral-500">
             Email reminders are sent for tasks due within the next 2 days. The reminder schedule runs daily at 9:00 AM.
           </p>
         </div>
@@ -180,7 +180,7 @@ const NotificationsTab = () => {
           <button
             type="submit"
             disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

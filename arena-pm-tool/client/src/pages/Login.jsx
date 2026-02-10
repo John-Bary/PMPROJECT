@@ -71,7 +71,7 @@ function Login() {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition text-base"
                 placeholder="enter your email address"
               />
             </div>
@@ -87,7 +87,7 @@ function Login() {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 outline-none transition text-base"
+                className="w-full px-4 py-2.5 sm:py-2 border border-neutral-300 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 outline-none transition text-base"
                 placeholder="Enter your password"
               />
             </div>
@@ -104,7 +104,7 @@ function Login() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-neutral-900 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
+              className="w-full bg-primary-600 text-white py-2.5 sm:py-2 px-4 rounded-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-2 transition disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center"
             >
               {isLoading && <ButtonSpinner />}
               {isLoading ? 'Signing in...' : 'Sign In'}

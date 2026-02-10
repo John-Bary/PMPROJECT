@@ -22,6 +22,7 @@ jest.mock('../store/userStore');
 jest.mock('../utils/api', () => ({
   tasksAPI: {
     getAll: jest.fn(),
+    getSubtasks: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -106,10 +107,10 @@ beforeEach(() => {
     fetchUsers: jest.fn(),
   });
 
-  tasksAPI.getAll.mockResolvedValue({
+  tasksAPI.getSubtasks.mockResolvedValue({
     data: {
       data: {
-        tasks: mockSubtasks,
+        subtasks: mockSubtasks,
       },
     },
   });
@@ -319,10 +320,10 @@ describe('SubtaskList', () => {
   });
 
   test('renders empty state when no subtasks', async () => {
-    tasksAPI.getAll.mockResolvedValue({
+    tasksAPI.getSubtasks.mockResolvedValue({
       data: {
         data: {
-          tasks: [],
+          subtasks: [],
         },
       },
     });

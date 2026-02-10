@@ -47,19 +47,19 @@ const ActivityTab = () => {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-white">Recent Activity</h2>
-        <p className="text-neutral-400 mt-1">Activity feed for your current workspace.</p>
+        <h2 className="text-2xl font-bold text-neutral-900">Recent Activity</h2>
+        <p className="text-neutral-500 mt-1">Activity feed for your current workspace.</p>
       </div>
 
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-6">
+      <div className="rounded-xl border border-[#E8EBF0] bg-white p-6">
         {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 size={24} className="animate-spin text-neutral-500" />
           </div>
         ) : !currentWorkspaceId ? (
-          <p className="text-sm text-neutral-500 text-center py-8">No workspace selected.</p>
+          <p className="text-sm text-neutral-400 text-center py-8">No workspace selected.</p>
         ) : activities.length === 0 ? (
-          <p className="text-sm text-neutral-500 text-center py-8">No activity yet.</p>
+          <p className="text-sm text-neutral-400 text-center py-8">No activity yet.</p>
         ) : (
           <ul className="space-y-4">
             {activities.map((activity) => {
@@ -69,17 +69,17 @@ const ActivityTab = () => {
 
               return (
                 <li key={activity.id} className="flex items-start gap-3 text-sm">
-                  <div className="w-7 h-7 rounded-full bg-neutral-700/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-medium text-neutral-300">
+                  <div className="w-7 h-7 rounded-full bg-neutral-50 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs font-medium text-neutral-700">
                       {userName.charAt(0).toUpperCase()}
                     </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-neutral-300">
-                      <span className="font-medium text-white">{userName}</span>{' '}
+                    <p className="text-neutral-600">
+                      <span className="font-medium text-neutral-900">{userName}</span>{' '}
                       {formatAction(activity)}
                     </p>
-                    <p className="text-xs text-neutral-500 mt-0.5">
+                    <p className="text-xs text-neutral-400 mt-0.5">
                       {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                     </p>
                   </div>

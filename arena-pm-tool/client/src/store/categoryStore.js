@@ -1,7 +1,7 @@
 // Category State Management with Zustand
 import { create } from 'zustand';
 import { categoriesAPI } from '../utils/api';
-import toast from 'react-hot-toast';
+import { toast } from 'sonner';
 import useWorkspaceStore from './workspaceStore';
 
 // Helper to get current workspace ID

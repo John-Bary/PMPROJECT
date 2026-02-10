@@ -79,8 +79,8 @@ const ProfileTab = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-white">Profile</h2>
-        <p className="mt-1 text-sm text-neutral-400">
+        <h2 className="text-2xl font-semibold text-neutral-900">Profile</h2>
+        <p className="mt-1 text-sm text-neutral-500">
           Manage your personal information.
         </p>
       </div>
@@ -88,13 +88,13 @@ const ProfileTab = () => {
       {/* Avatar Section - hidden for MVP */}
 
       {/* Name Form */}
-      <form onSubmit={handleSubmit} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-        <h3 className="text-lg font-medium text-white mb-4">Personal Information</h3>
+      <form onSubmit={handleSubmit} className="bg-white border border-[#E8EBF0] rounded-xl p-6">
+        <h3 className="text-lg font-medium text-neutral-900 mb-4">Personal Information</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* First Name */}
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-neutral-300 mb-2">
+            <label htmlFor="firstName" className="block text-sm font-medium text-neutral-700 mb-2">
               First Name
             </label>
             <input
@@ -103,8 +103,8 @@ const ProfileTab = () => {
               name="firstName"
               value={formData.firstName}
               onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors ${
-                errors.firstName ? 'border-red-500' : 'border-neutral-700'
+              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
+                errors.firstName ? 'border-red-500' : 'border-[#E8EBF0]'
               }`}
               placeholder="Enter your first name"
             />
@@ -115,7 +115,7 @@ const ProfileTab = () => {
 
           {/* Last Name */}
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-neutral-300 mb-2">
+            <label htmlFor="lastName" className="block text-sm font-medium text-neutral-700 mb-2">
               Last Name
             </label>
             <input
@@ -124,8 +124,8 @@ const ProfileTab = () => {
               name="lastName"
               value={formData.lastName}
               onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors ${
-                errors.lastName ? 'border-red-500' : 'border-neutral-700'
+              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
+                errors.lastName ? 'border-red-500' : 'border-[#E8EBF0]'
               }`}
               placeholder="Enter your last name"
             />
@@ -137,7 +137,7 @@ const ProfileTab = () => {
 
         {/* Email (read-only) */}
         <div className="mt-6">
-          <label htmlFor="email" className="block text-sm font-medium text-neutral-300 mb-2">
+          <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
             Email Address
           </label>
           <input
@@ -145,9 +145,9 @@ const ProfileTab = () => {
             id="email"
             value={user?.email || ''}
             disabled
-            className="w-full px-4 py-2.5 bg-neutral-800/50 border border-neutral-700 rounded-lg text-neutral-400 cursor-not-allowed"
+            className="w-full px-4 py-2.5 bg-neutral-50 border border-[#E8EBF0] rounded-lg text-neutral-500 cursor-not-allowed"
           />
-          <p className="mt-1 text-sm text-neutral-500">
+          <p className="mt-1 text-sm text-neutral-400">
             Email cannot be changed.
           </p>
         </div>
@@ -157,7 +157,7 @@ const ProfileTab = () => {
           <button
             type="submit"
             disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <>

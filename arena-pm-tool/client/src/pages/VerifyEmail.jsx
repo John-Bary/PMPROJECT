@@ -62,7 +62,7 @@ function VerifyEmail() {
               ) : (
                 <Link
                   to="/login"
-                  className="inline-block bg-neutral-900 text-white py-2 px-6 rounded-lg hover:bg-neutral-800 transition font-medium"
+                  className="inline-block bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 transition font-medium"
                 >
                   Go to Login
                 </Link>
@@ -81,7 +81,7 @@ function VerifyEmail() {
               </p>
               <Link
                 to="/login"
-                className="inline-block bg-neutral-900 text-white py-2 px-6 rounded-lg hover:bg-neutral-800 transition font-medium"
+                className="inline-block bg-primary-600 text-white py-2 px-6 rounded-lg hover:bg-primary-700 transition font-medium"
               >
                 Go to Login
               </Link>

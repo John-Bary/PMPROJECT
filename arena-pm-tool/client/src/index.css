@@ -11,8 +11,8 @@
   }
 
   body {
-    @apply bg-neutral-50 text-neutral-700;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    @apply bg-[#F8F9FC] text-[#0F172A];
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
       'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', sans-serif;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     margin: 0;
@@ -20,12 +20,12 @@
 
   /* Focus visible - accessible focus rings */
   *:focus-visible {
-    @apply outline-none ring-2 ring-neutral-900/15 ring-offset-2;
+    @apply outline-none ring-2 ring-primary-500/20 ring-offset-2;
   }
 
   /* Selection styling */
   ::selection {
-    @apply bg-neutral-200 text-neutral-900;
+    @apply bg-primary-100 text-[#0F172A];
   }
 
   code {
@@ -38,19 +38,19 @@
   /* Primary button */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2;
-    @apply bg-neutral-900 text-white font-medium;
+    @apply bg-primary-600 text-white font-medium;
     @apply rounded-lg;
     @apply transition-all duration-200;
-    @apply hover:bg-neutral-800;
+    @apply hover:bg-primary-700;
     @apply active:scale-[0.98];
-    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-neutral-900;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-600;
   }
 
   /* Secondary button */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2;
     @apply bg-white text-neutral-700 font-medium;
-    @apply border border-neutral-200 rounded-lg;
+    @apply border border-[#E8EBF0] rounded-lg;
     @apply transition-all duration-200;
     @apply hover:bg-neutral-50 hover:border-neutral-300;
     @apply active:scale-[0.98];
@@ -80,15 +80,15 @@
   .input {
     @apply w-full px-3 py-2;
     @apply bg-white text-neutral-900 placeholder:text-neutral-400;
-    @apply border border-neutral-200 rounded-lg;
+    @apply border border-[#E8EBF0] rounded-lg;
     @apply transition-all duration-150;
-    @apply focus:outline-none focus:border-neutral-400 focus:ring-2 focus:ring-neutral-900/10;
+    @apply focus:outline-none focus:border-primary-300 focus:ring-2 focus:ring-primary-500/20;
     @apply disabled:bg-neutral-50 disabled:text-neutral-500;
   }
 
   /* Card */
   .card {
-    @apply bg-white rounded-lg border border-neutral-200;
+    @apply bg-white rounded-xl border border-[#E8EBF0];
     @apply transition-all duration-200;
   }
 
@@ -104,7 +104,7 @@
   }
 
   .checkbox-checked {
-    @apply bg-neutral-900 border-neutral-900;
+    @apply bg-primary-600 border-primary-600;
   }
 
   /* Modal backdrop */
@@ -115,13 +115,13 @@
 
   /* Modal container */
   .modal {
-    @apply bg-white rounded-xl shadow-md;
+    @apply bg-white rounded-2xl shadow-modal;
     @apply animate-scale-in;
   }
 
   /* Dropdown */
   .dropdown {
-    @apply bg-white rounded-lg border border-neutral-200 shadow-sm;
+    @apply bg-white rounded-xl border border-[#E8EBF0] shadow-elevated;
     @apply animate-fade-in;
   }
 
@@ -163,6 +163,34 @@
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Custom scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: #D1D5DB transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: #D1D5DB;
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: #9CA3AF;
+  }
+
+  .scrollbar-hover::-webkit-scrollbar-thumb {
+    background-color: transparent;
+  }
+  .scrollbar-hover:hover::-webkit-scrollbar-thumb,
+  .scrollbar-hover:active::-webkit-scrollbar-thumb {
+    background-color: #D1D5DB;
   }
 
   /* Line clamp helpers */

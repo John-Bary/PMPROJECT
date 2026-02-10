@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { X, Loader2, Briefcase } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
@@ -57,14 +58,22 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/20 transition-opacity"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/20"
         onClick={handleClose}
       />
 
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-md w-full max-w-md border border-neutral-200 animate-scale-in">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 0.2 }}
+          className="relative bg-white rounded-xl shadow-md w-full max-w-md border border-neutral-200">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
             <div className="flex items-center gap-3">
@@ -97,7 +106,7 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
                 disabled={isLoading}
                 className="w-full px-4 py-2.5 bg-white border border-neutral-300 rounded-lg
                          text-neutral-900 placeholder-neutral-400
-                         focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400
+                         focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300
                          disabled:opacity-50 disabled:cursor-not-allowed"
                 autoFocus
               />
@@ -128,8 +137,8 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
               <button
                 type="submit"
                 disabled={isLoading || !name.trim()}
-                className="flex-1 px-4 py-2.5 bg-neutral-900 text-white rounded-lg
-                         hover:bg-neutral-800 transition-colors
+                className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg
+                         hover:bg-primary-700 transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed
                          flex items-center justify-center gap-2"
               >
@@ -138,7 +147,7 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
               </button>
             </div>
           </form>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
