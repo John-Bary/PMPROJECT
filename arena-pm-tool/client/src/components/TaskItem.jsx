@@ -10,7 +10,7 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
 
-function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true }) {
+function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false }) {
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -198,18 +198,15 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
     onOpenDetail?.(task);
   };
 
-  return (
-    <>
-    <Draggable draggableId={task.id.toString()} index={index} isDragDisabled={!canEdit}>
-      {(provided, snapshot) => (
+  const cardBody = (provided, snapshot) => (
         <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...(canEdit ? provided.dragHandleProps : {})}
+          ref={provided?.innerRef}
+          {...(provided?.draggableProps || {})}
+          {...(canEdit && provided?.dragHandleProps ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-white border border-[#E8EBF0] rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
+          className={`bg-white border border-[#E8EBF0] rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-50' : ''
-          } ${snapshot.isDragging ? 'shadow-elevated' : ''}`}
+          } ${snapshot?.isDragging ? 'shadow-elevated' : ''}`}
         >
           {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
           {canEdit && (
@@ -415,8 +412,17 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         </div>
       </div>
       </div>
-      )}
-    </Draggable>
+  );
+
+  return (
+    <>
+    {noDrag ? (
+      cardBody(null, null)
+    ) : (
+      <Draggable draggableId={task.id.toString()} index={index} isDragDisabled={!canEdit}>
+        {(provided, snapshot) => cardBody(provided, snapshot)}
+      </Draggable>
+    )}
     {showDatePicker && (
       <DatePicker
         selected={dueDateObj}
