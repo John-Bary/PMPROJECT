@@ -6,6 +6,7 @@ import {
   Sparkles, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import useInView from '../hooks/useInView';
+import { Button } from 'components/ui/button';
 
 function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -274,12 +275,11 @@ function LandingPage() {
             >
               Sign In
             </Link>
-            <Link
-              to="/register"
-              className="btn-primary text-sm px-5 py-2"
-            >
-              Get Started
-            </Link>
+            <Button asChild size="sm">
+              <Link to="/register">
+                Get Started
+              </Link>
+            </Button>
           </div>
 
           {/* Mobile menu button */}
@@ -309,9 +309,11 @@ function LandingPage() {
             <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 py-1">
               Sign In
             </Link>
-            <Link to="/register" onClick={() => setMobileMenuOpen(false)} className="btn-primary text-sm px-5 py-2 text-center">
-              Get Started
-            </Link>
+            <Button asChild size="sm" className="w-full">
+              <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                Get Started
+              </Link>
+            </Button>
           </div>
         )}
       </nav>
@@ -343,12 +345,9 @@ function LandingPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition"
               />
-              <button
-                type="submit"
-                className="btn-primary w-full text-sm py-3"
-              >
+              <Button type="submit" className="w-full">
                 Start for Free
-              </button>
+              </Button>
             </form>
             <p className="mt-3 text-xs text-neutral-400">
               Free forever for small teams. No credit card required.
@@ -779,18 +778,16 @@ function LandingPage() {
             Join teams who manage projects without the chaos. Free forever for small teams.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              to="/register"
-              className="btn-primary text-base px-8 py-3"
-            >
-              Start Managing Projects for Free
-            </Link>
-            <a
-              href="#pricing"
-              className="btn-secondary text-base px-6 py-3"
-            >
-              See Pricing
-            </a>
+            <Button asChild size="lg">
+              <Link to="/register">
+                Start Managing Projects for Free
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <a href="#pricing">
+                See Pricing
+              </a>
+            </Button>
           </div>
           <p className="mt-4 text-sm text-neutral-400">
             No credit card required. Cancel anytime.

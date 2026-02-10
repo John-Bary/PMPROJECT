@@ -11,6 +11,9 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns';
+import { Button } from 'components/ui/button';
+import { Badge } from 'components/ui/badge';
+import { Card, CardContent } from 'components/ui/card';
 import { meAPI } from '../../utils/api';
 
 const MyTasksTab = () => {
@@ -83,7 +86,7 @@ const MyTasksTab = () => {
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityVariant = (priority) => {
     switch (priority) {
       case 'urgent':
         return 'bg-red-50 text-red-700 border-red-200';
@@ -125,132 +128,128 @@ const MyTasksTab = () => {
               { value: 'open', label: 'Open' },
               { value: 'completed', label: 'Completed' },
             ].map((option) => (
-              <button
+              <Button
                 key={option.value}
+                variant={statusFilter === option.value ? 'default' : 'ghost'}
+                size="sm"
                 onClick={() => setStatusFilter(option.value)}
-                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                  statusFilter === option.value
-                    ? 'bg-primary-600 text-white'
-                    : 'text-neutral-500 hover:text-neutral-900'
-                }`}
+                className={statusFilter === option.value ? '' : 'text-neutral-500 hover:text-neutral-900'}
               >
                 {option.label}
-              </button>
+              </Button>
             ))}
           </div>
         </div>
 
         {/* Sort by Due Date */}
-        <button
-          onClick={toggleSortOrder}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-[#E8EBF0] text-neutral-700 hover:bg-neutral-50 rounded-lg transition-colors"
-        >
+        <Button variant="outline" onClick={toggleSortOrder}>
           <ArrowUpDown className="h-4 w-4" />
           <span className="text-sm">
             Due Date: {sortOrder === 'asc' ? 'Earliest First' : 'Latest First'}
           </span>
-        </button>
+        </Button>
       </div>
 
       {/* Task List */}
-      <div className="bg-white border border-[#E8EBF0] rounded-xl overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center py-12 text-red-400">
-            <AlertCircle className="h-5 w-5 mr-2" />
-            <span>{error}</span>
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
-            <CheckCircle2 className="h-12 w-12 mb-4 text-neutral-300" />
-            <p className="text-lg font-medium text-neutral-700">No tasks assigned to you</p>
-            <p className="text-sm mt-1">
-              {statusFilter === 'completed'
-                ? 'You have no completed tasks.'
-                : statusFilter === 'open'
-                ? 'You have no open tasks.'
-                : 'Tasks assigned to you will appear here.'}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-200">
-            {tasks.map((task) => {
-              const dueInfo = formatDueDate(task.dueDate);
+      <Card>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-12 text-red-400">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
+              <CheckCircle2 className="h-12 w-12 mb-4 text-neutral-300" />
+              <p className="text-lg font-medium text-neutral-700">No tasks assigned to you</p>
+              <p className="text-sm mt-1">
+                {statusFilter === 'completed'
+                  ? 'You have no completed tasks.'
+                  : statusFilter === 'open'
+                  ? 'You have no open tasks.'
+                  : 'Tasks assigned to you will appear here.'}
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-200">
+              {tasks.map((task) => {
+                const dueInfo = formatDueDate(task.dueDate);
 
-              return (
-                <div
-                  key={task.id}
-                  onClick={() => handleTaskClick(task.id)}
-                  className="flex items-center gap-4 px-4 py-4 hover:bg-neutral-50 cursor-pointer transition-colors group"
-                >
-                  {/* Status Icon */}
-                  <div className="flex-shrink-0">{getStatusIcon(task.status)}</div>
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => handleTaskClick(task.id)}
+                    className="flex items-center gap-4 px-4 py-4 hover:bg-neutral-50 cursor-pointer transition-colors group"
+                  >
+                    {/* Status Icon */}
+                    <div className="flex-shrink-0">{getStatusIcon(task.status)}</div>
 
-                  {/* Task Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3">
-                      <h4
-                        className={`font-medium truncate ${
-                          task.status === 'completed'
-                            ? 'text-neutral-400 line-through'
-                            : 'text-neutral-900'
-                        }`}
-                      >
-                        {task.title}
-                      </h4>
-
-                      {/* Priority Badge */}
-                      <span
-                        className={`flex-shrink-0 px-2 py-0.5 text-xs font-medium rounded border capitalize ${getPriorityColor(
-                          task.priority
-                        )}`}
-                      >
-                        {task.priority}
-                      </span>
-                    </div>
-
-                    {/* Meta Info */}
-                    <div className="flex items-center gap-4 mt-1">
-                      {/* Category */}
-                      {task.categoryName && (
-                        <span className="flex items-center gap-1.5 text-sm text-neutral-500">
-                          <span
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: task.categoryColor || '#6b7280' }}
-                          />
-                          {task.categoryName}
-                        </span>
-                      )}
-
-                      {/* Due Date */}
-                      {dueInfo && (
-                        <span
-                          className={`flex items-center gap-1.5 text-sm ${
-                            dueInfo.isOverdue
-                              ? 'text-red-400'
-                              : dueInfo.isUrgent
-                              ? 'text-yellow-400'
-                              : 'text-neutral-500'
+                    {/* Task Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3">
+                        <h4
+                          className={`font-medium truncate ${
+                            task.status === 'completed'
+                              ? 'text-neutral-400 line-through'
+                              : 'text-neutral-900'
                           }`}
                         >
-                          <Calendar className="h-3.5 w-3.5" />
-                          {dueInfo.text}
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                          {task.title}
+                        </h4>
 
-                  {/* Go to task icon */}
-                  <ExternalLink className="h-4 w-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                        {/* Priority Badge */}
+                        <Badge
+                          variant="outline"
+                          className={`flex-shrink-0 capitalize ${getPriorityVariant(task.priority)}`}
+                        >
+                          {task.priority}
+                        </Badge>
+                      </div>
+
+                      {/* Meta Info */}
+                      <div className="flex items-center gap-4 mt-1">
+                        {/* Category */}
+                        {task.categoryName && (
+                          <span className="flex items-center gap-1.5 text-sm text-neutral-500">
+                            <span
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: task.categoryColor || '#6b7280' }}
+                            />
+                            {task.categoryName}
+                          </span>
+                        )}
+
+                        {/* Due Date */}
+                        {dueInfo && (
+                          <span
+                            className={`flex items-center gap-1.5 text-sm ${
+                              dueInfo.isOverdue
+                                ? 'text-red-400'
+                                : dueInfo.isUrgent
+                                ? 'text-yellow-400'
+                                : 'text-neutral-500'
+                            }`}
+                          >
+                            <Calendar className="h-3.5 w-3.5" />
+                            {dueInfo.text}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Go to task icon */}
+                    <ExternalLink className="h-4 w-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Task Count */}
       {!isLoading && !error && tasks.length > 0 && (

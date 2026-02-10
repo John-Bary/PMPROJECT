@@ -1,12 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { X, Plus } from 'lucide-react';
-import useFocusTrap from '../hooks/useFocusTrap';
+import { X, Plus, Loader2 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import useUserStore from '../store/userStore';
 import useWorkspaceStore from '../store/workspaceStore';
-import { ButtonSpinner } from './Loader';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from 'components/ui/dialog';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from 'components/ui/alert-dialog';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Textarea } from 'components/ui/textarea';
+import { Label } from 'components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
 
 const TaskModal = ({
   isOpen,
@@ -39,9 +43,6 @@ const TaskModal = ({
   const [showUnsavedWarning, setShowUnsavedWarning] = useState(false);
   const [initialFormData, setInitialFormData] = useState(null);
   const titleInputRef = useRef(null);
-  const focusTrapRef = useRef(null);
-
-  useFocusTrap(focusTrapRef, isOpen);
 
   // Track if form has unsaved changes
   const isDirty = initialFormData !== null && (
@@ -258,142 +259,116 @@ const TaskModal = ({
   // Get users not already assigned
   const availableUsers = users.filter((user) => !formData.assigneeIds.includes(user.id));
 
-  if (!isOpen) return null;
-
   return (
-    <div ref={focusTrapRef} className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="task-modal-title">
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/20"
-        onClick={handleClose}
-      ></motion.div>
-
-      {/* Modal */}
-      <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.98 }}
-          transition={{ duration: 0.2 }}
-          className="relative bg-white sm:rounded-xl shadow-md w-full h-[100dvh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
-          <div className="p-4 sm:p-6">
-            {/* Mobile drag handle indicator */}
-            <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4 sm:mb-6">
-              <h2 id="task-modal-title" className="text-lg font-semibold text-neutral-900">
-                {isEditMode ? 'Edit Task' : isSubtask ? 'Add Subtask' : 'Create New Task'}
-              </h2>
-              <button
-                onClick={handleClose}
-                className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-all duration-150"
-                disabled={isSubmitting}
-                aria-label="Close"
-              >
-                <X size={24} />
-              </button>
-            </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {isEditMode ? 'Edit Task' : isSubtask ? 'Add Subtask' : 'Create New Task'}
+            </DialogTitle>
+            <DialogDescription>
+              {isEditMode ? 'Update the task details below.' : isSubtask ? 'Add a subtask to the parent task.' : 'Fill in the details to create a new task.'}
+            </DialogDescription>
+          </DialogHeader>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Title */}
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-neutral-700 mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="title">
                 Task Title <span className="text-red-500">*</span>
-              </label>
-              <input
+              </Label>
+              <Input
                 ref={titleInputRef}
                 type="text"
                 id="title"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 ${
-                  errors.title ? 'border-red-500' : 'border-neutral-200'
-                }`}
+                className={errors.title ? 'border-red-500' : ''}
                 placeholder="Enter task title"
                 disabled={isSubmitting}
               />
               {errors.title && (
-                <p className="mt-1 text-sm text-red-500">{errors.title}</p>
+                <p className="text-sm text-red-500">{errors.title}</p>
               )}
             </div>
 
             {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-neutral-700 mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="description">
                 Description
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 id="description"
                 name="description"
                 value={formData.description}
                 onChange={handleChange}
-                rows="3"
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
+                rows={3}
                 placeholder="Enter task description (optional)"
                 disabled={isSubmitting}
-              ></textarea>
+              />
             </div>
 
             {/* Category - hidden for subtasks */}
             {!isSubtask && (
-              <div>
-                <label htmlFor="categoryId" className="block text-sm font-medium text-neutral-700 mb-1">
+              <div className="space-y-2">
+                <Label htmlFor="categoryId">
                   Category <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="categoryId"
-                  name="categoryId"
-                  value={formData.categoryId}
-                  onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 ${
-                    errors.categoryId ? 'border-red-500' : 'border-neutral-200'
-                  }`}
+                </Label>
+                <Select
+                  value={formData.categoryId ? String(formData.categoryId) : ""}
+                  onValueChange={(val) => {
+                    setFormData(prev => ({ ...prev, categoryId: val }));
+                    if (errors.categoryId) setErrors(prev => ({ ...prev, categoryId: '' }));
+                  }}
                   disabled={isSubmitting}
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((category) => (
+                      <SelectItem key={category.id} value={String(category.id)}>
+                        {category.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.categoryId && (
-                  <p className="mt-1 text-sm text-red-500">{errors.categoryId}</p>
+                  <p className="text-sm text-red-500">{errors.categoryId}</p>
                 )}
               </div>
             )}
 
             {/* Priority */}
-            <div>
-              <label htmlFor="priority" className="block text-sm font-medium text-neutral-700 mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="priority">
                 Priority
-              </label>
-              <select
-                id="priority"
-                name="priority"
+              </Label>
+              <Select
                 value={formData.priority}
-                onChange={handleChange}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
+                onValueChange={(val) => setFormData(prev => ({ ...prev, priority: val }))}
                 disabled={isSubmitting}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-                <option value="urgent">Urgent</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Assignees - Multi-select */}
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-1">
+            <div className="space-y-2">
+              <Label>
                 Assignees
-              </label>
+              </Label>
 
               {/* Selected assignees as chips */}
               {formData.assigneeIds.length > 0 && (
@@ -451,17 +426,16 @@ const TaskModal = ({
             </div>
 
             {/* Due Date */}
-            <div>
-              <label htmlFor="dueDate" className="block text-sm font-medium text-neutral-700 mb-1">
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">
                 Due Date
-              </label>
-              <input
+              </Label>
+              <Input
                 type="date"
                 id="dueDate"
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150"
                 disabled={isSubmitting}
               />
             </div>
@@ -474,68 +448,44 @@ const TaskModal = ({
             )}
 
             {/* Action Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-4">
-              <button
+            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-4">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={handleClose}
-                className="flex-1 px-4 py-2.5 sm:py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 text-sm sm:text-base active:scale-[0.98]"
                 disabled={isSubmitting}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="flex-1 px-4 py-2.5 sm:py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98]"
                 disabled={isSubmitting}
               >
-                {isSubmitting && <ButtonSpinner />}
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSubmitting
                   ? (isEditMode ? 'Updating...' : 'Creating...')
                   : (isEditMode ? 'Update Task' : 'Create Task')
                 }
-              </button>
-            </div>
+              </Button>
+            </DialogFooter>
           </form>
-          </div>
-        </motion.div>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Unsaved Changes Warning */}
-      {showUnsavedWarning && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="unsaved-warning-title">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20" onClick={handleKeepEditing}></motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.2 }}
-            className="relative bg-white rounded-xl shadow-md max-w-sm w-full p-6">
-            <h3 id="unsaved-warning-title" className="text-lg font-semibold text-neutral-900 mb-2">Unsaved Changes</h3>
-            <p className="text-neutral-600 text-sm mb-6">
-              You have unsaved changes. Are you sure you want to discard them?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={handleKeepEditing}
-                className="flex-1 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-all duration-200 text-sm"
-              >
-                Keep Editing
-              </button>
-              <button
-                onClick={handleDiscardChanges}
-                className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-200 text-sm"
-              >
-                Discard
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
+      <AlertDialog open={showUnsavedWarning} onOpenChange={setShowUnsavedWarning}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>You have unsaved changes. Are you sure you want to discard them?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleKeepEditing}>Keep Editing</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDiscardChanges} className="bg-red-600 hover:bg-red-700">Discard</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

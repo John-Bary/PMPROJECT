@@ -1,3 +1,5 @@
+import { Skeleton } from 'components/ui/skeleton';
+
 // Loading spinner component
 function Spinner({ size = 'md', className = '' }) {
   const sizeClasses = {
@@ -26,24 +28,24 @@ export function PageLoader() {
 // Skeleton loader for task items
 export function TaskSkeleton() {
   return (
-    <div className="bg-white rounded-xl p-4 border border-[#E8EBF0] animate-pulse">
+    <div className="bg-white rounded-xl p-4 border border-[#E8EBF0]">
       <div className="flex items-start gap-3">
         {/* Checkbox skeleton */}
-        <div className="w-5 h-5 bg-gray-100 rounded-md mt-1"></div>
+        <Skeleton className="w-5 h-5 rounded-md mt-1" />
 
         <div className="flex-1 space-y-3">
           {/* Title skeleton */}
-          <div className="h-5 bg-gray-100 rounded-lg w-3/4"></div>
+          <Skeleton className="h-5 w-3/4" />
 
           {/* Description skeleton */}
-          <div className="h-4 bg-gray-100 rounded-lg w-full"></div>
-          <div className="h-4 bg-gray-100 rounded-lg w-2/3"></div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-2/3" />
 
           {/* Meta info skeleton */}
           <div className="flex items-center gap-4 mt-3">
-            <div className="h-6 bg-gray-100 rounded-lg w-20"></div>
-            <div className="h-6 bg-gray-100 rounded-lg w-24"></div>
-            <div className="h-6 bg-gray-100 rounded-lg w-16"></div>
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-16" />
           </div>
         </div>
       </div>
@@ -67,9 +69,9 @@ export function TaskColumnSkeleton({ items = 3 }) {
     <div className="flex-shrink-0 w-80">
       <div className="mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-gray-100"></div>
-          <div className="h-4 w-24 bg-gray-100 rounded-lg"></div>
-          <div className="h-4 w-8 bg-gray-100 rounded-lg"></div>
+          <Skeleton className="w-2 h-2 rounded-full" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-8" />
         </div>
       </div>
       <div className="space-y-3">
@@ -84,28 +86,28 @@ export function TaskColumnSkeleton({ items = 3 }) {
 // Skeleton for task rows (list view)
 export function TaskRowSkeleton() {
   return (
-    <tr className="animate-pulse">
+    <tr>
       <td className="px-4 py-3">
-        <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
+        <Skeleton className="h-4 w-4 rounded-md" />
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-40 bg-gray-100 rounded-lg"></div>
-        <div className="h-3 w-28 bg-gray-100 rounded-lg mt-2"></div>
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-3 w-28 mt-2" />
       </td>
       <td className="px-4 py-3">
-        <div className="h-5 w-20 bg-gray-100 rounded-full"></div>
+        <Skeleton className="h-5 w-20 rounded-full" />
       </td>
       <td className="px-4 py-3">
-        <div className="h-5 w-24 bg-gray-100 rounded-full"></div>
+        <Skeleton className="h-5 w-24 rounded-full" />
       </td>
       <td className="px-4 py-3">
-        <div className="h-4 w-16 bg-gray-100 rounded-lg"></div>
+        <Skeleton className="h-4 w-16" />
       </td>
       <td className="px-4 py-3 text-right">
         <div className="flex justify-end gap-2">
-          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
-          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
-          <div className="h-4 w-4 bg-gray-100 rounded-md"></div>
+          <Skeleton className="h-4 w-4 rounded-md" />
+          <Skeleton className="h-4 w-4 rounded-md" />
+          <Skeleton className="h-4 w-4 rounded-md" />
         </div>
       </td>
     </tr>

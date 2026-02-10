@@ -10,6 +10,7 @@ import {
   FolderOpen,
   ClipboardList,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import useWorkspaceStore from '../store/workspaceStore';
 import useTaskStore from '../store/taskStore';
@@ -17,8 +18,10 @@ import useCategoryStore from '../store/categoryStore';
 import useBillingStore from '../store/billingStore';
 import PlanBadge from '../components/PlanBadge';
 import UpgradeModal from '../components/UpgradeModal';
-import { ButtonSpinner } from '../components/Loader';
 import { toast } from 'sonner';
+import { Button } from 'components/ui/button';
+import { Card, CardContent } from 'components/ui/card';
+import { Badge } from 'components/ui/badge';
 
 function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
   const isUnlimited = !limit || limit === Infinity;
@@ -27,49 +30,51 @@ function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
   const isAtLimit = !isUnlimited && percentage >= 100;
 
   return (
-    <div className="p-4 bg-white rounded-xl border border-neutral-200">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${isAtLimit ? 'bg-red-50' : 'bg-neutral-50'}`}>
-            <Icon size={16} className={isAtLimit ? 'text-red-500' : 'text-neutral-500'} />
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <div className={`p-1.5 rounded-lg ${isAtLimit ? 'bg-red-50' : 'bg-neutral-50'}`}>
+              <Icon size={16} className={isAtLimit ? 'text-red-500' : 'text-neutral-500'} />
+            </div>
+            <span className="text-sm font-medium text-neutral-700">{label}</span>
           </div>
-          <span className="text-sm font-medium text-neutral-700">{label}</span>
+          <span className="text-sm text-neutral-500">
+            {current} / {isUnlimited ? '\u221E' : limit}
+          </span>
         </div>
-        <span className="text-sm text-neutral-500">
-          {current} / {isUnlimited ? '∞' : limit}
-        </span>
-      </div>
 
-      {!isUnlimited && (
-        <div className="w-full bg-neutral-100 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all ${
-              isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-primary-600`
-            }`}
-            style={{ width: `${percentage}%` }}
-            role="progressbar"
-            aria-valuenow={current}
-            aria-valuemin={0}
-            aria-valuemax={limit}
-            aria-label={`${label}: ${current} of ${limit} used`}
-          />
-        </div>
-      )}
+        {!isUnlimited && (
+          <div className="w-full bg-neutral-100 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${
+                isAtLimit ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : `bg-primary-600`
+              }`}
+              style={{ width: `${percentage}%` }}
+              role="progressbar"
+              aria-valuenow={current}
+              aria-valuemin={0}
+              aria-valuemax={limit}
+              aria-label={`${label}: ${current} of ${limit} used`}
+            />
+          </div>
+        )}
 
-      {isUnlimited && (
-        <div className="flex items-center gap-1 text-xs text-neutral-400">
-          <CheckCircle size={12} />
-          <span>Unlimited</span>
-        </div>
-      )}
+        {isUnlimited && (
+          <div className="flex items-center gap-1 text-xs text-neutral-400">
+            <CheckCircle size={12} />
+            <span>Unlimited</span>
+          </div>
+        )}
 
-      {isAtLimit && (
-        <div className="flex items-center gap-1 mt-2 text-xs text-red-600">
-          <AlertCircle size={12} />
-          <span>Limit reached — upgrade to continue</span>
-        </div>
-      )}
-    </div>
+        {isAtLimit && (
+          <div className="flex items-center gap-1 mt-2 text-xs text-red-600">
+            <AlertCircle size={12} />
+            <span>Limit reached — upgrade to continue</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -111,7 +116,7 @@ function Billing() {
       toast.success('Subscription activated! Welcome to Pro.');
       fetchSubscription();
     } else if (searchParams.get('checkout') === 'cancelled') {
-      toast('Checkout cancelled.', { icon: '↩️' });
+      toast('Checkout cancelled.', { icon: '\u21A9\uFE0F' });
     }
   }, [searchParams, fetchSubscription]);
 
@@ -141,13 +146,11 @@ function Billing() {
       <header className="bg-white border-b border-neutral-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3">
-            <Link
-              to="/dashboard"
-              className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-all"
-              aria-label="Back to dashboard"
-            >
-              <ArrowLeft size={20} />
-            </Link>
+            <Button asChild variant="ghost" size="icon" aria-label="Back to dashboard">
+              <Link to="/dashboard">
+                <ArrowLeft size={20} />
+              </Link>
+            </Button>
             <div className="flex items-center gap-3">
               <CreditCard size={24} className="text-neutral-700" />
               <h1 className="text-xl font-bold text-neutral-900">Billing & Plans</h1>
@@ -178,49 +181,48 @@ function Billing() {
 
         {/* Current Plan */}
         <section className="mb-8">
-          <div className="bg-white rounded-xl border border-neutral-200 p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-lg font-semibold text-neutral-900">Current Plan</h2>
-                  <PlanBadge plan={currentPlan} size="md" />
-                  {isTrialing && (
-                    <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
-                      Trial
-                    </span>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2 className="text-lg font-semibold text-neutral-900">Current Plan</h2>
+                    <PlanBadge plan={currentPlan} size="md" />
+                    {isTrialing && (
+                      <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                        Trial
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-neutral-500">
+                    {currentPlan === 'free'
+                      ? 'You are on the free plan. Upgrade to unlock more features.'
+                      : `You are on the ${plan?.name || 'Pro'} plan.`}
+                  </p>
+                  {subscription?.currentPeriodEnd && currentPlan !== 'free' && (
+                    <p className="text-xs text-neutral-400 mt-1">
+                      {isTrialing ? 'Trial ends' : 'Renews'}: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
+                    </p>
                   )}
                 </div>
-                <p className="text-sm text-neutral-500">
-                  {currentPlan === 'free'
-                    ? 'You are on the free plan. Upgrade to unlock more features.'
-                    : `You are on the ${plan?.name || 'Pro'} plan.`}
-                </p>
-                {subscription?.currentPeriodEnd && currentPlan !== 'free' && (
-                  <p className="text-xs text-neutral-400 mt-1">
-                    {isTrialing ? 'Trial ends' : 'Renews'}: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
-                  </p>
-                )}
+                <div className="flex gap-2">
+                  {currentPlan !== 'free' && (
+                    <Button
+                      variant="secondary"
+                      onClick={handleManageBilling}
+                      disabled={isPortalLoading}
+                    >
+                      {isPortalLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink size={14} />}
+                      Manage Billing
+                    </Button>
+                  )}
+                  <Button onClick={() => setIsUpgradeModalOpen(true)}>
+                    {currentPlan === 'free' ? 'Upgrade Plan' : 'Change Plan'}
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                {currentPlan !== 'free' && (
-                  <button
-                    onClick={handleManageBilling}
-                    disabled={isPortalLoading}
-                    className="px-4 py-2.5 bg-neutral-100 text-neutral-700 font-medium rounded-lg hover:bg-neutral-200 transition-all text-sm flex items-center gap-1.5"
-                  >
-                    {isPortalLoading ? <ButtonSpinner /> : <ExternalLink size={14} />}
-                    Manage Billing
-                  </button>
-                )}
-                <button
-                  onClick={() => setIsUpgradeModalOpen(true)}
-                  className="px-6 py-2.5 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-all shadow-sm text-sm"
-                >
-                  {currentPlan === 'free' ? 'Upgrade Plan' : 'Change Plan'}
-                </button>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Usage Overview */}
@@ -261,24 +263,27 @@ function Billing() {
         {/* Billing History */}
         <section>
           <h2 className="text-lg font-semibold text-neutral-900 mb-4">Billing History</h2>
-          <div className="bg-white rounded-xl border border-neutral-200 p-8 text-center">
-            <CreditCard size={32} className="text-neutral-300 mx-auto mb-3" />
-            <p className="text-neutral-500 text-sm">
-              {currentPlan === 'free'
-                ? 'No billing history yet. Upgrade to a paid plan to see invoices here.'
-                : 'Manage invoices and payment history through the Stripe portal.'}
-            </p>
-            {currentPlan !== 'free' && (
-              <button
-                onClick={handleManageBilling}
-                disabled={isPortalLoading}
-                className="mt-3 text-sm text-neutral-700 hover:text-neutral-900 font-medium flex items-center gap-1 mx-auto"
-              >
-                {isPortalLoading ? <ButtonSpinner /> : <ExternalLink size={14} />}
-                View invoices in Stripe
-              </button>
-            )}
-          </div>
+          <Card>
+            <CardContent className="p-8 text-center">
+              <CreditCard size={32} className="text-neutral-300 mx-auto mb-3" />
+              <p className="text-neutral-500 text-sm">
+                {currentPlan === 'free'
+                  ? 'No billing history yet. Upgrade to a paid plan to see invoices here.'
+                  : 'Manage invoices and payment history through the Stripe portal.'}
+              </p>
+              {currentPlan !== 'free' && (
+                <Button
+                  variant="ghost"
+                  onClick={handleManageBilling}
+                  disabled={isPortalLoading}
+                  className="mt-3"
+                >
+                  {isPortalLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ExternalLink size={14} />}
+                  View invoices in Stripe
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </section>
       </main>
 

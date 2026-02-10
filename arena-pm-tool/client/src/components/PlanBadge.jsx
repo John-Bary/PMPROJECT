@@ -1,15 +1,20 @@
+import { Badge } from 'components/ui/badge';
+
 const planConfig = {
   free: {
     label: 'Free',
-    className: 'text-neutral-400',
+    variant: 'secondary',
+    className: 'text-neutral-400 bg-neutral-50 border-neutral-200',
   },
   pro: {
     label: 'Pro',
-    className: 'text-neutral-900 font-medium',
+    variant: 'default',
+    className: 'text-neutral-900 bg-neutral-100 border-neutral-200 font-medium',
   },
   business: {
     label: 'Business',
-    className: 'text-neutral-900 font-medium',
+    variant: 'default',
+    className: 'text-neutral-900 bg-neutral-100 border-neutral-200 font-medium',
   },
 };
 
@@ -17,9 +22,9 @@ function PlanBadge({ plan = 'free' }) {
   const config = planConfig[plan] || planConfig.free;
 
   return (
-    <span className={`text-xs ${config.className}`}>
+    <Badge variant="outline" className={`text-xs ${config.className}`}>
       {config.label}
-    </span>
+    </Badge>
   );
 }
 

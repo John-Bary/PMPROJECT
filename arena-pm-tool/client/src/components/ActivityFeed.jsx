@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Activity, Loader2 } from 'lucide-react';
 import { workspacesAPI } from '../utils/api';
 import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import { Separator } from 'components/ui/separator';
 
 function formatAction(activity) {
   const title = activity.metadata?.title;
@@ -58,28 +60,31 @@ function ActivityFeed({ workspaceId }) {
       ) : activities.length === 0 ? (
         <p className="text-sm text-neutral-400 text-center py-4">No activity yet.</p>
       ) : (
-        <ul className="space-y-3">
-          {activities.map((activity) => {
+        <ul className="space-y-0">
+          {activities.map((activity, index) => {
             const userName = activity.user?.firstName && activity.user?.lastName
               ? `${activity.user.firstName} ${activity.user.lastName}`
               : activity.user?.name || 'Someone';
 
             return (
-              <li key={activity.id} className="flex items-start gap-3 text-sm">
-                <div className="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-medium text-neutral-600">
-                    {userName.charAt(0).toUpperCase()}
-                  </span>
+              <li key={activity.id}>
+                <div className="flex items-start gap-3 text-sm py-3">
+                  <Avatar className="h-6 w-6 flex-shrink-0 mt-0.5">
+                    <AvatarFallback className="text-xs font-medium bg-neutral-100 text-neutral-600">
+                      {userName.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <p className="text-neutral-700">
+                      <span className="font-medium">{userName}</span>{' '}
+                      {formatAction(activity)}
+                    </p>
+                    <p className="text-xs text-neutral-400 mt-0.5">
+                      {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-neutral-700">
-                    <span className="font-medium">{userName}</span>{' '}
-                    {formatAction(activity)}
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
-                    {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
-                  </p>
-                </div>
+                {index < activities.length - 1 && <Separator />}
               </li>
             );
           })}

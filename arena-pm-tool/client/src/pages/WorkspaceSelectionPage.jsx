@@ -26,6 +26,12 @@ import {
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import useAuthStore from '../store/authStore';
 import CreateWorkspaceModal from '../components/CreateWorkspaceModal';
+import { Button } from 'components/ui/button';
+import { Card, CardContent } from 'components/ui/card';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import { Input } from 'components/ui/input';
+import { Badge } from 'components/ui/badge';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from 'components/ui/alert-dialog';
 
 // Role configuration for badges
 const roleConfig = {
@@ -40,10 +46,10 @@ const RoleBadge = ({ role }) => {
   const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-full ${config.bg} ${config.color} ${config.border} border`}>
-      <Icon className="w-3 h-3" />
-      <span>{config.label}</span>
-    </span>
+    <Badge variant="outline" className={`${config.bg} ${config.color} ${config.border}`}>
+      <Icon className="w-3 h-3 mr-1" />
+      {config.label}
+    </Badge>
   );
 };
 
@@ -57,45 +63,45 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
     return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'W';
   };
 
-  const getWorkspaceColor = () => {
-    return 'bg-primary-600';
-  };
-
   return (
-    <div
-      className={`relative group bg-white rounded-xl border-2 transition-all duration-200 cursor-pointer hover:shadow-lg ${
+    <Card
+      className={`relative group cursor-pointer hover:shadow-lg ${
         isSelected
-          ? 'border-primary-600 ring-2 ring-primary-600/20 shadow-md'
+          ? 'border-primary-600 ring-2 ring-primary-600/20 shadow-md border-2'
           : 'border-neutral-200 hover:border-neutral-300'
       }`}
       onClick={() => onSelect(workspace.id)}
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-md">
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-md z-10">
           <Check className="w-4 h-4 text-white" />
         </div>
       )}
 
-      <div className="p-5">
+      <CardContent className="p-5">
         {/* Header with avatar and menu */}
         <div className="flex items-start justify-between mb-4">
-          <div className={`w-14 h-14 rounded-xl ${getWorkspaceColor(workspace.id)} flex items-center justify-center text-white font-bold text-lg shadow-md`}>
-            {getInitials(workspace.name)}
-          </div>
+          <Avatar className="w-14 h-14 rounded-xl text-lg">
+            <AvatarFallback className="rounded-xl bg-primary-600 text-white font-bold text-lg">
+              {getInitials(workspace.name)}
+            </AvatarFallback>
+          </Avatar>
 
           {/* Actions menu */}
           {isAdmin && (
             <div className="relative">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowMenu(!showMenu);
                 }}
-                className="p-1.5 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-neutral-600"
               >
                 <MoreHorizontal className="w-5 h-5" />
-              </button>
+              </Button>
 
               {showMenu && (
                 <>
@@ -158,65 +164,56 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
             <span className="text-xs text-neutral-400 font-medium">Owner</span>
           )}
         </div>
-      </div>
+      </CardContent>
 
       {/* Quick select button on hover */}
       <div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-2 bg-gradient-to-t from-white via-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
+        <Button
           onClick={(e) => {
             e.stopPropagation();
             onSelect(workspace.id);
           }}
-          className="w-full py-2 bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className="w-full"
         >
           <span>Open Workspace</span>
           <ChevronRight className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }
 
 // Delete confirmation modal
 function DeleteConfirmModal({ workspace, isOpen, onClose, onConfirm, isDeleting }) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="fixed inset-0 bg-black/20" onClick={onClose} />
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-sm w-full max-w-md animate-scale-in">
-          <div className="p-6">
-            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Trash2 className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-neutral-900 text-center mb-2">
-              Delete Workspace
-            </h3>
-            <p className="text-sm text-neutral-600 text-center mb-6">
-              Are you sure you want to delete <strong>"{workspace?.name}"</strong>? This action cannot be undone and will remove all tasks, categories, and member data.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onConfirm}
-                disabled={isDeleting}
-                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trash2 className="w-6 h-6 text-red-600" />
           </div>
-        </div>
-      </div>
-    </div>
+          <AlertDialogTitle className="text-center">
+            Delete Workspace
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-center">
+            Are you sure you want to delete <strong>"{workspace?.name}"</strong>? This action cannot be undone and will remove all tasks, categories, and member data.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="sm:justify-center gap-3">
+          <AlertDialogCancel disabled={isDeleting}>
+            Cancel
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            {isDeleting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
 
@@ -244,43 +241,40 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
         <div className="relative bg-white rounded-xl shadow-sm w-full max-w-md animate-scale-in">
           <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
             <h3 className="text-lg font-semibold text-neutral-900">Rename Workspace</h3>
-            <button
-              onClick={onClose}
-              className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors"
-            >
+            <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
           <form onSubmit={handleSubmit} className="p-6">
             <label className="block text-sm font-medium text-neutral-700 mb-2">
               Workspace Name
             </label>
-            <input
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter workspace name"
               disabled={isLoading}
-              className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 disabled:opacity-50"
               autoFocus
             />
             <div className="flex gap-3 mt-6">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={onClose}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2.5 border border-neutral-300 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                className="flex-1"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={isLoading || !name.trim() || name.trim() === workspace?.name}
-                className="flex-1 px-4 py-2.5 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1"
               >
-                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                 {isLoading ? 'Saving...' : 'Save'}
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -364,14 +358,14 @@ function WorkspaceSelectionPage() {
         <header className="bg-white border-b border-neutral-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
             <h1 className="text-xl font-bold text-neutral-900">Todoria</h1>
-            <button
+            <Button
+              variant="ghost"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors flex items-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               {isLoggingOut ? 'Logging out...' : 'Logout'}
-            </button>
+            </Button>
           </div>
         </header>
 
@@ -386,36 +380,39 @@ function WorkspaceSelectionPage() {
           <p className="text-neutral-600 mb-8 max-w-md mx-auto">
             Get started by creating your first workspace. Workspaces help you organize projects and collaborate with your team.
           </p>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-xl transition-colors shadow-sm"
-          >
+          <Button onClick={() => setIsCreateModalOpen(true)} size="lg">
             <Plus className="w-5 h-5" />
             Create Your First Workspace
-          </button>
+          </Button>
 
           <div className="mt-12 grid sm:grid-cols-3 gap-6 text-left">
-            <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                <LayoutGrid className="w-5 h-5 text-neutral-600" />
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-1">Organize Tasks</h3>
-              <p className="text-sm text-neutral-500">Create categories and manage tasks with drag & drop.</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                <Users className="w-5 h-5 text-neutral-600" />
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-1">Collaborate</h3>
-              <p className="text-sm text-neutral-500">Invite team members and assign tasks together.</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border border-neutral-200">
-              <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                <Clock className="w-5 h-5 text-neutral-600" />
-              </div>
-              <h3 className="font-semibold text-neutral-900 mb-1">Track Progress</h3>
-              <p className="text-sm text-neutral-500">Use calendar and list views to stay on schedule.</p>
-            </div>
+            <Card>
+              <CardContent className="p-5">
+                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                  <LayoutGrid className="w-5 h-5 text-neutral-600" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-1">Organize Tasks</h3>
+                <p className="text-sm text-neutral-500">Create categories and manage tasks with drag & drop.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5">
+                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                  <Users className="w-5 h-5 text-neutral-600" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-1">Collaborate</h3>
+                <p className="text-sm text-neutral-500">Invite team members and assign tasks together.</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5">
+                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
+                  <Clock className="w-5 h-5 text-neutral-600" />
+                </div>
+                <h3 className="font-semibold text-neutral-900 mb-1">Track Progress</h3>
+                <p className="text-sm text-neutral-500">Use calendar and list views to stay on schedule.</p>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
@@ -435,27 +432,28 @@ function WorkspaceSelectionPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-xl font-bold text-neutral-900">Todoria</h1>
-              <span className="hidden sm:inline-block px-2.5 py-1 bg-neutral-100 text-neutral-600 text-xs font-medium rounded-full">
+              <Badge variant="secondary" className="hidden sm:inline-flex">
                 {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
-              </span>
+              </Badge>
             </div>
 
             <div className="flex items-center gap-3">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => navigate('/user')}
-                className="p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
                 title="Settings"
               >
                 <Settings className="w-5 h-5" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -474,50 +472,43 @@ function WorkspaceSelectionPage() {
           {/* Search */}
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
-            <input
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search workspaces..."
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-neutral-300 rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
+              className="pl-10"
             />
           </div>
 
           <div className="flex items-center gap-3">
             {/* View toggle */}
             <div className="flex items-center bg-white border border-neutral-300 rounded-lg p-1">
-              <button
+              <Button
+                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                size="icon"
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'grid'
-                    ? 'bg-neutral-100 text-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-700'
-                }`}
                 title="Grid view"
+                className="h-8 w-8"
               >
                 <LayoutGrid className="w-4 h-4" />
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="icon"
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-md transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-neutral-100 text-neutral-900'
-                    : 'text-neutral-500 hover:text-neutral-700'
-                }`}
                 title="List view"
+                className="h-8 w-8"
               >
                 <List className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
 
             {/* Create button */}
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors shadow-sm"
-            >
+            <Button onClick={() => setIsCreateModalOpen(true)}>
               <Plus className="w-5 h-5" />
               <span className="hidden sm:inline">New Workspace</span>
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -548,32 +539,36 @@ function WorkspaceSelectionPage() {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-neutral-200 overflow-hidden">
-            {filteredWorkspaces.map((workspace, index) => (
-              <div
-                key={workspace.id}
-                onClick={() => handleSelectWorkspace(workspace.id)}
-                className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-neutral-50 transition-colors ${
-                  index !== filteredWorkspaces.length - 1 ? 'border-b border-neutral-100' : ''
-                } ${workspace.id === currentWorkspaceId ? 'bg-neutral-100' : ''}`}
-              >
-                <div className={`w-12 h-12 rounded-lg bg-primary-600 flex items-center justify-center text-white font-bold`}>
-                  {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
+          <Card>
+            <CardContent className="p-0">
+              {filteredWorkspaces.map((workspace, index) => (
+                <div
+                  key={workspace.id}
+                  onClick={() => handleSelectWorkspace(workspace.id)}
+                  className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-neutral-50 transition-colors ${
+                    index !== filteredWorkspaces.length - 1 ? 'border-b border-neutral-100' : ''
+                  } ${workspace.id === currentWorkspaceId ? 'bg-neutral-100' : ''}`}
+                >
+                  <Avatar className="w-12 h-12 rounded-lg">
+                    <AvatarFallback className="rounded-lg bg-primary-600 text-white font-bold">
+                      {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-neutral-900 truncate">{workspace.name}</h3>
+                    <p className="text-sm text-neutral-500">
+                      {workspace.memberCount || 1} member{workspace.memberCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                  <RoleBadge role={workspace.userRole} />
+                  {workspace.id === currentWorkspaceId && (
+                    <span className="text-xs text-neutral-600 font-medium">Current</span>
+                  )}
+                  <ChevronRight className="w-5 h-5 text-neutral-400" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-neutral-900 truncate">{workspace.name}</h3>
-                  <p className="text-sm text-neutral-500">
-                    {workspace.memberCount || 1} member{workspace.memberCount !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                <RoleBadge role={workspace.userRole} />
-                {workspace.id === currentWorkspaceId && (
-                  <span className="text-xs text-neutral-600 font-medium">Current</span>
-                )}
-                <ChevronRight className="w-5 h-5 text-neutral-400" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </CardContent>
+          </Card>
         )}
       </main>
 

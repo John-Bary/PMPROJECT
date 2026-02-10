@@ -1,11 +1,20 @@
 // Workspace Switcher Component
 // Dropdown to switch between workspaces
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronDown, Plus, Settings, Users, Check, ShieldCheck, Shield, Eye, LayoutGrid, Loader2 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import useWorkspaceStore from '../store/workspaceStore';
 import CreateWorkspaceModal from './CreateWorkspaceModal';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuLabel,
+} from 'components/ui/dropdown-menu';
+import { Badge } from 'components/ui/badge';
 
 // Role badge component
 const RoleBadge = ({ role }) => {
@@ -19,10 +28,10 @@ const RoleBadge = ({ role }) => {
   const Icon = config.icon;
 
   return (
-    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded ${config.bg} ${config.color}`}>
+    <Badge variant="outline" className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-xs border-0 rounded ${config.bg} ${config.color}`}>
       <Icon className="w-3 h-3" />
       <span>{config.label}</span>
-    </span>
+    </Badge>
   );
 };
 
@@ -47,27 +56,12 @@ function WorkspaceSwitcher({ className = '' }) {
     return membership?.role || 'member';
   };
 
-  const [isOpen, setIsOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleSwitch = async (workspaceId) => {
     if (workspaceId !== currentWorkspace?.id) {
       await switchWorkspace(workspaceId);
     }
-    setIsOpen(false);
   };
 
   // Don't render if no workspaces
@@ -76,54 +70,51 @@ function WorkspaceSwitcher({ className = '' }) {
   }
 
   return (
-    <div className={`relative ${className}`} ref={dropdownRef}>
-      {/* Trigger Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        disabled={isLoading || isSwitching}
-        className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
-                   border border-neutral-200 rounded-lg transition-colors min-w-[180px]
-                   disabled:opacity-50 disabled:cursor-not-allowed"
-        aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
-        aria-expanded={isOpen}
-      >
-        {isSwitching ? (
-          <Loader2 size={16} className="w-6 h-6 animate-spin text-neutral-500" />
-        ) : (
-          <div className="w-6 h-6 rounded bg-primary-600 flex items-center justify-center text-xs font-medium text-white">
-            {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
-          </div>
-        )}
-        <span className="flex-1 text-left text-sm text-neutral-800 truncate font-medium">
-          {isSwitching ? 'Switching...' : (currentWorkspace?.name || 'Select Workspace')}
-        </span>
-        <ChevronDown
-          className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
+    <div className={className}>
+      <DropdownMenu>
+        {/* Trigger Button */}
+        <DropdownMenuTrigger asChild>
+          <button
+            disabled={isLoading || isSwitching}
+            className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
+                       border border-neutral-200 rounded-lg transition-colors min-w-[180px]
+                       disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
+          >
+            {isSwitching ? (
+              <Loader2 size={16} className="w-6 h-6 animate-spin text-neutral-500" />
+            ) : (
+              <div className="w-6 h-6 rounded bg-primary-600 flex items-center justify-center text-xs font-medium text-white">
+                {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
+              </div>
+            )}
+            <span className="flex-1 text-left text-sm text-neutral-800 truncate font-medium">
+              {isSwitching ? 'Switching...' : (currentWorkspace?.name || 'Select Workspace')}
+            </span>
+            <ChevronDown className="w-4 h-4 text-neutral-400" />
+          </button>
+        </DropdownMenuTrigger>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-neutral-200
-                        rounded-lg shadow-sm z-50 py-1 overflow-hidden">
+        {/* Dropdown Menu */}
+        <DropdownMenuContent align="start" className="w-72">
           {/* Header */}
-          <div className="px-3 py-2 border-b border-neutral-100">
-            <p className="text-xs font-medium text-neutral-500">
-              Your Workspaces
-            </p>
-          </div>
+          <DropdownMenuLabel className="text-xs font-medium text-neutral-500">
+            Your Workspaces
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
 
           {/* Workspace List */}
-          <div className="max-h-64 overflow-y-auto py-1">
+          <div className="max-h-64 overflow-y-auto">
             {workspaces.map((workspace) => {
               const role = getUserRole(workspace);
               return (
-                <button
+                <DropdownMenuItem
                   key={workspace.id}
                   onClick={() => handleSwitch(workspace.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 hover:bg-neutral-50
-                             transition-colors text-left
-                             ${workspace.id === currentWorkspace?.id ? 'bg-neutral-100' : ''}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer ${
+                    workspace.id === currentWorkspace?.id ? 'bg-neutral-100' : ''
+                  }`}
                 >
                   <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center
                                  text-sm font-semibold text-white flex-shrink-0">
@@ -141,66 +132,47 @@ function WorkspaceSwitcher({ className = '' }) {
                   {workspace.id === currentWorkspace?.id && (
                     <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />
                   )}
-                </button>
+                </DropdownMenuItem>
               );
             })}
           </div>
 
-          {/* Divider */}
-          <div className="border-t border-neutral-100 my-1" />
+          <DropdownMenuSeparator />
 
           {/* Actions */}
-          <div className="py-1">
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate('/workspaces');
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
-                         transition-colors text-left text-neutral-700"
-            >
-              <LayoutGrid className="w-4 h-4 text-neutral-500" />
-              <span className="text-sm">View All Workspaces</span>
-            </button>
+          <DropdownMenuItem
+            onClick={() => navigate('/workspaces')}
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+          >
+            <LayoutGrid className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm">View All Workspaces</span>
+          </DropdownMenuItem>
 
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                setIsCreateModalOpen(true);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
-                         transition-colors text-left text-neutral-700"
-            >
-              <Plus className="w-4 h-4 text-neutral-500" />
-              <span className="text-sm">Create Workspace</span>
-            </button>
+          <DropdownMenuItem
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+          >
+            <Plus className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm">Create Workspace</span>
+          </DropdownMenuItem>
 
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate('/user/preferences');
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
-                         transition-colors text-left text-neutral-700"
-            >
-              <Settings className="w-4 h-4 text-neutral-500" />
-              <span className="text-sm">Workspace Settings</span>
-            </button>
+          <DropdownMenuItem
+            onClick={() => navigate('/user/preferences')}
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+          >
+            <Settings className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm">Workspace Settings</span>
+          </DropdownMenuItem>
 
-            <button
-              onClick={() => {
-                setIsOpen(false);
-                navigate('/user/team');
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2 hover:bg-neutral-50
-                         transition-colors text-left text-neutral-700"
-            >
-              <Users className="w-4 h-4 text-neutral-500" />
-              <span className="text-sm">Manage Members</span>
-            </button>
-          </div>
-        </div>
-      )}
+          <DropdownMenuItem
+            onClick={() => navigate('/user/team')}
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+          >
+            <Users className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm">Manage Members</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       {/* Create Workspace Modal */}
       <CreateWorkspaceModal

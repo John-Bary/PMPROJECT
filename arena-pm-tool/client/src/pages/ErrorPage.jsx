@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
+import { Button } from 'components/ui/button';
 
 function ErrorPage({ statusCode, title, message, onRetry }) {
   const navigate = useNavigate();
@@ -39,20 +40,14 @@ function ErrorPage({ statusCode, title, message, onRetry }) {
           <p className="text-neutral-600 leading-relaxed">{description}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={handleHome}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary-600 text-white font-medium shadow-sm hover:bg-primary-700 transition-colors"
-          >
+          <Button onClick={handleHome}>
             <Home size={18} />
             Go to dashboard
-          </button>
-          <button
-            onClick={handleRetry}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-neutral-200 text-neutral-700 font-medium hover:border-neutral-300 hover:bg-neutral-50 transition-colors"
-          >
+          </Button>
+          <Button variant="outline" onClick={handleRetry}>
             <RefreshCcw size={18} />
             Try again
-          </button>
+          </Button>
         </div>
       </div>
     </div>

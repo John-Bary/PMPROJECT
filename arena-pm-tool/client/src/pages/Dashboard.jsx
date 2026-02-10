@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
-import { ButtonSpinner } from '../components/Loader';
+import { Button } from 'components/ui/button';
+import { Sheet, SheetContent, SheetTitle } from 'components/ui/sheet';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -59,15 +62,6 @@ function Dashboard() {
             Todoria
             <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
           </span>
-        )}
-        {mobile && (
-          <button
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="ml-auto p-1.5 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F8F9FC] rounded-lg transition-colors"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
         )}
       </div>
 
@@ -142,26 +136,27 @@ function Dashboard() {
 
         {/* User row */}
         <div className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-10`}>
-          <div
-            className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium shrink-0"
-            title={user?.name || 'User'}
-          >
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-          </div>
+          <Avatar className="w-8 h-8" title={user?.name || 'User'}>
+            <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </AvatarFallback>
+          </Avatar>
           {(!isSidebarCollapsed || mobile) && (
             <>
               <span className="text-sm text-[#0F172A] font-medium truncate flex-1">
                 {user?.name}
               </span>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="p-1.5 text-[#94A3B8] hover:text-[#0F172A] hover:bg-[#F8F9FC] rounded-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 aria-label="Logout"
                 title="Logout"
+                className="h-8 w-8 text-[#94A3B8] hover:text-[#0F172A]"
               >
-                {isLoggingOut ? <ButtonSpinner /> : <LogOut size={18} />}
-              </button>
+                {isLoggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} />}
+              </Button>
             </>
           )}
         </div>
@@ -190,61 +185,47 @@ function Dashboard() {
         {sidebarContent(false)}
       </aside>
 
-      {/* Mobile sidebar overlay */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-              onClick={() => setIsMobileMenuOpen(false)}
-            />
-            {/* Sidebar */}
-            <motion.aside
-              initial={{ x: -260 }}
-              animate={{ x: 0 }}
-              exit={{ x: -260 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative w-[260px] h-full bg-white flex flex-col shadow-xl"
-            >
-              {sidebarContent(true)}
-            </motion.aside>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Mobile sidebar - Sheet component */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetContent side="left" className="w-[260px] p-0 md:hidden flex flex-col">
+          <VisuallyHidden.Root>
+            <SheetTitle>Navigation Menu</SheetTitle>
+          </VisuallyHidden.Root>
+          {sidebarContent(true)}
+        </SheetContent>
+      </Sheet>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
         <header className="md:hidden h-14 bg-white border-b border-[#E8EBF0] flex items-center px-4 shrink-0">
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2.5 -ml-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8F9FC] rounded-lg transition-all duration-150"
+            className="-ml-2 text-[#64748B] hover:text-[#0F172A]"
             aria-label="Toggle menu"
           >
             <Menu size={24} />
-          </button>
+          </Button>
           <span className="text-lg font-bold tracking-tight text-[#0F172A] ml-2 flex items-center gap-1.5">
             Todoria
             <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
           </span>
           <div className="flex-1" />
-          <button
+          <Button
             onClick={() => setShowMobileAddTask(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors mr-2"
+            size="sm"
+            className="mr-2"
           >
             <Plus size={16} />
             <span>Add</span>
-          </button>
-          <div
-            className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium shrink-0"
-            title={user?.name || 'User'}
-          >
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
-          </div>
+          </Button>
+          <Avatar className="w-8 h-8" title={user?.name || 'User'}>
+            <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+            </AvatarFallback>
+          </Avatar>
         </header>
 
         <main className="flex-1 overflow-auto">

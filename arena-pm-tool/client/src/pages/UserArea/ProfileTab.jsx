@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Label } from 'components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
 import useAuthStore from '../../store/authStore';
 
 const ProfileTab = () => {
@@ -88,88 +92,75 @@ const ProfileTab = () => {
       {/* Avatar Section - hidden for MVP */}
 
       {/* Name Form */}
-      <form onSubmit={handleSubmit} className="bg-white border border-[#E8EBF0] rounded-xl p-6">
-        <h3 className="text-lg font-medium text-neutral-900 mb-4">Personal Information</h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Personal Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* First Name */}
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className={errors.firstName ? 'border-red-500' : ''}
+                  placeholder="Enter your first name"
+                />
+                {errors.firstName && (
+                  <p className="text-sm text-red-400">{errors.firstName}</p>
+                )}
+              </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* First Name */}
-          <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-neutral-700 mb-2">
-              First Name
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
-                errors.firstName ? 'border-red-500' : 'border-[#E8EBF0]'
-              }`}
-              placeholder="Enter your first name"
-            />
-            {errors.firstName && (
-              <p className="mt-1 text-sm text-red-400">{errors.firstName}</p>
-            )}
-          </div>
+              {/* Last Name */}
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className={errors.lastName ? 'border-red-500' : ''}
+                  placeholder="Enter your last name"
+                />
+                {errors.lastName && (
+                  <p className="text-sm text-red-400">{errors.lastName}</p>
+                )}
+              </div>
+            </div>
 
-          {/* Last Name */}
-          <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-neutral-700 mb-2">
-              Last Name
-            </label>
-            <input
-              type="text"
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-white border rounded-lg text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-colors ${
-                errors.lastName ? 'border-red-500' : 'border-[#E8EBF0]'
-              }`}
-              placeholder="Enter your last name"
-            />
-            {errors.lastName && (
-              <p className="mt-1 text-sm text-red-400">{errors.lastName}</p>
-            )}
-          </div>
-        </div>
+            {/* Email (read-only) */}
+            <div className="mt-6 space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                type="email"
+                id="email"
+                value={user?.email || ''}
+                disabled
+              />
+              <p className="text-sm text-neutral-400">
+                Email cannot be changed.
+              </p>
+            </div>
 
-        {/* Email (read-only) */}
-        <div className="mt-6">
-          <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
-            Email Address
-          </label>
-          <input
-            type="email"
-            id="email"
-            value={user?.email || ''}
-            disabled
-            className="w-full px-4 py-2.5 bg-neutral-50 border border-[#E8EBF0] rounded-lg text-neutral-500 cursor-not-allowed"
-          />
-          <p className="mt-1 text-sm text-neutral-400">
-            Email cannot be changed.
-          </p>
-        </div>
-
-        {/* Submit Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            type="submit"
-            disabled={!hasChanges || isLoading}
-            className="flex items-center gap-2 px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <span>Save Changes</span>
-            )}
-          </button>
-        </div>
-      </form>
+            {/* Submit Button */}
+            <div className="mt-6 flex justify-end">
+              <Button
+                type="submit"
+                disabled={!hasChanges || isLoading}
+              >
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 };

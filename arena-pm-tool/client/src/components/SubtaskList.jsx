@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Plus, Check, Trash2, Calendar, ChevronDown } from 'lucide-react';
+import { Plus, Check, Trash2, Calendar, ChevronDown, Loader2 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useUserStore from '../store/userStore';
 import useWorkspaceStore from '../store/workspaceStore';
@@ -9,6 +9,9 @@ import { getPriorityColor } from '../utils/priorityStyles';
 import { InlineSpinner } from './Loader';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import { Checkbox } from 'components/ui/checkbox';
 
 function SubtaskList({ taskId, categoryId }) {
   const [subtasks, setSubtasks] = useState([]);
@@ -311,37 +314,24 @@ function SubtaskList({ taskId, categoryId }) {
               {/* Top row: Checkbox, Title, Delete */}
               <div className="flex items-center gap-2">
                 {/* Checkbox */}
-                <button
-                  onClick={() => handleToggleComplete(subtask)}
+                <Checkbox
+                  checked={subtask.status === 'completed'}
+                  onCheckedChange={() => handleToggleComplete(subtask)}
                   disabled={togglingIds.has(subtask.id)}
                   aria-label={subtask.status === 'completed' ? `Mark "${subtask.title}" as incomplete` : `Mark "${subtask.title}" as complete`}
-                  className={`
-                    flex-shrink-0 w-5 h-5 rounded border-2
-                    flex items-center justify-center transition-all
-                    ${subtask.status === 'completed'
-                      ? 'bg-primary-600 border-primary-600'
-                      : 'border-neutral-300 hover:border-neutral-500'
-                    }
-                    ${togglingIds.has(subtask.id) ? 'opacity-60 cursor-not-allowed' : ''}
-                  `}
-                >
-                  {togglingIds.has(subtask.id) ? (
-                    <InlineSpinner size="xs" />
-                  ) : (
-                    subtask.status === 'completed' && <Check size={12} className="text-white" />
-                  )}
-                </button>
+                  className="flex-shrink-0"
+                />
 
                 {/* Title */}
                 {editingId === subtask.id ? (
-                  <input
+                  <Input
                     ref={editInputRef}
                     type="text"
                     value={editingTitle}
                     onChange={(e) => setEditingTitle(e.target.value)}
                     onBlur={handleSaveEdit}
                     onKeyDown={handleEditKeyDown}
-                    className="flex-1 text-sm bg-transparent border-b border-primary-600 focus:outline-none"
+                    className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-primary-600 rounded-none focus:ring-0 px-0"
                   />
                 ) : (
                   <span
@@ -356,23 +346,25 @@ function SubtaskList({ taskId, categoryId }) {
                 )}
 
                 {/* Delete button */}
-                <button
+                <Button
                   onClick={() => handleDeleteSubtask(subtask.id)}
                   disabled={deletingIds.has(subtask.id)}
+                  variant="ghost"
+                  size="icon"
                   className={`
-                    flex-shrink-0 p-1 text-neutral-400 hover:text-red-500
-                    hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition
+                    flex-shrink-0 h-7 w-7 text-neutral-400 hover:text-red-500
+                    hover:bg-red-50 opacity-0 group-hover:opacity-100 transition
                     ${deletingIds.has(subtask.id) ? 'opacity-100' : ''}
                   `}
                   title="Delete subtask"
                   aria-label={`Delete subtask "${subtask.title}"`}
                 >
                   {deletingIds.has(subtask.id) ? (
-                    <InlineSpinner size="xs" />
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
                     <Trash2 size={14} />
                   )}
-                </button>
+                </Button>
               </div>
 
               {/* Bottom row: Priority, Due Date, Assignees */}
@@ -512,14 +504,14 @@ function SubtaskList({ taskId, categoryId }) {
           {/* Title input row */}
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded border-2 border-neutral-200 flex-shrink-0" />
-            <input
+            <Input
               ref={newSubtaskInputRef}
               type="text"
               value={newSubtaskTitle}
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Subtask title"
-              className="flex-1 text-sm bg-transparent border-b border-neutral-300 focus:border-primary-600 focus:outline-none py-1"
+              className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-neutral-300 rounded-none focus:border-primary-600 focus:ring-0 px-0"
               disabled={isCreating}
             />
           </div>
@@ -650,21 +642,22 @@ function SubtaskList({ taskId, categoryId }) {
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 mt-3 ml-7">
-            <button
+            <Button
               onClick={handleAddSubtask}
               disabled={!newSubtaskTitle.trim() || isCreating}
-              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+              size="sm"
+              className="h-7 text-xs"
             >
               {isCreating ? (
                 <>
-                  <InlineSpinner size="xs" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Adding...
                 </>
               ) : (
                 'Add subtask'
               )}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 setIsAddingSubtask(false);
                 setNewSubtaskTitle('');
@@ -675,21 +668,24 @@ function SubtaskList({ taskId, categoryId }) {
                 setShowNewDatePicker(false);
                 setShowNewAssigneeDropdown(false);
               }}
-              className="px-3 py-1.5 text-xs text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded transition"
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs"
               disabled={isCreating}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <button
+        <Button
           onClick={() => setIsAddingSubtask(true)}
-          className="flex items-center gap-2 px-2 py-2 text-sm text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50 rounded-lg transition mt-1 w-full"
+          variant="ghost"
+          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mt-1 w-full justify-start"
         >
           <Plus size={16} />
           <span>Add subtask</span>
-        </button>
+        </Button>
       )}
     </div>
   );

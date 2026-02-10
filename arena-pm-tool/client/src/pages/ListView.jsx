@@ -10,6 +10,7 @@ import {
   Check,
   GripVertical,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -20,11 +21,23 @@ import TaskModal from '../components/TaskModal';
 import TaskDetailModal from '../components/TaskDetailModal';
 import DatePicker from '../components/DatePicker';
 import AssigneeDropdown from '../components/AssigneeDropdown';
-import { InlineSpinner, TaskRowSkeleton, ButtonSpinner } from '../components/Loader';
+import { InlineSpinner, TaskRowSkeleton } from '../components/Loader';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
 import { getPriorityColor } from '../utils/priorityStyles';
 import { useTaskActions } from '../hooks/useTaskActions';
 import { useTaskFilters } from '../hooks/useTaskFilters';
+import { Button } from 'components/ui/button';
+import { Input } from 'components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from 'components/ui/alert-dialog';
 
 function ListView() {
   const {
@@ -435,15 +448,14 @@ function ListView() {
           </div>
 
           {/* Add Task Button - Always visible */}
-          <button
+          <Button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary-600 text-white text-sm font-medium rounded-xl h-10 hover:bg-primary-700 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
             <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : 'Add Task'}</span>
             <span className="sm:hidden">Add</span>
-          </button>
+          </Button>
         </div>
 
         {/* Search and Filter Row */}
@@ -451,12 +463,12 @@ function ListView() {
           {/* Search Bar */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
-            <input
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tasks..."
-              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-[#E8EBF0] rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 disabled:bg-neutral-50 transition-all duration-150"
+              className="pl-9 sm:pl-10 pr-9 sm:pr-10"
               disabled={disableControls}
             />
             {searchQuery && (
@@ -1177,14 +1189,14 @@ function ListView() {
         {/* Load More Button */}
         {hasMore && (
           <div className="flex justify-center mt-4">
-            <button
+            <Button
+              variant="outline"
               onClick={loadMoreTasks}
               disabled={isLoadingMore}
-              className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {isLoadingMore && <ButtonSpinner />}
+              {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isLoadingMore ? 'Loading...' : 'Load more'}
-            </button>
+            </Button>
           </div>
         )}
         </>
@@ -1200,41 +1212,27 @@ function ListView() {
       />
 
       {/* Delete Confirmation Modal */}
-      {deletingTask && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
-          <div
-            className="fixed inset-0 bg-black/20 transition-opacity"
-            onClick={cancelDelete}
-          ></div>
-          <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-              <h3 id="delete-task-title" className="text-lg font-semibold text-neutral-900 mb-2">
-                Delete Task
-              </h3>
-              <p className="text-neutral-600 mb-6">
-                Are you sure you want to delete "{deletingTask.title}"? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={cancelDelete}
-                  className="flex-1 px-4 py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 transition-all duration-200"
-                  disabled={isDeletingTask}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  disabled={isDeletingTask}
-                >
-                  {isDeletingTask && <ButtonSpinner />}
-                  {isDeletingTask ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <AlertDialog open={!!deletingTask} onOpenChange={(open) => { if (!open) cancelDelete(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingTask?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingTask}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeletingTask}
+              className="bg-red-500 text-white hover:bg-red-600"
+            >
+              {isDeletingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeletingTask ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Task Detail Modal */}
       <TaskDetailModal

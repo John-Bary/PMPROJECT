@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, UserPlus, ArrowRight } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import useAuthStore from '../store/authStore';
+import { Button } from 'components/ui/button';
 
 function AcceptInvite() {
   const [searchParams] = useSearchParams();
@@ -156,13 +157,14 @@ function AcceptInvite() {
                 </p>
               </div>
 
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => navigate('/dashboard', { replace: true })}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors"
+                className="bg-neutral-700 hover:bg-neutral-600 text-white"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="h-4 w-4" />
-              </button>
+              </Button>
             </div>
           )}
 
@@ -182,12 +184,11 @@ function AcceptInvite() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  to="/dashboard"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-neutral-800 hover:bg-neutral-700 text-white font-medium rounded-lg transition-colors"
-                >
-                  Go to Dashboard
-                </Link>
+                <Button asChild variant="secondary" className="bg-neutral-800 hover:bg-neutral-700 text-white">
+                  <Link to="/dashboard">
+                    Go to Dashboard
+                  </Link>
+                </Button>
               </div>
             </div>
           )}
@@ -207,13 +208,12 @@ function AcceptInvite() {
                 No invitation token was provided. Please check the link you received or ask the workspace admin to send a new invitation.
               </p>
 
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors"
-              >
-                <span>Go to Dashboard</span>
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <Button asChild variant="secondary" className="bg-neutral-700 hover:bg-neutral-600 text-white">
+                <Link to="/dashboard">
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
           )}
         </div>

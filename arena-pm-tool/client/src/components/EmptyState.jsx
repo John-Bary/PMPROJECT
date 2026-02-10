@@ -1,4 +1,5 @@
 import { Inbox } from 'lucide-react';
+import { Button } from 'components/ui/button';
 
 function EmptyState({
   icon: Icon = Inbox,
@@ -50,25 +51,24 @@ function EmptyState({
       {hasActions && (
         <div className="flex flex-wrap items-center gap-3 mt-2">
           {primaryAction && (
-            <button
+            <Button
               type="button"
               onClick={primaryAction.onClick}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1 active:scale-[0.98]"
             >
               {PrimaryIcon && <PrimaryIcon size={16} />}
               <span>{primaryAction.label}</span>
-            </button>
+            </Button>
           )}
 
           {secondaryAction && (
-            <button
+            <Button
               type="button"
+              variant="outline"
               onClick={secondaryAction.onClick}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-[#E8EBF0] text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-offset-1 active:scale-[0.98]"
             >
               {SecondaryIcon && <SecondaryIcon size={16} />}
               <span>{secondaryAction.label}</span>
-            </button>
+            </Button>
           )}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Button } from 'components/ui/button';
 
 const COOKIE_CONSENT_KEY = 'todoria_cookie_consent';
 
@@ -31,12 +32,14 @@ function CookieConsent() {
             Privacy Policy
           </Link>
         </p>
-        <button
+        <Button
           onClick={handleAccept}
-          className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-900 text-sm font-medium rounded-lg transition-colors flex-shrink-0"
+          variant="secondary"
+          size="sm"
+          className="bg-white hover:bg-neutral-100 text-neutral-900 font-medium flex-shrink-0"
         >
           Got it
-        </button>
+        </Button>
       </div>
     </div>
   );

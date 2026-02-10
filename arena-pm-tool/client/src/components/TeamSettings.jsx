@@ -9,12 +9,26 @@ import {
   Mail,
   Clock,
   X,
-  AlertTriangle,
   Loader2
 } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import InviteMemberModal from './InviteMemberModal';
 import { formatDistanceToNow } from 'date-fns';
+import { Button } from 'components/ui/button';
+import { Badge } from 'components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from 'components/ui/card';
+import { Avatar, AvatarFallback } from 'components/ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from 'components/ui/alert-dialog';
 
 const ROLE_OPTIONS = [
   { value: 'admin', label: 'Admin', icon: ShieldCheck },
@@ -25,65 +39,6 @@ const ROLE_OPTIONS = [
 const getRoleInfo = (role) => {
   return ROLE_OPTIONS.find(r => r.value === role) || ROLE_OPTIONS[1];
 };
-
-// Confirmation Modal Component
-function ConfirmationModal({ isOpen, onClose, onConfirm, title, message, confirmText, isDestructive = false, isLoading = false }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/20 transition-opacity"
-        onClick={onClose}
-      ></div>
-
-      <div className="flex min-h-full items-end sm:items-center justify-center p-0 sm:p-4">
-        <div className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-md max-h-[90vh] overflow-y-auto animate-scale-in">
-          <div className="p-4 sm:p-6">
-            {/* Mobile drag handle indicator */}
-            <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
-
-            {/* Header with icon */}
-            <div className="flex items-start gap-4 mb-4">
-              <div className={`p-2 rounded-full ${isDestructive ? 'bg-red-100' : 'bg-amber-100'}`}>
-                <AlertTriangle className={`h-6 w-6 ${isDestructive ? 'text-red-600' : 'text-amber-600'}`} />
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
-                <p className="mt-1 text-sm text-neutral-600">{message}</p>
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 sm:py-2 border border-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 text-sm sm:text-base active:scale-[0.98]"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={onConfirm}
-                className={`flex-1 px-4 py-2.5 sm:py-2 text-white rounded-lg shadow-sm hover:shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm sm:text-base active:scale-[0.98] ${
-                  isDestructive
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-primary-600 hover:bg-primary-700'
-                }`}
-                disabled={isLoading}
-              >
-                {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {confirmText}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Member Row Component
 function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
@@ -102,9 +57,11 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
     <div className="flex items-center justify-between py-3 px-4 hover:bg-neutral-50 rounded-lg transition-colors">
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">
-          {member.user?.email?.[0]?.toUpperCase() || 'U'}
-        </div>
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className="bg-primary-600 text-white font-medium">
+            {member.user?.email?.[0]?.toUpperCase() || 'U'}
+          </AvatarFallback>
+        </Avatar>
 
         {/* Info */}
         <div>
@@ -113,9 +70,9 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
               {member.user?.email || 'Unknown User'}
             </span>
             {isCurrentUser && (
-              <span className="text-xs px-2 py-0.5 bg-neutral-100 text-neutral-900 rounded-full">
+              <Badge variant="secondary" className="text-xs">
                 You
-              </span>
+              </Badge>
             )}
           </div>
           <div className="flex items-center gap-1 text-sm text-neutral-500">
@@ -129,27 +86,33 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
       {isAdmin && !isCurrentUser && (
         <div className="flex items-center gap-2">
           {/* Role Dropdown */}
-          <select
+          <Select
             value={member.role}
-            onChange={(e) => handleRoleChange(e.target.value)}
+            onValueChange={handleRoleChange}
             disabled={isChangingRole}
-            className="text-sm border border-neutral-200 rounded-lg px-3 py-1.5 bg-white text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 disabled:opacity-50"
           >
-            {ROLE_OPTIONS.map((role) => (
-              <option key={role.value} value={role.value}>
-                {role.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-[120px] h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ROLE_OPTIONS.map((role) => (
+                <SelectItem key={role.value} value={role.value}>
+                  {role.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {/* Remove Button */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => onRemove(member)}
-            className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            className="text-neutral-400 hover:text-red-500 hover:bg-red-50"
             title="Remove member"
           >
             <Trash2 className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -165,9 +128,11 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
     <div className={`flex items-center justify-between py-3 px-4 rounded-lg ${isExpired ? 'bg-neutral-100' : 'hover:bg-neutral-50'} transition-colors`}>
       <div className="flex items-center gap-3">
         {/* Email Icon */}
-        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${isExpired ? 'bg-neutral-200 text-neutral-400' : 'bg-amber-100 text-amber-600'}`}>
-          <Mail className="h-5 w-5" />
-        </div>
+        <Avatar className="h-10 w-10">
+          <AvatarFallback className={isExpired ? 'bg-neutral-200 text-neutral-400' : 'bg-amber-100 text-amber-600'}>
+            <Mail className="h-5 w-5" />
+          </AvatarFallback>
+        </Avatar>
 
         {/* Info */}
         <div>
@@ -176,14 +141,14 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
               {invitation.email}
             </span>
             {isExpired && (
-              <span className="text-xs px-2 py-0.5 bg-neutral-200 text-neutral-500 rounded-full">
+              <Badge variant="secondary" className="text-xs text-neutral-500">
                 Expired
-              </span>
+              </Badge>
             )}
           </div>
           <div className="flex items-center gap-2 text-sm text-neutral-500">
             <span className="capitalize">{roleInfo.label}</span>
-            <span className="text-neutral-300">•</span>
+            <span className="text-neutral-300">&#8226;</span>
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
               <span>
@@ -199,13 +164,15 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
 
       {/* Actions */}
       {isAdmin && (
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => onCancel(invitation)}
-          className="p-2 text-neutral-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          className="text-neutral-400 hover:text-red-500 hover:bg-red-50"
           title="Cancel invitation"
         >
           <X className="h-4 w-4" />
-        </button>
+        </Button>
       )}
     </div>
   );
@@ -303,101 +270,106 @@ function TeamSettings() {
 
         {/* Invite Button (Admin Only) */}
         {isAdmin && (
-          <button
-            onClick={() => setIsInviteModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-          >
+          <Button onClick={() => setIsInviteModalOpen(true)}>
             <UserPlus className="h-4 w-4" />
-            <span>Invite Member</span>
-          </button>
+            Invite Member
+          </Button>
         )}
       </div>
 
       {/* Members Section */}
-      <div className="bg-white border border-[#E8EBF0] rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#E8EBF0] flex items-center gap-2">
-          <Users className="h-5 w-5 text-neutral-500" />
-          <h3 className="font-medium text-neutral-900">
-            Members ({members.length})
-          </h3>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+      <Card>
+        <CardHeader className="pb-0">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-neutral-500" />
+            <CardTitle className="text-base">
+              Members ({members.length})
+            </CardTitle>
           </div>
-        ) : members.length === 0 ? (
-          <div className="py-12 text-center text-neutral-400">
-            <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No members found</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-200 bg-white">
-            {members.map((member) => (
-              <MemberRow
-                key={member.id}
-                member={member}
-                isAdmin={isAdmin}
-                isCurrentUser={member.user_id === currentUser?.id}
-                onRoleChange={handleRoleChange}
-                onRemove={handleRemoveMember}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+            </div>
+          ) : members.length === 0 ? (
+            <div className="py-12 text-center text-neutral-400">
+              <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No members found</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-200">
+              {members.map((member) => (
+                <MemberRow
+                  key={member.id}
+                  member={member}
+                  isAdmin={isAdmin}
+                  isCurrentUser={member.user_id === currentUser?.id}
+                  onRoleChange={handleRoleChange}
+                  onRemove={handleRemoveMember}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pending Invitations Section */}
-      <div className="bg-white border border-[#E8EBF0] rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-[#E8EBF0] flex items-center gap-2">
-          <Mail className="h-5 w-5 text-neutral-500" />
-          <h3 className="font-medium text-neutral-900">
-            Pending Invitations ({pendingInvitations.length})
-          </h3>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+      <Card>
+        <CardHeader className="pb-0">
+          <div className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-neutral-500" />
+            <CardTitle className="text-base">
+              Pending Invitations ({pendingInvitations.length})
+            </CardTitle>
           </div>
-        ) : pendingInvitations.length === 0 ? (
-          <div className="py-12 text-center text-neutral-400">
-            <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No pending invitations</p>
-            {isAdmin && (
-              <p className="mt-1 text-sm">
-                Click "Invite Member" to send new invitations
-              </p>
-            )}
-          </div>
-        ) : (
-          <div className="divide-y divide-neutral-200 bg-white">
-            {pendingInvitations.map((invitation) => (
-              <InvitationRow
-                key={invitation.id}
-                invitation={invitation}
-                isAdmin={isAdmin}
-                onCancel={handleCancelInvitation}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+            </div>
+          ) : pendingInvitations.length === 0 ? (
+            <div className="py-12 text-center text-neutral-400">
+              <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No pending invitations</p>
+              {isAdmin && (
+                <p className="mt-1 text-sm">
+                  Click "Invite Member" to send new invitations
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="divide-y divide-neutral-200">
+              {pendingInvitations.map((invitation) => (
+                <InvitationRow
+                  key={invitation.id}
+                  invitation={invitation}
+                  isAdmin={isAdmin}
+                  onCancel={handleCancelInvitation}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Role Permissions Info (for non-admins) */}
       {!isAdmin && (
-        <div className="bg-neutral-50 border border-[#E8EBF0] rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <Shield className="h-5 w-5 text-neutral-500 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-neutral-700">Role Permissions</h4>
-              <p className="mt-1 text-sm text-neutral-400">
-                Only workspace admins can invite members, change roles, or remove team members.
-                Contact an admin if you need to make changes to the team.
-              </p>
+        <Card className="bg-neutral-50">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <Shield className="h-5 w-5 text-neutral-500 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-neutral-700">Role Permissions</h4>
+                <p className="mt-1 text-sm text-neutral-400">
+                  Only workspace admins can invite members, change roles, or remove team members.
+                  Contact an admin if you need to make changes to the team.
+                </p>
+              </div>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Invite Member Modal */}
@@ -406,29 +378,38 @@ function TeamSettings() {
         onClose={() => setIsInviteModalOpen(false)}
       />
 
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={confirmModal.isOpen}
-        onClose={closeConfirmModal}
-        onConfirm={handleConfirm}
-        isLoading={isActionLoading}
-        isDestructive={true}
-        title={
-          confirmModal.type === 'remove-member'
-            ? 'Remove Team Member'
-            : 'Cancel Invitation'
-        }
-        message={
-          confirmModal.type === 'remove-member'
-            ? `Are you sure you want to remove ${confirmModal.data?.user?.email || 'this member'} from the workspace? They will lose access to all workspace content.`
-            : `Are you sure you want to cancel the invitation to ${confirmModal.data?.email}? They will no longer be able to join this workspace.`
-        }
-        confirmText={
-          confirmModal.type === 'remove-member'
-            ? 'Remove Member'
-            : 'Cancel Invitation'
-        }
-      />
+      {/* Confirmation AlertDialog */}
+      <AlertDialog open={confirmModal.isOpen} onOpenChange={(open) => { if (!open) closeConfirmModal(); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmModal.type === 'remove-member'
+                ? 'Remove Team Member'
+                : 'Cancel Invitation'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmModal.type === 'remove-member'
+                ? `Are you sure you want to remove ${confirmModal.data?.user?.email || 'this member'} from the workspace? They will lose access to all workspace content.`
+                : `Are you sure you want to cancel the invitation to ${confirmModal.data?.email}? They will no longer be able to join this workspace.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isActionLoading}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirm}
+              disabled={isActionLoading}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {confirmModal.type === 'remove-member'
+                ? 'Remove Member'
+                : 'Cancel Invitation'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
