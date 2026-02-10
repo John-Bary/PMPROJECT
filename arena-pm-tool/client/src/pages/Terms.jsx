@@ -48,7 +48,7 @@ function Terms() {
 
         <h2>6. Data and Privacy</h2>
         <p>
-          Your use of the Service is also governed by our <Link to="/privacy" className="text-teal-600 hover:text-teal-700">Privacy Policy</Link>. We collect only the data necessary to provide the Service and do not sell personal data to third parties.
+          Your use of the Service is also governed by our <Link to="/privacy" className="text-neutral-900 hover:text-neutral-700">Privacy Policy</Link>. We collect only the data necessary to provide the Service and do not sell personal data to third parties.
         </p>
 
         <h2>7. Intellectual Property</h2>
@@ -78,7 +78,7 @@ function Terms() {
 
         <h2>12. Contact</h2>
         <p>
-          For questions about these Terms, contact us at <a href="mailto:support@todoria.app" className="text-teal-600 hover:text-teal-700">support@todoria.app</a>.
+          For questions about these Terms, contact us at <a href="mailto:support@todoria.app" className="text-neutral-900 hover:text-neutral-700">support@todoria.app</a>.
         </p>
       </main>
     </div>

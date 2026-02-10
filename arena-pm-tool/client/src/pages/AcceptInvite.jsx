@@ -115,13 +115,13 @@ function AcceptInvite() {
   return (
     <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8">
+        <div className="bg-neutral-900 border border-neutral-800 rounded-xl shadow-md p-6 sm:p-8">
           {/* Loading State */}
           {status === 'loading' && (
             <div className="text-center py-8">
               <div className="flex justify-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center">
-                  <Loader2 className="h-8 w-8 text-teal-500 animate-spin" />
+                <div className="w-16 h-16 rounded-full bg-neutral-700 flex items-center justify-center">
+                  <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
                 </div>
               </div>
               <h2 className="text-xl font-semibold text-white mb-2">
@@ -151,14 +151,14 @@ function AcceptInvite() {
               <div className="bg-neutral-800 rounded-lg p-4 mb-6">
                 <p className="text-sm text-neutral-300">
                   Redirecting to dashboard in{' '}
-                  <span className="font-semibold text-teal-400">{countdown}</span>{' '}
+                  <span className="font-semibold text-neutral-300">{countdown}</span>{' '}
                   seconds...
                 </p>
               </div>
 
               <button
                 onClick={() => navigate('/dashboard', { replace: true })}
-                className="inline-flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="h-4 w-4" />
@@ -209,7 +209,7 @@ function AcceptInvite() {
 
               <Link
                 to="/dashboard"
-                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors"
               >
                 <span>Go to Dashboard</span>
                 <ArrowRight className="h-4 w-4" />
@@ -221,7 +221,7 @@ function AcceptInvite() {
         {/* Footer */}
         <p className="text-center text-sm text-neutral-500 mt-6">
           Need help?{' '}
-          <a href="mailto:support@arena.com" className="text-teal-500 hover:text-teal-400">
+          <a href="mailto:support@arena.com" className="text-neutral-400 hover:text-neutral-300">
             Contact Support
           </a>
         </p>

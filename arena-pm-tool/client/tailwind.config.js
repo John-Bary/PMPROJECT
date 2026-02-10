@@ -5,23 +5,8 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // Color palette
+      // Color palette - monochrome only
       colors: {
-        // Primary teal palette
-        teal: {
-          50:  '#f0fdfa',
-          100: '#ccfbf1',
-          200: '#99f6e4',
-          300: '#5eead4',
-          400: '#2dd4bf',
-          500: '#14b8a6',
-          600: '#0d9488',
-          700: '#0f766e',
-          800: '#115e59',
-          900: '#134e4a',
-          950: '#042f2e',
-        },
-        // Extended neutral palette with custom 150
         neutral: {
           50:  '#fafafa',
           100: '#f5f5f5',
@@ -37,28 +22,27 @@ module.exports = {
         },
       },
 
-      // Border radius - Apple-like consistent values
+      // Border radius - simplified
       borderRadius: {
         'none': '0',
-        'sm': '6px',
-        'DEFAULT': '10px',
-        'md': '10px',
-        'lg': '12px',
-        'xl': '16px',
-        '2xl': '20px',
+        'sm': '4px',
+        'DEFAULT': '6px',
+        'md': '6px',
+        'lg': '8px',
+        'xl': '12px',
+        '2xl': '16px',
         'full': '9999px',
       },
 
-      // Box shadows - Apple-style soft shadows
+      // Box shadows - 2 levels + focus
       boxShadow: {
         'none': 'none',
-        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.03)',
-        'sm': '0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03)',
-        'DEFAULT': '0 2px 8px -2px rgba(0, 0, 0, 0.06), 0 1px 3px -1px rgba(0, 0, 0, 0.04)',
-        'md': '0 4px 12px -4px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04)',
-        'lg': '0 8px 24px -8px rgba(0, 0, 0, 0.10), 0 4px 8px -4px rgba(0, 0, 0, 0.05)',
-        'xl': '0 16px 48px -16px rgba(0, 0, 0, 0.12), 0 8px 16px -8px rgba(0, 0, 0, 0.06)',
-        'focus': '0 0 0 3px rgba(20, 184, 166, 0.25)',
+        'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        'DEFAULT': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        'md': '0 4px 12px -2px rgba(0, 0, 0, 0.08)',
+        'lg': '0 4px 12px -2px rgba(0, 0, 0, 0.08)',
+        'xl': '0 4px 12px -2px rgba(0, 0, 0, 0.08)',
+        'focus': '0 0 0 3px rgba(23, 23, 23, 0.15)',
       },
 
       // Typography
@@ -85,7 +69,6 @@ module.exports = {
 
       transitionTimingFunction: {
         'apple': 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-        'bounce-subtle': 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
 
       // Animation
@@ -105,7 +88,7 @@ module.exports = {
           '100%': { opacity: '1', transform: 'translateY(0)' },
         },
         scaleIn: {
-          '0%': { opacity: '0', transform: 'scale(0.96)' },
+          '0%': { opacity: '0', transform: 'scale(0.98)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
         },
       },

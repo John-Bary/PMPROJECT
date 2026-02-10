@@ -83,11 +83,11 @@ function DPA() {
           </section>
 
           <div className="pt-6 border-t border-neutral-200">
-            <Link to="/privacy" className="text-teal-600 hover:text-teal-700 font-medium">
+            <Link to="/privacy" className="text-neutral-900 hover:text-neutral-700 font-medium">
               View Privacy Policy
             </Link>
             <span className="mx-3 text-neutral-300">|</span>
-            <Link to="/terms" className="text-teal-600 hover:text-teal-700 font-medium">
+            <Link to="/terms" className="text-neutral-900 hover:text-neutral-700 font-medium">
               View Terms of Service
             </Link>
           </div>

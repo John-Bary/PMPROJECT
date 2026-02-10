@@ -205,16 +205,16 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {...provided.draggableProps}
           {...(canEdit ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-white border border-neutral-150 rounded-xl p-3 sm:p-4 hover:shadow transition-all duration-200 cursor-pointer ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
+          className={`bg-white border border-neutral-200 rounded-lg p-3 sm:p-4 hover:border-neutral-300 transition-all duration-200 cursor-pointer ${canEdit ? 'active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-60' : ''
-          } ${snapshot.isDragging ? 'shadow-md cursor-grabbing' : ''}`}
+          } ${snapshot.isDragging ? 'shadow-sm border-neutral-300 cursor-grabbing' : ''}`}
         >
           {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
           {canEdit && (
             <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleEdit}
-                className="p-1.5 text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
+                className="p-1.5 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-all duration-150"
                 title="Edit task"
                 aria-label="Edit task"
               >
@@ -237,8 +237,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           onClick={handleToggleComplete}
           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
             isCompleted
-              ? 'bg-teal-500 border-teal-500'
-              : 'border-neutral-300 hover:border-teal-500'
+              ? 'bg-neutral-900 border-neutral-900'
+              : 'border-neutral-300 hover:border-neutral-500'
           } ${isToggling || !canEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={isToggling || !canEdit}
           title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
@@ -259,7 +259,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
-            className="flex-1 pr-16 font-medium text-neutral-900 border-b-2 border-teal-500 focus:outline-none bg-transparent"
+            className="flex-1 pr-16 font-medium text-neutral-900 border-b-2 border-neutral-900 focus:outline-none bg-transparent"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -307,7 +307,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
           {/* Priority Dropdown */}
           {showPriorityDropdown && (
-            <div className="absolute left-0 mt-1 w-32 bg-white border border-neutral-150 rounded-xl shadow-lg z-50 animate-fade-in">
+            <div className="absolute left-0 mt-1 w-32 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
               <div className="py-1">
                 {priorities.map((priority) => (
                   <button
@@ -321,7 +321,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                       {priority}
                     </span>
                     {task.priority === priority && (
-                      <Check size={14} className="text-teal-600" />
+                      <Check size={14} className="text-neutral-900" />
                     )}
                   </button>
                 ))}
@@ -372,7 +372,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                   {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
                     <div
                       key={assignee.id}
-                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-600 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
                       style={{ zIndex: 3 - idx }}
                       title={assignee.name}
                     >

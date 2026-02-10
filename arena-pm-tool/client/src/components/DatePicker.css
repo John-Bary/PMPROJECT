@@ -1,9 +1,9 @@
-/* Custom DatePicker styles - Teal accent */
+/* Custom DatePicker styles - Neutral accent */
 .rdp {
   --rdp-cell-size: 36px;
-  --rdp-accent-color: #14b8a6;
-  --rdp-background-color: #f0fdfa;
-  --rdp-accent-color-dark: #0d9488;
+  --rdp-accent-color: #171717;
+  --rdp-background-color: #f5f5f5;
+  --rdp-accent-color-dark: #262626;
   margin: 0;
 }
 
@@ -61,6 +61,4 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: #737373;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }

@@ -323,6 +323,27 @@ function ListView() {
 
   const priorities = ['low', 'medium', 'high', 'urgent'];
 
+  // Inline quick-add
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
+  const quickAddInputRef = useRef(null);
+  const { createTask } = useTaskStore();
+
+  const handleQuickAdd = async (e) => {
+    if (e.key !== 'Enter') return;
+    const title = quickAddTitle.trim();
+    if (!title || !categories.length) return;
+
+    setIsQuickAdding(true);
+    try {
+      await createTask({ title, category_id: categories[0].id, priority: 'medium' });
+      setQuickAddTitle('');
+    } finally {
+      setIsQuickAdding(false);
+      quickAddInputRef.current?.focus();
+    }
+  };
+
   // Memoize parent tasks from filtered tasks
   const parentTasks = useMemo(() =>
     filteredTasks.filter(task => !task.parentTaskId),
@@ -359,7 +380,7 @@ function ListView() {
         {/* Title Row */}
         <div className="flex items-center justify-between mb-3 sm:mb-0">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900">Tasks</h2>
+            <h2 className="text-lg font-semibold text-neutral-900">Tasks</h2>
             {isLoadingData && (
               <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <InlineSpinner />
@@ -371,7 +392,7 @@ function ListView() {
           {/* Add Task Button - Always visible */}
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
           >
             <Plus size={18} className="sm:w-5 sm:h-5" />
@@ -390,7 +411,7 @@ function ListView() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search tasks..."
-              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 disabled:bg-neutral-50 transition-all duration-150"
+              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:bg-neutral-50 transition-all duration-150"
               disabled={disableControls}
             />
             {searchQuery && (
@@ -413,17 +434,17 @@ function ListView() {
 
       {/* Task List Table */}
       {isLoadingData ? (
-        <div className="bg-white rounded-xl shadow-sm border border-neutral-150 overflow-x-auto">
+        <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
           {/* Desktop Table Header */}
           <table className="w-full hidden md:table">
-            <thead className="bg-neutral-50/80 border-b border-neutral-150">
+            <thead className="bg-neutral-50/80 border-b border-neutral-200">
               <tr>
                 <th className="w-12 px-4 py-3"></th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Task</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Priority</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Assignee</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Due Date</th>
-                <th className="text-right px-4 py-3 text-sm font-semibold text-neutral-600">Actions</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Task</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Priority</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Assignee</th>
+                <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Due Date</th>
+                <th className="text-right px-4 py-3 text-sm font-medium text-neutral-600">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -449,19 +470,39 @@ function ListView() {
       ) : (
         <>
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="bg-white rounded-xl shadow-sm border border-neutral-150 overflow-x-auto">
+          <div className="bg-white rounded-lg border border-neutral-200 overflow-x-auto">
             {/* Desktop Table View */}
             <table className="w-full hidden md:table">
-              <thead className="bg-neutral-50/80 border-b border-neutral-150">
+              <thead className="bg-neutral-50/80 border-b border-neutral-200">
                 <tr>
                   <th className="w-12 px-4 py-3"></th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Task</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Priority</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Assignee</th>
-                  <th className="text-left px-4 py-3 text-sm font-semibold text-neutral-600">Due Date</th>
-                  <th className="text-right px-4 py-3 text-sm font-semibold text-neutral-600">Actions</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Task</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Priority</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Assignee</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Due Date</th>
+                  <th className="text-right px-4 py-3 text-sm font-medium text-neutral-600">Actions</th>
                 </tr>
               </thead>
+              {/* Quick-Add Row */}
+              <tbody>
+                <tr className="border-b border-neutral-100">
+                  <td colSpan="6" className="px-4 py-0">
+                    <div className="flex items-center gap-3">
+                      <Plus size={16} className="text-neutral-300 flex-shrink-0" />
+                      <input
+                        ref={quickAddInputRef}
+                        type="text"
+                        value={quickAddTitle}
+                        onChange={(e) => setQuickAddTitle(e.target.value)}
+                        onKeyDown={handleQuickAdd}
+                        placeholder="Add a task... (press Enter)"
+                        disabled={isQuickAdding || !categories.length}
+                        className="w-full py-2.5 text-sm bg-transparent placeholder:text-neutral-300 text-neutral-900 outline-none disabled:opacity-50"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
               {visibleCategories.length > 0 ? (
                 visibleCategories.map((category) => {
                   const categoryTasks = tasksByCategory[category.id] || [];
@@ -485,7 +526,7 @@ function ListView() {
                         <tbody
                           ref={provided.innerRef}
                           {...provided.droppableProps}
-                          className={snapshot.isDraggingOver ? 'bg-teal-50/40' : undefined}
+                          className={snapshot.isDraggingOver ? 'bg-neutral-100' : undefined}
                         >
                           {/* Category Header Row */}
                           <tr className="bg-neutral-100 border-b border-neutral-200">
@@ -525,7 +566,7 @@ function ListView() {
                                   <tr
                                     ref={dragProvided.innerRef}
                                     {...dragProvided.draggableProps}
-                                    className={`hover:bg-neutral-50 transition-all duration-150 ${isCompleted ? 'opacity-60' : ''} ${dragSnapshot.isDragging ? 'bg-teal-50' : ''}`}
+                                    className={`hover:bg-neutral-50 transition-all duration-150 ${isCompleted ? 'opacity-60' : ''} ${dragSnapshot.isDragging ? 'bg-neutral-50' : ''}`}
                                   >
                                     {/* Drag handle + expand/collapse (parents) */}
                                     <td className="px-4 py-3">
@@ -558,8 +599,8 @@ function ListView() {
                                           onClick={() => handleToggleComplete(task)}
                                           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                                             isCompleted
-                                              ? 'bg-teal-500 border-teal-500'
-                                              : 'border-neutral-300 hover:border-teal-500'
+                                              ? 'bg-neutral-900 border-neutral-900'
+                                              : 'border-neutral-300 hover:border-neutral-500'
                                           } ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}`}
                                           disabled={isToggling}
                                           aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
@@ -577,7 +618,7 @@ function ListView() {
                                         <div className="flex-1">
                                           <button
                                             onClick={() => handleOpenDetail(task)}
-                                            className={`font-medium text-left hover:text-teal-600 hover:underline transition-all duration-150 ${isSubtask ? 'text-neutral-700' : 'text-neutral-900'} ${isCompleted ? 'line-through' : ''}`}
+                                            className={`font-medium text-left hover:text-neutral-700  transition-all duration-150 ${isSubtask ? 'text-neutral-700' : 'text-neutral-900'} ${isCompleted ? 'line-through' : ''}`}
                                           >
                                             {task.title}
                                             {!isSubtask && hasSubtasks && (
@@ -605,7 +646,7 @@ function ListView() {
                                         </button>
 
                                         {activeDropdown?.taskId === task.id && activeDropdown?.type === 'priority' && (
-                                          <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-neutral-150 rounded-xl shadow-lg z-30 animate-fade-in">
+                                          <div className="absolute left-0 top-full mt-1 w-32 bg-white border border-neutral-200 rounded-lg shadow-sm z-30 animate-fade-in">
                                             <div className="py-1">
                                               {priorities.map((priority) => (
                                                 <button
@@ -619,7 +660,7 @@ function ListView() {
                                                     {priority}
                                                   </span>
                                                   {task.priority === priority && (
-                                                    <Check size={14} className="text-teal-600" />
+                                                    <Check size={14} className="text-neutral-700" />
                                                   )}
                                                 </button>
                                               ))}
@@ -643,7 +684,7 @@ function ListView() {
                                                 {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
                                                   <div
                                                     key={assignee.id}
-                                                    className="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                                                    className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
                                                     style={{ zIndex: 3 - idx }}
                                                     title={assignee.name}
                                                   >
@@ -736,7 +777,7 @@ function ListView() {
                                         {!isSubtask && (
                                           <button
                                             onClick={() => handleAddSubtask(task)}
-                                            className="text-neutral-600 hover:text-teal-600 transition-all duration-150"
+                                            className="text-neutral-600 hover:text-neutral-700 transition-all duration-150"
                                             title="Add subtask"
                                             aria-label="Add subtask"
                                           >
@@ -745,7 +786,7 @@ function ListView() {
                                         )}
                                         <button
                                           onClick={() => handleEdit(task)}
-                                          className="text-neutral-600 hover:text-teal-600 transition-all duration-150"
+                                          className="text-neutral-600 hover:text-neutral-700 transition-all duration-150"
                                           title={isSubtask ? 'Edit subtask' : 'Edit task'}
                                           aria-label={isSubtask ? 'Edit subtask' : 'Edit task'}
                                         >
@@ -796,13 +837,28 @@ function ListView() {
 
             {/* Mobile Card View */}
             <div className="md:hidden">
+              {/* Mobile Quick-Add */}
+              <div className="border-b border-neutral-100 px-4">
+                <div className="flex items-center gap-3">
+                  <Plus size={16} className="text-neutral-300 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={quickAddTitle}
+                    onChange={(e) => setQuickAddTitle(e.target.value)}
+                    onKeyDown={handleQuickAdd}
+                    placeholder="Add a task..."
+                    disabled={isQuickAdding || !categories.length}
+                    className="w-full py-3 text-sm bg-transparent placeholder:text-neutral-300 text-neutral-900 outline-none disabled:opacity-50"
+                  />
+                </div>
+              </div>
               {visibleCategories.length > 0 ? (
                 visibleCategories.map((category) => {
                   const categoryTasks = tasksByCategory[category.id] || [];
                   const isCategoryCollapsed = collapsedCategories[category.id];
 
                   return (
-                    <div key={category.id} className="border-b border-neutral-150 last:border-b-0">
+                    <div key={category.id} className="border-b border-neutral-200 last:border-b-0">
                       {/* Category Header */}
                       <button
                         onClick={() => toggleCategoryCollapse(category.id)}
@@ -837,8 +893,8 @@ function ListView() {
                                       onClick={() => handleToggleComplete(task)}
                                       className={`flex-shrink-0 w-5 h-5 mt-0.5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                                         isCompleted
-                                          ? 'bg-teal-500 border-teal-500'
-                                          : 'border-neutral-300 hover:border-teal-500'
+                                          ? 'bg-neutral-900 border-neutral-900'
+                                          : 'border-neutral-300 hover:border-neutral-500'
                                       } ${isToggling ? 'opacity-70' : ''}`}
                                       disabled={isToggling}
                                       aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
@@ -856,7 +912,7 @@ function ListView() {
                                     <div className="flex-1 min-w-0">
                                       <button
                                         onClick={() => handleOpenDetail(task)}
-                                        className={`font-medium text-neutral-900 text-left hover:text-teal-600 transition-all duration-150 ${isCompleted ? 'line-through' : ''}`}
+                                        className={`font-medium text-neutral-900 text-left hover:text-neutral-700 transition-all duration-150 ${isCompleted ? 'line-through' : ''}`}
                                       >
                                         {task.title}
                                         {hasSubtasks && (
@@ -899,7 +955,7 @@ function ListView() {
                                           {(task.assignees || []).slice(0, 2).map((assignee, idx) => (
                                             <div
                                               key={assignee.id}
-                                              className="w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center text-white text-xs font-medium border border-white"
+                                              className="w-5 h-5 rounded-full bg-neutral-500 flex items-center justify-center text-white text-xs font-medium border border-white"
                                               style={{ zIndex: 2 - idx }}
                                               title={assignee.name}
                                             >
@@ -921,7 +977,7 @@ function ListView() {
                                     {hasSubtasks && (
                                       <button
                                         onClick={() => toggleTaskExpansion(task.id)}
-                                        className="text-xs text-teal-600 flex items-center gap-1"
+                                        className="text-xs text-neutral-700 flex items-center gap-1"
                                       >
                                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                         {isExpanded ? 'Hide' : 'Show'} subtasks
@@ -930,7 +986,7 @@ function ListView() {
                                     <div className="flex items-center gap-3 ml-auto">
                                       <button
                                         onClick={() => handleAddSubtask(task)}
-                                        className="text-neutral-500 hover:text-teal-600 p-1"
+                                        className="text-neutral-500 hover:text-neutral-700 p-1"
                                         title="Add subtask"
                                         aria-label="Add subtask"
                                       >
@@ -938,7 +994,7 @@ function ListView() {
                                       </button>
                                       <button
                                         onClick={() => handleEdit(task)}
-                                        className="text-neutral-500 hover:text-teal-600 p-1"
+                                        className="text-neutral-500 hover:text-neutral-700 p-1"
                                         title="Edit task"
                                         aria-label="Edit task"
                                       >
@@ -972,8 +1028,8 @@ function ListView() {
                                           onClick={() => handleToggleComplete(subtask)}
                                           className={`flex-shrink-0 w-4 h-4 mt-0.5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
                                             isSubtaskCompleted
-                                              ? 'bg-teal-500 border-teal-500'
-                                              : 'border-neutral-300 hover:border-teal-500'
+                                              ? 'bg-neutral-900 border-neutral-900'
+                                              : 'border-neutral-300 hover:border-neutral-500'
                                           } ${isSubtaskToggling ? 'opacity-70' : ''}`}
                                           disabled={isSubtaskToggling}
                                           aria-label={isSubtaskCompleted ? `Mark "${subtask.title}" as incomplete` : `Mark "${subtask.title}" as complete`}
@@ -996,7 +1052,7 @@ function ListView() {
                                         <div className="flex items-center gap-2">
                                           <button
                                             onClick={() => handleEdit(subtask)}
-                                            className="text-neutral-400 hover:text-teal-600 p-1"
+                                            className="text-neutral-400 hover:text-neutral-700 p-1"
                                             aria-label="Edit subtask"
                                           >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1047,7 +1103,7 @@ function ListView() {
             <button
               onClick={loadMoreTasks}
               disabled={isLoadingMore}
-              className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-teal-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isLoadingMore && <ButtonSpinner />}
               {isLoadingMore ? 'Loading...' : 'Load more'}
@@ -1070,7 +1126,7 @@ function ListView() {
       {deletingTask && (
         <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="fixed inset-0 bg-black/20 transition-opacity"
             onClick={cancelDelete}
           ></div>
           <div className="flex min-h-full items-center justify-center p-4">

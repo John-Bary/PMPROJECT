@@ -143,7 +143,7 @@ const AccountTab = () => {
               name="currentPassword"
               value={passwordForm.currentPassword}
               onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors ${
                 passwordErrors.currentPassword ? 'border-red-500' : 'border-neutral-700'
               }`}
               placeholder="Enter current password"
@@ -163,7 +163,7 @@ const AccountTab = () => {
               name="newPassword"
               value={passwordForm.newPassword}
               onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors ${
                 passwordErrors.newPassword ? 'border-red-500' : 'border-neutral-700'
               }`}
               placeholder="At least 8 characters"
@@ -183,7 +183,7 @@ const AccountTab = () => {
               name="confirmPassword"
               value={passwordForm.confirmPassword}
               onChange={handlePasswordChange}
-              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors ${
+              className={`w-full px-4 py-2.5 bg-neutral-800 border rounded-lg text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent transition-colors ${
                 passwordErrors.confirmPassword ? 'border-red-500' : 'border-neutral-700'
               }`}
               placeholder="Confirm new password"
@@ -198,7 +198,7 @@ const AccountTab = () => {
           <button
             type="submit"
             disabled={isChangingPassword}
-            className="flex items-center gap-2 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 bg-neutral-700 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isChangingPassword ? (
               <>

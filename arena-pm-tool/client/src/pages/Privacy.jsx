@@ -23,7 +23,7 @@ function Privacy() {
 
         <h2>2. Data Controller</h2>
         <p>
-          Todoria is the data controller for your personal data. For any privacy inquiries, contact us at <a href="mailto:privacy@todoria.app" className="text-teal-600 hover:text-teal-700">privacy@todoria.app</a>.
+          Todoria is the data controller for your personal data. For any privacy inquiries, contact us at <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>.
         </p>
 
         <h2>3. Data We Collect</h2>
@@ -78,7 +78,7 @@ function Privacy() {
           <li><strong>Objection:</strong> Object to processing based on legitimate interest</li>
         </ul>
         <p>
-          To exercise any of these rights, contact <a href="mailto:privacy@todoria.app" className="text-teal-600 hover:text-teal-700">privacy@todoria.app</a>. We will respond within 30 days.
+          To exercise any of these rights, contact <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>. We will respond within 30 days.
         </p>
 
         <h2>9. Cookies</h2>
@@ -109,7 +109,7 @@ function Privacy() {
         <h2>14. Contact</h2>
         <p>
           For privacy-related questions or to exercise your rights, contact:<br />
-          <a href="mailto:privacy@todoria.app" className="text-teal-600 hover:text-teal-700">privacy@todoria.app</a>
+          <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>
         </p>
       </main>
     </div>

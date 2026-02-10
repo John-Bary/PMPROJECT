@@ -130,7 +130,7 @@ const MyTasksTab = () => {
                 onClick={() => setStatusFilter(option.value)}
                 className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   statusFilter === option.value
-                    ? 'bg-teal-600 text-white'
+                    ? 'bg-neutral-600 text-white'
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -156,7 +156,7 @@ const MyTasksTab = () => {
       <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 text-teal-400 animate-spin" />
+            <Loader2 className="h-8 w-8 text-neutral-400 animate-spin" />
           </div>
         ) : error ? (
           <div className="flex items-center justify-center py-12 text-red-400">

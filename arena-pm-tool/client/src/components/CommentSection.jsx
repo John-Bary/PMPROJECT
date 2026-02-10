@@ -135,15 +135,7 @@ function CommentSection({ taskId }) {
     }
   };
 
-  const getAvatarColor = (name) => {
-    const colors = [
-      'bg-blue-500', 'bg-green-500', 'bg-purple-500',
-      'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
-    ];
-    if (!name) return colors[0];
-    const index = name.charCodeAt(0) % colors.length;
-    return colors[index];
-  };
+  const getAvatarColor = () => 'bg-neutral-600';
 
   const formatCommentTime = (dateString) => {
     const date = new Date(dateString);
@@ -158,7 +150,7 @@ function CommentSection({ taskId }) {
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-700 mb-4">Comments</h3>
+      <h3 className="text-sm font-medium text-neutral-700 mb-4">Comments</h3>
 
       {/* Comment Input */}
       <div className="flex gap-3 mb-6">
@@ -172,18 +164,18 @@ function CommentSection({ taskId }) {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none text-sm"
             rows={2}
             disabled={isSubmitting}
           />
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-neutral-400">
               Press {navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'}+Enter to send
             </span>
             <button
               onClick={handleSubmitComment}
               disabled={!newComment.trim() || isSubmitting}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 text-white text-sm rounded-lg hover:bg-neutral-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
@@ -205,10 +197,10 @@ function CommentSection({ taskId }) {
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
           <InlineSpinner />
-          <span className="ml-2 text-sm text-gray-500">Loading comments...</span>
+          <span className="ml-2 text-sm text-neutral-500">Loading comments...</span>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-6 text-sm text-gray-400">
+        <div className="text-center py-6 text-sm text-neutral-400">
           No comments yet. Be the first to comment!
         </div>
       ) : (
@@ -220,14 +212,14 @@ function CommentSection({ taskId }) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-neutral-900">
                     {comment.authorName || 'Unknown'}
                   </span>
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-neutral-400">
                     {formatCommentTime(comment.createdAt)}
                   </span>
                   {comment.updatedAt !== comment.createdAt && (
-                    <span className="text-xs text-gray-400">(edited)</span>
+                    <span className="text-xs text-neutral-400">(edited)</span>
                   )}
 
                   {/* Actions Menu */}
@@ -235,15 +227,15 @@ function CommentSection({ taskId }) {
                     <div className="relative ml-auto" ref={menuOpenId === comment.id ? menuRef : null}>
                       <button
                         onClick={() => setMenuOpenId(menuOpenId === comment.id ? null : comment.id)}
-                        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded opacity-0 group-hover:opacity-100 transition"
+                        className="p-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded opacity-0 group-hover:opacity-100 transition"
                       >
                         <MoreHorizontal size={16} />
                       </button>
                       {menuOpenId === comment.id && (
-                        <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                        <div className="absolute right-0 mt-1 w-32 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
                           <button
                             onClick={() => handleStartEdit(comment)}
-                            className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 rounded-t-lg"
+                            className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 flex items-center gap-2 rounded-t-lg"
                           >
                             <Pencil size={14} />
                             Edit
@@ -278,27 +270,27 @@ function CommentSection({ taskId }) {
                       ref={editTextareaRef}
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none text-sm"
                       rows={2}
                     />
                     <div className="flex gap-2 mt-2">
                       <button
                         onClick={handleSaveEdit}
                         disabled={!editingContent.trim()}
-                        className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition disabled:opacity-50"
+                        className="px-3 py-1 bg-neutral-900 text-white text-xs rounded hover:bg-neutral-800 transition disabled:opacity-50"
                       >
                         Save
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        className="px-3 py-1 text-gray-600 text-xs hover:bg-gray-100 rounded transition"
+                        className="px-3 py-1 text-neutral-600 text-xs hover:bg-neutral-100 rounded transition"
                       >
                         Cancel
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap break-words">
+                  <p className="mt-1 text-sm text-neutral-700 whitespace-pre-wrap break-words">
                     {comment.content}
                   </p>
                 )}

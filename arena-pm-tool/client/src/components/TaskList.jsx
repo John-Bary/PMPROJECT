@@ -279,12 +279,9 @@ function TaskList() {
     <>
       {/* Viewer Mode Banner */}
       {!userCanEdit && (
-        <div className="mb-4 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-3 text-amber-800">
-          <Eye className="h-5 w-5 flex-shrink-0" />
-          <div>
-            <p className="font-medium text-sm">View Only Mode</p>
-            <p className="text-xs text-amber-700">You have viewer access to this workspace. Contact an admin to request edit permissions.</p>
-          </div>
+        <div className="mb-4 px-4 py-3 border border-neutral-200 rounded-lg flex items-center gap-3 text-neutral-600">
+          <Eye className="h-4 w-4 flex-shrink-0" />
+          <p className="text-sm">View only — contact an admin for edit access.</p>
         </div>
       )}
 
@@ -293,7 +290,7 @@ function TaskList() {
         {/* Title Row */}
         <div className="flex items-center justify-between mb-3 sm:mb-0">
           <div className="flex items-center gap-3">
-            <h2 className="text-xl sm:text-2xl font-semibold text-neutral-900">Tasks</h2>
+            <h2 className="text-lg font-semibold text-neutral-900">Tasks</h2>
             {isLoadingData && (
               <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <InlineSpinner />
@@ -305,7 +302,7 @@ function TaskList() {
           {/* Add Task Button - Always visible */}
           <button
             onClick={() => openCreateTask(getSuggestedCategoryId())}
-            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-teal-500 text-white text-sm font-medium rounded-lg hover:bg-teal-600 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-all duration-200 flex-shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={disablePrimaryAction}
             title={!userCanEdit ? 'View-only access' : ''}
           >
@@ -326,7 +323,7 @@ function TaskList() {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search tasks... (⌘K)"
-              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 disabled:bg-neutral-50 transition-all duration-150"
+              className="w-full pl-9 sm:pl-10 pr-9 sm:pr-10 py-2 text-sm border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 disabled:bg-neutral-50 transition-all duration-150"
               disabled={disableControls}
             />
             {searchInput && (
@@ -463,7 +460,7 @@ function TaskList() {
                 <button
                   onClick={loadMoreTasks}
                   disabled={isLoadingMore}
-                  className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-teal-600 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 px-6 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isLoadingMore && <ButtonSpinner />}
                   {isLoadingMore ? 'Loading...' : 'Load more'}
@@ -494,11 +491,11 @@ function TaskList() {
       {deletingTask && (
         <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="delete-task-title">
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="fixed inset-0 bg-black/20 transition-opacity"
             onClick={cancelDelete}
           ></div>
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-scale-in">
+            <div className="relative bg-white rounded-xl shadow-md max-w-md w-full p-6 animate-scale-in">
               <h3 id="delete-task-title" className="text-lg font-semibold text-neutral-900 mb-2">
                 Delete Task
               </h3>
@@ -515,7 +512,7 @@ function TaskList() {
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isDeletingTask}
                 >
                   {isDeletingTask && <ButtonSpinner />}
@@ -531,11 +528,11 @@ function TaskList() {
       {deletingCategory && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div
-            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+            className="fixed inset-0 bg-black/20 transition-opacity"
             onClick={cancelDeleteCategory}
           ></div>
           <div className="flex min-h-full items-center justify-center p-4">
-            <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 animate-scale-in">
+            <div className="relative bg-white rounded-xl shadow-md max-w-md w-full p-6 animate-scale-in">
               <h3 className="text-lg font-semibold text-neutral-900 mb-2">
                 Delete Category
               </h3>
@@ -552,7 +549,7 @@ function TaskList() {
                 </button>
                 <button
                   onClick={confirmDeleteCategory}
-                  className="flex-1 px-4 py-2 bg-red-500 text-white font-medium rounded-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                   disabled={isDeletingCategory}
                 >
                   {isDeletingCategory && <ButtonSpinner />}

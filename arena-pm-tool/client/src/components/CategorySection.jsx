@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Pencil, Trash2, ChevronDown, ChevronRight, Plus, GripVertical } from 'lucide-react';
 import { Droppable, Draggable } from '@hello-pangea/dnd';
 import TaskItem from './TaskItem';
 import EmptyState from './EmptyState';
+import useTaskStore from '../store/taskStore';
 
 function CategorySection({
   category,
@@ -21,6 +22,25 @@ function CategorySection({
   canEdit = true,
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [isQuickAdding, setIsQuickAdding] = useState(false);
+  const quickAddRef = useRef(null);
+  const { createTask } = useTaskStore();
+
+  const handleQuickAdd = async (e) => {
+    if (e.key !== 'Enter') return;
+    const title = quickAddTitle.trim();
+    if (!title) return;
+
+    setIsQuickAdding(true);
+    try {
+      await createTask({ title, category_id: category.id, priority: 'medium' });
+      setQuickAddTitle('');
+    } finally {
+      setIsQuickAdding(false);
+      quickAddRef.current?.focus();
+    }
+  };
 
   // Load collapse state from localStorage
   useEffect(() => {
@@ -44,7 +64,7 @@ function CategorySection({
           ref={categoryProvided.innerRef}
           {...categoryProvided.draggableProps}
           className={`flex-shrink-0 w-72 sm:w-80 snap-start transition-shadow duration-200 ${
-            categorySnapshot.isDragging ? 'shadow-xl bg-neutral-50 rounded-xl' : ''
+            categorySnapshot.isDragging ? 'shadow-sm bg-neutral-50 rounded-lg' : ''
           }`}
         >
           {/* Category Header */}
@@ -55,10 +75,10 @@ function CategorySection({
                 {canEdit ? (
                   <div
                     {...categoryProvided.dragHandleProps}
-                    className="p-1 text-neutral-300 hover:text-neutral-500 cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
+                    className="p-1 text-neutral-200 hover:text-neutral-500 cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
                     title="Drag to reorder category"
                   >
-                    <GripVertical size={16} />
+                    <GripVertical size={14} />
                   </div>
                 ) : (
                   <div className="w-6" /> /* Spacer for alignment */
@@ -87,7 +107,7 @@ function CategorySection({
                 <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <button
                     onClick={() => onEditCategory(category)}
-                    className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-all duration-150"
+                    className="p-1.5 sm:p-1 text-neutral-400 sm:text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-all duration-150"
                     title="Edit category"
                     aria-label={`Edit ${category.name} category`}
                   >
@@ -106,6 +126,22 @@ function CategorySection({
             </div>
           </div>
 
+          {/* Inline Quick-Add */}
+          {canEdit && !isCollapsed && (
+            <div className="mb-3">
+              <input
+                ref={quickAddRef}
+                type="text"
+                value={quickAddTitle}
+                onChange={(e) => setQuickAddTitle(e.target.value)}
+                onKeyDown={handleQuickAdd}
+                placeholder="Add a task..."
+                disabled={isQuickAdding}
+                className="w-full px-3 py-2 text-sm bg-transparent border-b border-transparent focus:border-neutral-300 placeholder:text-neutral-300 text-neutral-900 outline-none transition-colors disabled:opacity-50"
+              />
+            </div>
+          )}
+
           {/* Tasks - Droppable Area (disabled when category is being dragged or user is viewer) */}
           <Droppable droppableId={category.id.toString()} isDropDisabled={isDraggingCategory || !canEdit}>
             {(provided, snapshot) => (
@@ -114,7 +150,7 @@ function CategorySection({
                 {...provided.droppableProps}
                 className={`space-y-3 transition-all duration-300 ease-in-out min-h-[50px] ${
                   isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[10000px] opacity-100 overflow-visible'
-                } ${snapshot.isDraggingOver && !isDraggingCategory ? 'bg-teal-50/50 rounded-xl' : ''}`}
+                } ${snapshot.isDraggingOver && !isDraggingCategory ? 'bg-neutral-100 rounded-lg' : ''}`}
               >
                 {tasks.length > 0 ? (
                   tasks.map((task, taskIndex) => (

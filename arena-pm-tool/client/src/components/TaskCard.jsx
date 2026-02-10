@@ -9,7 +9,6 @@ import { priorityStyles, priorityDotColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
-import { getAvatarColor } from './AssigneeListItem';
 
 function TaskCard({
   task,
@@ -139,8 +138,6 @@ function TaskCard({
 
   const priorities = ['low', 'medium', 'high', 'urgent'];
 
-  // getAvatarColor is now imported from AssigneeListItem
-
   return (
     <>
       <Draggable draggableId={task.id.toString()} index={index}>
@@ -151,12 +148,12 @@ function TaskCard({
             {...provided.dragHandleProps}
             onClick={handleCardClick}
             className={`
-              bg-white rounded-lg border border-gray-200
+              bg-white rounded-lg border border-neutral-200
               ${compact ? 'p-2' : 'p-3'}
-              hover:shadow-md hover:border-gray-300
+              hover:border-neutral-300
               cursor-pointer transition-all duration-200
               ${isCompleted ? 'opacity-60' : ''}
-              ${snapshot.isDragging ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : ''}
+              ${snapshot.isDragging ? 'shadow-sm border-neutral-300' : ''}
             `}
           >
             {/* Header: Checkbox + Title */}
@@ -167,8 +164,8 @@ function TaskCard({
                   flex-shrink-0 w-5 h-5 rounded-full border-2
                   flex items-center justify-center transition-all
                   ${isCompleted
-                    ? 'bg-green-500 border-green-500'
-                    : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                    ? 'bg-neutral-900 border-neutral-900'
+                    : 'border-neutral-300 hover:border-neutral-500'
                   }
                   ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}
                 `}
@@ -184,8 +181,8 @@ function TaskCard({
 
               <div className="flex-1 min-w-0">
                 <h4 className={`
-                  text-sm font-medium text-gray-900 leading-tight
-                  ${isCompleted ? 'line-through text-gray-500' : ''}
+                  text-sm font-medium text-neutral-900 leading-tight
+                  ${isCompleted ? 'line-through text-neutral-500' : ''}
                 `}>
                   {task.title}
                 </h4>
@@ -194,19 +191,19 @@ function TaskCard({
 
             {/* Description preview */}
             {!compact && task.description && (
-              <p className="mt-1.5 ml-7 text-xs text-gray-500 line-clamp-2">
+              <p className="mt-1.5 ml-7 text-xs text-neutral-500 line-clamp-2">
                 {task.description}
               </p>
             )}
 
             {/* Subtasks progress */}
             {totalSubtasks > 0 && (
-              <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-gray-500">
-                <ListTodo size={12} className="text-gray-400" />
+              <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-neutral-500">
+                <ListTodo size={12} className="text-neutral-400" />
                 <span>{completedSubtasks}/{totalSubtasks}</span>
-                <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden max-w-[60px]">
+                <div className="flex-1 h-1 bg-neutral-100 rounded-full overflow-hidden max-w-[60px]">
                   <div
-                    className="h-full bg-green-500 rounded-full transition-all"
+                    className="h-full bg-neutral-900 rounded-full transition-all"
                     style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
                   />
                 </div>
@@ -231,7 +228,7 @@ function TaskCard({
                 </button>
 
                 {showPriorityDropdown && (
-                  <div className="absolute left-0 mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
                     <div className="py-1">
                       {priorities.map((priority) => (
                         <button
@@ -239,14 +236,14 @@ function TaskCard({
                           onClick={() => handlePrioritySelect(priority)}
                           className={`
                             w-full px-2 py-1.5 text-left text-xs font-medium
-                            hover:bg-gray-50 flex items-center gap-2 transition
-                            ${task.priority === priority ? 'bg-gray-50' : ''}
+                            hover:bg-neutral-50 flex items-center gap-2 transition
+                            ${task.priority === priority ? 'bg-neutral-50' : ''}
                           `}
                         >
                           <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
                           {priority}
                           {task.priority === priority && (
-                            <Check size={12} className="ml-auto text-gray-600" />
+                            <Check size={12} className="ml-auto text-neutral-600" />
                           )}
                         </button>
                       ))}
@@ -263,8 +260,8 @@ function TaskCard({
                     flex items-center gap-1 px-1.5 py-0.5
                     rounded transition text-xs
                     ${isOverdue
-                      ? 'text-red-600 font-medium bg-red-50 border border-red-200'
-                      : 'text-gray-500 hover:bg-gray-100'}
+                      ? 'text-red-600 font-medium'
+                      : 'text-neutral-500 hover:bg-neutral-100'}
                   `}
                   title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                 >
@@ -292,11 +289,9 @@ function TaskCard({
                       {(task.assignees || []).slice(0, 2).map((assignee, idx) => (
                         <div
                           key={assignee.id}
-                          className={`
-                            w-6 h-6 rounded-full flex items-center justify-center
+                          className="w-6 h-6 rounded-full flex items-center justify-center
                             text-white text-xs font-semibold border-2 border-white
-                            ${getAvatarColor(assignee.name)}
-                          `}
+                            bg-neutral-600"
                           style={{ zIndex: 2 - idx }}
                           title={assignee.name}
                         >
@@ -305,7 +300,7 @@ function TaskCard({
                       ))}
                       {(task.assignees || []).length > 2 && (
                         <div
-                          className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-white text-xs font-semibold border-2 border-white"
+                          className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold border-2 border-white"
                           title={`+${(task.assignees || []).length - 2} more`}
                         >
                           +{(task.assignees || []).length - 2}
@@ -313,8 +308,8 @@ function TaskCard({
                       )}
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">?</span>
+                    <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
+                      <span className="text-neutral-400 text-xs">?</span>
                     </div>
                   )}
                 </button>

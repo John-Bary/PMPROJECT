@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut } from 'lucide-react';
 import useAuthStore from '../store/authStore';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
@@ -37,8 +37,8 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <header className="bg-white border-b border-neutral-150">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
+      <header className="bg-white border-b border-neutral-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
             <button
@@ -48,10 +48,7 @@ function Dashboard() {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
-            <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-neutral-900">Todoria</h1>
-              <p className="text-xs sm:text-sm text-neutral-600 hidden sm:block">Welcome, {user?.name}!</p>
-            </div>
+            <h1 className="text-lg font-semibold text-neutral-900">Todoria</h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Workspace Switcher */}
@@ -87,20 +84,20 @@ function Dashboard() {
             </Link>
             <button
               onClick={handleLogout}
-              className="px-3 py-1.5 sm:px-4 sm:py-2 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              className="p-2 text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-all duration-150 disabled:opacity-60 disabled:cursor-not-allowed"
               disabled={isLoggingOut}
+              aria-label="Logout"
+              title="Logout"
             >
-              {isLoggingOut && <ButtonSpinner />}
-              <span className="hidden sm:inline">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>
-              <span className="sm:hidden">{isLoggingOut ? '...' : 'Exit'}</span>
+              {isLoggingOut ? <ButtonSpinner /> : <LogOut size={20} />}
             </button>
           </div>
         </div>
       </header>
 
       {/* Navigation Tabs - Desktop */}
-      <div className="bg-white border-b border-neutral-150 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white border-b border-neutral-200 hidden md:block">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex gap-4 lg:gap-8">
             {navItems.map((item) => (
               <button
@@ -108,7 +105,7 @@ function Dashboard() {
                 onClick={() => handleViewChange(item.id)}
                 className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                   activeView === item.id
-                    ? 'border-teal-500 text-teal-600'
+                    ? 'border-neutral-900 text-neutral-900'
                     : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300'
                 }`}
               >
@@ -122,10 +119,10 @@ function Dashboard() {
 
       {/* Mobile Navigation Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white border-b border-neutral-150 shadow-md animate-fade-in">
-          <nav className="max-w-7xl mx-auto px-4 py-2">
+        <div className="md:hidden bg-white border-b border-neutral-200 shadow-sm animate-fade-in">
+          <nav className="max-w-6xl mx-auto px-4 py-2">
             {/* Mobile Workspace Switcher */}
-            <div className="py-2 mb-2 border-b border-neutral-150">
+            <div className="py-2 mb-2 border-b border-neutral-200">
               <WorkspaceSwitcher className="w-full" />
             </div>
             {navItems.map((item) => (
@@ -134,7 +131,7 @@ function Dashboard() {
                 onClick={() => handleViewChange(item.id)}
                 className={`flex items-center gap-3 w-full py-3 px-3 rounded-lg font-medium text-sm transition-all duration-150 ${
                   activeView === item.id
-                    ? 'bg-teal-50 text-teal-600'
+                    ? 'bg-neutral-100 text-neutral-900'
                     : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900'
                 }`}
               >
@@ -142,7 +139,7 @@ function Dashboard() {
                 {item.label}
               </button>
             ))}
-            <div className="border-t border-neutral-150 mt-2 pt-2">
+            <div className="border-t border-neutral-200 mt-2 pt-2">
               <Link
                 to="/billing"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -174,47 +171,14 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Mobile View Indicator */}
-      <div className="md:hidden bg-white border-b border-neutral-150 px-4 py-2">
-        <div className="flex items-center gap-2 text-sm text-neutral-600">
-          {navItems.find(item => item.id === activeView)?.icon && (
-            <span className="text-teal-600">
-              {(() => {
-                const Icon = navItems.find(item => item.id === activeView)?.icon;
-                return Icon ? <Icon size={16} /> : null;
-              })()}
-            </span>
-          )}
-          <span className="font-medium">{navItems.find(item => item.id === activeView)?.label}</span>
-        </div>
-      </div>
-
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <main className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {activeView === 'board' ? (
-          <div>
-            <div className="mb-4 sm:mb-6 hidden md:block">
-              <h2 className="text-xl font-semibold text-neutral-900">Task Board</h2>
-              <p className="text-sm text-neutral-500 mt-1">
-                Manage your tasks across different categories
-              </p>
-            </div>
-            <TaskList />
-          </div>
+          <TaskList />
         ) : activeView === 'list' ? (
-          <>
-            <ListView />
-          </>
+          <ListView />
         ) : (
-          <>
-            <div className="mb-4 sm:mb-6 hidden md:block">
-              <h2 className="text-xl font-semibold text-neutral-900">Calendar View</h2>
-              <p className="text-sm text-neutral-500 mt-1">
-                View your tasks organized by due date
-              </p>
-            </div>
-            <CalendarView />
-          </>
+          <CalendarView />
         )}
       </main>
     </div>

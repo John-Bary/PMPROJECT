@@ -15,14 +15,13 @@ import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
 import CommentSection from './CommentSection';
 import { ButtonSpinner, InlineSpinner } from './Loader';
-import { getAvatarColor } from './AssigneeListItem';
 import toast from 'react-hot-toast';
 
 const priorityConfig = {
-  urgent: { label: 'Urgent', color: 'text-red-600', bg: 'bg-red-100', dot: 'bg-red-500' },
-  high: { label: 'High', color: 'text-orange-600', bg: 'bg-orange-100', dot: 'bg-orange-500' },
-  medium: { label: 'Medium', color: 'text-yellow-600', bg: 'bg-yellow-100', dot: 'bg-yellow-500' },
-  low: { label: 'Low', color: 'text-gray-600', bg: 'bg-gray-100', dot: 'bg-gray-400' },
+  urgent: { label: 'Urgent', color: 'text-neutral-900 font-medium', dot: 'bg-red-500' },
+  high: { label: 'High', color: 'text-neutral-700', dot: 'bg-orange-500' },
+  medium: { label: 'Medium', color: 'text-neutral-600', dot: 'bg-yellow-500' },
+  low: { label: 'Low', color: 'text-neutral-400', dot: 'bg-neutral-300' },
 };
 
 function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
@@ -270,8 +269,6 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
     onDelete?.(task);
   };
 
-  // getAvatarColor is now imported from AssigneeListItem
-
   if (!isOpen || !task) return null;
 
   const currentCategory = categories.find(c => c.id === task.categoryId);
@@ -287,17 +284,17 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
       aria-labelledby="task-detail-title"
     >
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
+      <div className="fixed inset-0 bg-black/20 transition-opacity" />
 
       {/* Modal Container */}
       <div className="flex min-h-full items-start justify-center p-4 pt-16 sm:pt-20">
         <div
           ref={modalRef}
-          className="relative bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+          className="relative bg-white rounded-xl shadow-md w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-100">
             <div className="flex items-center gap-2">
               {/* Completion checkbox */}
               <button
@@ -306,8 +303,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
                   ${isCompleted
-                    ? 'bg-green-500 border-green-500'
-                    : 'border-gray-300 hover:border-green-500 hover:bg-green-50'
+                    ? 'bg-neutral-900 border-neutral-900'
+                    : 'border-neutral-300 hover:border-neutral-500'
                   }
                   ${isTogglingComplete ? 'opacity-60 cursor-not-allowed' : ''}
                 `}
@@ -319,7 +316,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                   isCompleted && <Check size={14} className="text-white" />
                 )}
               </button>
-              <span className={`text-sm font-medium ${isCompleted ? 'text-green-600' : 'text-gray-500'}`}>
+              <span className={`text-sm font-medium ${isCompleted ? 'text-neutral-900' : 'text-neutral-500'}`}>
                 {isCompleted ? 'Completed' : 'Mark complete'}
               </span>
             </div>
@@ -329,14 +326,14 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               <div className="relative" ref={moreMenuRef}>
                 <button
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                  className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition"
                   aria-label="More actions"
                   aria-expanded={showMoreMenu}
                 >
                   <MoreHorizontal size={20} />
                 </button>
                 {showMoreMenu && (
-                  <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="absolute right-0 mt-1 w-40 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
                     <button
                       onClick={handleDelete}
                       className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 rounded-lg transition"
@@ -351,7 +348,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition"
                 aria-label="Close task details"
               >
                 <X size={20} />
@@ -378,7 +375,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                         setIsEditingTitle(false);
                       }
                     }}
-                    className="w-full text-xl font-semibold text-gray-900 border-b-2 border-blue-500 focus:outline-none bg-transparent pb-1"
+                    className="w-full text-xl font-semibold text-neutral-900 border-b-2 border-neutral-900 focus:outline-none bg-transparent pb-1"
                     placeholder="Task title"
                   />
                 ) : (
@@ -386,8 +383,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                     id="task-detail-title"
                     onClick={() => setIsEditingTitle(true)}
                     className={`
-                      text-xl font-semibold cursor-text hover:bg-gray-50 rounded px-2 py-1 -mx-2
-                      ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}
+                      text-xl font-semibold cursor-text hover:bg-neutral-50 rounded px-2 py-1 -mx-2
+                      ${isCompleted ? 'line-through text-neutral-500' : 'text-neutral-900'}
                     `}
                     title="Click to edit"
                   >
@@ -400,7 +397,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               <div className="space-y-4 mb-6">
                 {/* Assignees - Multiple assignees with chips */}
                 <div className="flex items-start gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-gray-500 pt-1.5">
+                  <div className="w-24 flex items-center gap-2 text-sm text-neutral-500 pt-1.5">
                     <User size={16} />
                     <span>Assignees</span>
                   </div>
@@ -410,16 +407,16 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       {(task.assignees || []).map((assignee) => (
                         <span
                           key={assignee.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-teal-50 text-teal-700 rounded-full text-sm border border-teal-200"
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm border border-neutral-200"
                         >
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold ${getAvatarColor(assignee.name)}`}>
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-neutral-600">
                             {assignee.name.charAt(0).toUpperCase()}
                           </div>
                           <span className="max-w-[100px] truncate">{assignee.name}</span>
                           <button
                             type="button"
                             onClick={() => handleAssigneeToggle(assignee.id)}
-                            className="ml-0.5 p-0.5 hover:bg-teal-100 rounded-full transition-colors"
+                            className="ml-0.5 p-0.5 hover:bg-neutral-200 rounded-full transition-colors"
                             aria-label={`Remove ${assignee.name} from assignees`}
                           >
                             <X size={12} />
@@ -430,21 +427,21 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
                     <button
                       onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition text-sm"
+                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 rounded-lg transition text-sm"
                     >
                       {(task.assignees || []).length === 0 ? (
                         <>
-                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center">
-                            <User size={14} className="text-gray-400" />
+                          <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
+                            <User size={14} className="text-neutral-400" />
                           </div>
-                          <span className="text-gray-400">Add assignee</span>
+                          <span className="text-neutral-400">Add assignee</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-gray-500 text-xs">+ Add more</span>
+                          <span className="text-neutral-500 text-xs">+ Add more</span>
                         </>
                       )}
-                      <ChevronDown size={14} className="ml-auto text-gray-400" />
+                      <ChevronDown size={14} className="ml-auto text-neutral-400" />
                     </button>
 
                     {showAssigneeDropdown && (
@@ -462,19 +459,19 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
                 {/* Due Date */}
                 <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-24 flex items-center gap-2 text-sm text-neutral-500">
                     <Calendar size={16} />
                     <span>Due date</span>
                   </div>
                   <div className="relative flex-1" ref={datePickerRef}>
                     <button
                       onClick={() => setShowDatePicker(!showDatePicker)}
-                      className={`flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition text-sm ${isOverdue ? 'text-red-600' : ''}`}
+                      className={`flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 rounded-lg transition text-sm ${isOverdue ? 'text-red-600' : ''}`}
                       aria-label={isOverdue ? `Due date: ${formattedDueDate} (overdue)` : `Due date: ${formattedDueDate || 'none'}`}
                     >
-                      {isOverdue ? <AlertCircle size={16} className="text-red-500" aria-hidden="true" /> : <Calendar size={16} className="text-gray-400" />}
+                      {isOverdue ? <AlertCircle size={16} className="text-red-500" aria-hidden="true" /> : <Calendar size={16} className="text-neutral-400" />}
                       {isOverdue && <span className="text-red-600 font-semibold text-xs">Overdue</span>}
-                      <span className={formattedDueDate ? (isOverdue ? 'text-red-600 font-medium' : 'text-gray-900') : 'text-gray-400'}>
+                      <span className={formattedDueDate ? (isOverdue ? 'text-red-600 font-medium' : 'text-neutral-900') : 'text-neutral-400'}>
                         {formattedDueDate || 'Add due date'}
                       </span>
                       {formattedDueDate && (
@@ -483,11 +480,11 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                             e.stopPropagation();
                             handleClearDate();
                           }}
-                          className="ml-1 p-0.5 hover:bg-gray-200 rounded transition"
+                          className="ml-1 p-0.5 hover:bg-neutral-200 rounded transition"
                           title="Clear date"
                           aria-label="Clear due date"
                         >
-                          <X size={12} className="text-gray-400" />
+                          <X size={12} className="text-neutral-400" />
                         </button>
                       )}
                     </button>
@@ -496,14 +493,14 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
                 {/* Category */}
                 <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-24 flex items-center gap-2 text-sm text-neutral-500">
                     <FolderOpen size={16} />
                     <span>Category</span>
                   </div>
                   <div className="relative flex-1" ref={categoryDropdownRef}>
                     <button
                       onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition text-sm"
+                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 rounded-lg transition text-sm"
                     >
                       {currentCategory ? (
                         <>
@@ -511,29 +508,29 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: currentCategory.color }}
                           />
-                          <span className="text-gray-900">{currentCategory.name}</span>
+                          <span className="text-neutral-900">{currentCategory.name}</span>
                         </>
                       ) : (
-                        <span className="text-gray-400">Select category</span>
+                        <span className="text-neutral-400">Select category</span>
                       )}
-                      <ChevronDown size={14} className="text-gray-400" />
+                      <ChevronDown size={14} className="text-neutral-400" />
                     </button>
 
                     {showCategoryDropdown && (
-                      <div className="absolute left-0 mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <div className="absolute left-0 mt-1 w-48 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
                         <div className="py-1">
                           {categories.map((category) => (
                             <button
                               key={category.id}
                               onClick={() => handleCategorySelect(category.id)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${task.categoryId === category.id ? 'bg-gray-50' : ''}`}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 flex items-center gap-2 ${task.categoryId === category.id ? 'bg-neutral-50' : ''}`}
                             >
                               <div
                                 className="w-3 h-3 rounded-full"
                                 style={{ backgroundColor: category.color }}
                               />
                               <span>{category.name}</span>
-                              {task.categoryId === category.id && <Check size={14} className="ml-auto text-gray-600" />}
+                              {task.categoryId === category.id && <Check size={14} className="ml-auto text-neutral-600" />}
                             </button>
                           ))}
                         </div>
@@ -544,32 +541,32 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
                 {/* Priority */}
                 <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-gray-500">
+                  <div className="w-24 flex items-center gap-2 text-sm text-neutral-500">
                     <Flag size={16} />
                     <span>Priority</span>
                   </div>
                   <div className="relative flex-1" ref={priorityDropdownRef}>
                     <button
                       onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 rounded-lg transition text-sm"
+                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-neutral-100 rounded-lg transition text-sm"
                     >
                       <div className={`w-2 h-2 rounded-full ${currentPriority.dot}`} />
                       <span className={currentPriority.color}>{currentPriority.label}</span>
-                      <ChevronDown size={14} className="text-gray-400" />
+                      <ChevronDown size={14} className="text-neutral-400" />
                     </button>
 
                     {showPriorityDropdown && (
-                      <div className="absolute left-0 mt-1 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                      <div className="absolute left-0 mt-1 w-36 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
                         <div className="py-1">
                           {Object.entries(priorityConfig).map(([key, config]) => (
                             <button
                               key={key}
                               onClick={() => handlePrioritySelect(key)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 ${task.priority === key ? 'bg-gray-50' : ''}`}
+                              className={`w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 flex items-center gap-2 ${task.priority === key ? 'bg-neutral-50' : ''}`}
                             >
                               <div className={`w-2 h-2 rounded-full ${config.dot}`} />
                               <span className={config.color}>{config.label}</span>
-                              {task.priority === key && <Check size={14} className="ml-auto text-gray-600" />}
+                              {task.priority === key && <Check size={14} className="ml-auto text-neutral-600" />}
                             </button>
                           ))}
                         </div>
@@ -580,18 +577,18 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-200 my-6" />
+              <div className="border-t border-neutral-200 my-6" />
 
               {/* Description */}
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Description</h3>
+                <h3 className="text-sm font-medium text-neutral-700 mb-2">Description</h3>
                 {isEditingDescription ? (
                   <div>
                     <textarea
                       ref={descriptionRef}
                       value={editedDescription}
                       onChange={(e) => setEditedDescription(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-none"
                       rows={4}
                       placeholder="Add a description..."
                     />
@@ -599,7 +596,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       <button
                         onClick={handleSaveDescription}
                         disabled={isSaving}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
+                        className="px-3 py-1.5 bg-neutral-900 text-white text-sm rounded-lg hover:bg-neutral-800 transition disabled:opacity-50 flex items-center gap-2"
                       >
                         {isSaving && <ButtonSpinner />}
                         Save
@@ -609,7 +606,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                           setEditedDescription(task.description || '');
                           setIsEditingDescription(false);
                         }}
-                        className="px-3 py-1.5 text-gray-600 text-sm hover:bg-gray-100 rounded-lg transition"
+                        className="px-3 py-1.5 text-neutral-600 text-sm hover:bg-neutral-100 rounded-lg transition"
                       >
                         Cancel
                       </button>
@@ -618,19 +615,19 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 ) : (
                   <div
                     onClick={() => setIsEditingDescription(true)}
-                    className="min-h-[60px] px-3 py-2 rounded-lg hover:bg-gray-50 cursor-text transition"
+                    className="min-h-[60px] px-3 py-2 rounded-lg hover:bg-neutral-50 cursor-text transition"
                   >
                     {task.description ? (
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{task.description}</p>
+                      <p className="text-sm text-neutral-700 whitespace-pre-wrap">{task.description}</p>
                     ) : (
-                      <p className="text-sm text-gray-400">Add a description...</p>
+                      <p className="text-sm text-neutral-400">Add a description...</p>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-200 my-6" />
+              <div className="border-t border-neutral-200 my-6" />
 
               {/* Subtasks */}
               <div className="mb-6">
@@ -641,7 +638,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               </div>
 
               {/* Divider */}
-              <div className="border-t border-gray-200 my-6" />
+              <div className="border-t border-neutral-200 my-6" />
 
               {/* Comments */}
               <div>
@@ -651,7 +648,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
           </div>
 
           {/* Footer with metadata */}
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 text-xs text-gray-500">
+          <div className="px-6 py-3 border-t border-neutral-100 bg-neutral-50 text-xs text-neutral-500">
             <div className="flex items-center justify-between">
               <span>
                 Created {task.createdAt ? format(new Date(task.createdAt), 'MMM d, yyyy') : 'unknown'}

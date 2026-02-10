@@ -1,34 +1,23 @@
-import { Crown, Sparkles } from 'lucide-react';
-
 const planConfig = {
   free: {
     label: 'Free',
-    className: 'bg-neutral-100 text-neutral-600 border-neutral-200',
-    icon: null,
+    className: 'text-neutral-400',
   },
   pro: {
     label: 'Pro',
-    className: 'bg-teal-50 text-teal-700 border-teal-200',
-    icon: Sparkles,
+    className: 'text-neutral-900 font-medium',
   },
   business: {
     label: 'Business',
-    className: 'bg-purple-50 text-purple-700 border-purple-200',
-    icon: Crown,
+    className: 'text-neutral-900 font-medium',
   },
 };
 
-function PlanBadge({ plan = 'free', size = 'sm' }) {
+function PlanBadge({ plan = 'free' }) {
   const config = planConfig[plan] || planConfig.free;
-  const Icon = config.icon;
-
-  const sizeClasses = size === 'sm'
-    ? 'text-xs px-2 py-0.5'
-    : 'text-sm px-3 py-1';
 
   return (
-    <span className={`inline-flex items-center gap-1 font-medium border rounded-full ${config.className} ${sizeClasses}`}>
-      {Icon && <Icon size={size === 'sm' ? 12 : 14} />}
+    <span className={`text-xs ${config.className}`}>
       {config.label}
     </span>
   );

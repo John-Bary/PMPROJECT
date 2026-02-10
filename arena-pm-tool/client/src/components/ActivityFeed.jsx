@@ -45,7 +45,7 @@ function ActivityFeed({ workspaceId }) {
   if (!workspaceId) return null;
 
   return (
-    <div className="bg-white rounded-xl border border-neutral-200 p-4">
+    <div className="bg-white rounded-lg border border-neutral-200 p-4">
       <div className="flex items-center gap-2 mb-4">
         <Activity size={18} className="text-neutral-500" />
         <h3 className="text-sm font-semibold text-neutral-900">Recent Activity</h3>
@@ -66,8 +66,8 @@ function ActivityFeed({ workspaceId }) {
 
             return (
               <li key={activity.id} className="flex items-start gap-3 text-sm">
-                <div className="w-6 h-6 rounded-full bg-teal-50 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-xs font-medium text-teal-600">
+                <div className="w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-xs font-medium text-neutral-600">
                     {userName.charAt(0).toUpperCase()}
                   </span>
                 </div>
