@@ -2,6 +2,7 @@
 // Usage: await logActivity(workspaceId, userId, 'created', 'task', taskId, { title })
 
 const { query } = require('../config/database');
+const logger = require('./logger');
 
 async function logActivity(workspaceId, userId, action, entityType, entityId, metadata = {}) {
   try {
@@ -12,7 +13,7 @@ async function logActivity(workspaceId, userId, action, entityType, entityId, me
     );
   } catch (error) {
     // Log but don't throw — activity logging should never break the main flow
-    console.error('Activity log error:', error.message);
+    logger.error('Activity log error: %s', error.message);
   }
 }
 

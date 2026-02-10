@@ -117,20 +117,11 @@ const register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Check total user count (limit to 20 users as per requirements)
-    const userCount = await client.query('SELECT COUNT(*) FROM users');
-    if (parseInt(userCount.rows[0].count) >= 20) {
-      client.release();
-      return res.status(400).json({
-        status: 'error',
-        message: 'Maximum number of team members (20) reached. Cannot register new users.'
-      });
-    }
-
     // Start transaction for user + workspace creation
     await client.query('BEGIN');
 
-    // Create user (first user becomes admin, rest are members)
+    // Determine role (first user becomes admin, rest are members)
+    const userCount = await client.query('SELECT COUNT(*) FROM users');
     const isFirstUser = parseInt(userCount.rows[0].count) === 0;
     const role = isFirstUser ? 'admin' : 'member';
 

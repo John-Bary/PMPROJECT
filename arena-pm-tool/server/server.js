@@ -4,6 +4,31 @@ const dotenv = require('dotenv');
 // Load environment variables before Sentry init
 dotenv.config();
 
+// Validate required environment variables in production
+if (process.env.NODE_ENV === 'production') {
+  const required = [
+    'DATABASE_URL',
+    'JWT_SECRET',
+    'CLIENT_URL',
+    'STRIPE_SECRET_KEY',
+    'STRIPE_WEBHOOK_SECRET',
+    'STRIPE_PRO_PRICE_ID',
+    'RESEND_API_KEY',
+    'CRON_SECRET',
+  ];
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    // eslint-disable-next-line no-console
+    console.error(`FATAL: Missing required environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+    // eslint-disable-next-line no-console
+    console.error('FATAL: JWT_SECRET must be at least 32 characters');
+    process.exit(1);
+  }
+}
+
 // Initialize Sentry as early as possible
 const Sentry = require('./lib/sentry');
 
@@ -156,12 +181,7 @@ app.use(cookieParser());
 app.get('/api/csrf-token', csrfTokenRoute);
 app.use('/api', doubleCsrfProtection);
 
-// INJ-07: Serve static files for uploads with Content-Disposition to prevent browser execution
-app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
-  setHeaders: (res) => {
-    res.set('Content-Disposition', 'attachment');
-  }
-}));
+// Avatars are served from Supabase Storage (no local filesystem uploads on Vercel)
 
 // API-02: Health check - reduced info disclosure in production
 app.get('/api/health', async (req, res) => {

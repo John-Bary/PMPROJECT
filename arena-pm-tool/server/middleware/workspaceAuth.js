@@ -2,6 +2,7 @@
 // Provides role-based access control for workspace operations
 
 const { query } = require('../config/database');
+const logger = require('../lib/logger');
 
 // Helper: Get workspace ID from request (body, query, or params)
 const getWorkspaceIdFromRequest = (req) => {
@@ -45,7 +46,7 @@ const requireWorkspaceMember = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Workspace auth error:', error);
+    logger.error({ err: error }, 'Workspace auth error');
     res.status(500).json({
       status: 'error',
       message: 'Error verifying workspace access',
@@ -98,7 +99,7 @@ const requireWorkspaceRole = (...allowedRoles) => {
 
       next();
     } catch (error) {
-      console.error('Workspace role auth error:', error);
+      logger.error({ err: error }, 'Workspace role auth error');
       res.status(500).json({
         status: 'error',
         message: 'Error verifying workspace role',
@@ -146,7 +147,7 @@ const checkWorkspaceEditPermission = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Check edit permission error:', error);
+    logger.error({ err: error }, 'Check edit permission error');
     req.workspace = { canEdit: false };
     next();
   }

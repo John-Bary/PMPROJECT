@@ -3,6 +3,7 @@
 
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
+const logger = require('../lib/logger');
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
@@ -15,7 +16,7 @@ const validateConfig = () => {
   if (!supabaseAnonKey) missing.push('SUPABASE_ANON_KEY');
 
   if (missing.length > 0) {
-    console.warn(`⚠️  Supabase config incomplete. Missing: ${missing.join(', ')}`);
+    logger.warn(`Supabase config incomplete. Missing: ${missing.join(', ')}`);
     return false;
   }
   return true;
@@ -59,14 +60,14 @@ const isAdminConfigured = () => {
 // Log configuration status on startup
 if (process.env.NODE_ENV !== 'test') {
   if (isSupabaseConfigured()) {
-    console.log('✅ Supabase client configured');
+    logger.info('Supabase client configured');
     if (isAdminConfigured()) {
-      console.log('✅ Supabase admin client configured (service role)');
+      logger.info('Supabase admin client configured (service role)');
     } else {
-      console.log('⚠️  Supabase admin client not configured (SUPABASE_SERVICE_ROLE_KEY missing)');
+      logger.warn('Supabase admin client not configured (SUPABASE_SERVICE_ROLE_KEY missing)');
     }
   } else {
-    console.log('ℹ️  Supabase not configured - using PostgreSQL directly');
+    logger.info('Supabase not configured - using PostgreSQL directly');
   }
 }
 

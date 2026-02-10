@@ -3,6 +3,7 @@
 // Checks task count, member count, and workspace count limits.
 
 const { query } = require('../config/database');
+const logger = require('../lib/logger');
 
 /**
  * Get workspace_id from the request (body, query, or params).
@@ -84,7 +85,7 @@ const checkTaskLimit = async (req, res, next) => {
     req.planLimits = plan;
     next();
   } catch (error) {
-    console.error('Check task limit error:', error);
+    logger.error({ err: error }, 'Check task limit error');
     // Fail open — don't block users due to limit-check bugs
     next();
   }
@@ -136,7 +137,7 @@ const checkMemberLimit = async (req, res, next) => {
     req.planLimits = plan;
     next();
   } catch (error) {
-    console.error('Check member limit error:', error);
+    logger.error({ err: error }, 'Check member limit error');
     // Fail open
     next();
   }
@@ -188,7 +189,7 @@ const checkWorkspaceLimit = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error('Check workspace limit error:', error);
+    logger.error({ err: error }, 'Check workspace limit error');
     // Fail open
     next();
   }

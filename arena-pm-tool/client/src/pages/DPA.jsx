@@ -50,13 +50,15 @@ function DPA() {
 
           <section>
             <h2 className="text-xl font-semibold text-neutral-800">5. Sub-processors</h2>
+            <p className="text-neutral-600 mb-3">The Processor uses the following sub-processors to deliver the service:</p>
             <ul className="list-disc pl-6 text-neutral-600 space-y-1">
-              <li><strong>Vercel:</strong> Application hosting and deployment</li>
-              <li><strong>PostgreSQL provider:</strong> Database hosting</li>
-              <li><strong>Stripe:</strong> Payment processing</li>
-              <li><strong>Resend:</strong> Transactional email delivery</li>
-              <li><strong>Sentry:</strong> Error monitoring (anonymized data)</li>
+              <li><strong>Supabase, Inc.</strong> (US/EU) &mdash; Database hosting, file storage (PostgreSQL, Storage)</li>
+              <li><strong>Vercel, Inc.</strong> (Global) &mdash; Application hosting, CDN, serverless compute</li>
+              <li><strong>Stripe, Inc.</strong> (US) &mdash; Payment processing, subscription management</li>
+              <li><strong>Resend, Inc.</strong> (US) &mdash; Transactional email delivery</li>
+              <li><strong>Sentry (Functional Software, Inc.)</strong> (US) &mdash; Error monitoring and performance tracking (anonymized data)</li>
             </ul>
+            <p className="text-neutral-600 mt-3">The Controller will be notified of any changes to sub-processors with at least 30 days&rsquo; notice.</p>
           </section>
 
           <section>

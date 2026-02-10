@@ -25,20 +25,8 @@ const {
 // Allowed file extensions for avatar uploads (whitelist)
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
 
-// Configure multer for avatar uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '../uploads/avatars'));
-  },
-  filename: (req, file, cb) => {
-    // Whitelist extension to prevent path traversal / double-extension attacks
-    const ext = path.extname(file.originalname).toLowerCase();
-    if (!ALLOWED_EXTENSIONS.includes(ext)) {
-      return cb(new Error('Invalid file type. Only JPEG, PNG, and WebP images are allowed.'));
-    }
-    cb(null, `${req.user.id}-${Date.now()}${ext}`);
-  }
-});
+// Use memory storage for Supabase Storage uploads (no local filesystem)
+const storage = multer.memoryStorage();
 
 // File filter for avatar uploads (checks both mimetype and extension)
 const fileFilter = (req, file, cb) => {

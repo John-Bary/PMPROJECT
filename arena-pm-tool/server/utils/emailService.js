@@ -47,7 +47,7 @@ const escapeHtml = (str) => {
 };
 
 // Keys that contain pre-built HTML and must NOT be escaped
-const HTML_SAFE_KEYS = new Set(['taskRows', 'taskUrl', 'inviteUrl', 'priorityColor', 'resetUrl', 'verificationUrl']);
+const HTML_SAFE_KEYS = new Set(['taskRows', 'taskUrl', 'inviteUrl', 'priorityColor', 'resetUrl', 'verificationUrl', 'billingUrl']);
 
 // Simple templating: supports {{variable}} and {{#if variable}}...{{/if}}
 const renderTemplate = (templateName, data = {}) => {
@@ -286,6 +286,19 @@ const sendVerificationEmail = async ({ to, userName, verificationUrl }) => {
   return sendEmail({ to, subject, html });
 };
 
+// Send trial ending notification email
+const sendTrialEndingEmail = async ({ to, userName, trialEndDate, billingUrl }) => {
+  const subject = 'Your Todoria Pro trial ends soon';
+
+  const html = renderTemplate('trialEnding.html', {
+    userName: userName || 'there',
+    trialEndDate: formatDate(trialEndDate),
+    billingUrl
+  });
+
+  return sendEmail({ to, subject, html });
+};
+
 module.exports = {
   verifyConnection,
   sendEmail,
@@ -295,5 +308,6 @@ module.exports = {
   sendWorkspaceInvite,
   sendWelcomeEmail,
   sendPasswordResetEmail,
-  sendVerificationEmail
+  sendVerificationEmail,
+  sendTrialEndingEmail
 };
