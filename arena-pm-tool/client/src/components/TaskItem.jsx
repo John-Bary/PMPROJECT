@@ -5,7 +5,7 @@ import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue } from '../utils/dateUtils';
-import { getPriorityColor, priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
+import { priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';

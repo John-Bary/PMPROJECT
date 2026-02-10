@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import useFocusTrap from '../hooks/useFocusTrap';
 import { format } from 'date-fns';
 import {

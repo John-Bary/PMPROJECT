@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Check, Sparkles } from 'lucide-react';
 import useBillingStore from '../store/billingStore';
 import { ButtonSpinner } from './Loader';

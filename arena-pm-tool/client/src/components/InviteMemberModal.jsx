@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, Mail, Shield, Check, Copy, Link, UserPlus } from 'lucide-react';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import { ButtonSpinner } from './Loader';

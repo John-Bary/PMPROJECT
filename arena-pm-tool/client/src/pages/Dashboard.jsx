@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut, ChevronLeft, ChevronRight, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
 import TaskList from '../components/TaskList';
 import CalendarView from './CalendarView';
 import ListView from './ListView';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
-import PlanBadge from '../components/PlanBadge';
 import { ButtonSpinner } from '../components/Loader';
 
 function Dashboard() {
