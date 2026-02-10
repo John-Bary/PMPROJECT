@@ -54,7 +54,20 @@ function ListView() {
   const [activeDropdown, setActiveDropdown] = useState(null); // { taskId, type }
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
   const dropdownRefs = useRef({});
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const PRIORITY_ORDER = useMemo(() => ({ urgent: 0, high: 1, medium: 2, low: 3 }), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const STATUS_ORDER = useMemo(() => ({ todo: 0, in_progress: 1, completed: 2 }), []);
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
 
   // Shared hooks for toggle complete and filtering
   const { handleToggleComplete, togglingTaskIds } = useTaskActions();
@@ -266,6 +279,38 @@ function ListView() {
 
   const isTaskOverdue = useCallback((task) => isOverdue(task.dueDate, task.status), []);
 
+  const sortTasks = useCallback((tasksToSort) => {
+    return [...tasksToSort].sort((a, b) => {
+      let comparison = 0;
+      switch (sortConfig.key) {
+        case 'title':
+          comparison = (a.title || '').localeCompare(b.title || '');
+          break;
+        case 'priority':
+          comparison = (PRIORITY_ORDER[a.priority] ?? 99) - (PRIORITY_ORDER[b.priority] ?? 99);
+          break;
+        case 'assignee': {
+          const aName = (a.assignees?.[0]?.name || '').toLowerCase();
+          const bName = (b.assignees?.[0]?.name || '').toLowerCase();
+          comparison = aName.localeCompare(bName);
+          break;
+        }
+        case 'dueDate': {
+          const aDate = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          const bDate = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
+          comparison = aDate - bDate;
+          break;
+        }
+        case 'status':
+          comparison = (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99);
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+  }, [sortConfig, PRIORITY_ORDER, STATUS_ORDER]);
+
   // Memoize inline editing handlers
   const toggleDropdown = useCallback((taskId, dropdownType) => {
     setActiveDropdown(prev => {
@@ -350,13 +395,13 @@ function ListView() {
     [filteredTasks]
   );
 
-  // Memoize group parent tasks by category
+  // Memoize group parent tasks by category (sorted)
   const tasksByCategory = useMemo(() =>
     categories.reduce((acc, category) => {
-      acc[category.id] = parentTasks.filter(task => task.categoryId === category.id);
+      acc[category.id] = sortTasks(parentTasks.filter(task => task.categoryId === category.id));
       return acc;
     }, {}),
-    [categories, parentTasks]
+    [categories, parentTasks, sortTasks]
   );
 
   // Memoize visible categories
@@ -476,10 +521,42 @@ function ListView() {
               <thead className="bg-neutral-50/80 border-b border-neutral-200">
                 <tr>
                   <th className="w-12 px-4 py-3"></th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Task</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Priority</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Assignee</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600">Due Date</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600 cursor-pointer hover:text-neutral-800 select-none"
+                      onClick={() => handleSort('title')}>
+                    <div className="flex items-center gap-1">
+                      Task
+                      {sortConfig.key === 'title' && (
+                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                      )}
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600 cursor-pointer hover:text-neutral-800 select-none"
+                      onClick={() => handleSort('priority')}>
+                    <div className="flex items-center gap-1">
+                      Priority
+                      {sortConfig.key === 'priority' && (
+                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                      )}
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600 cursor-pointer hover:text-neutral-800 select-none"
+                      onClick={() => handleSort('assignee')}>
+                    <div className="flex items-center gap-1">
+                      Assignee
+                      {sortConfig.key === 'assignee' && (
+                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                      )}
+                    </div>
+                  </th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-neutral-600 cursor-pointer hover:text-neutral-800 select-none"
+                      onClick={() => handleSort('dueDate')}>
+                    <div className="flex items-center gap-1">
+                      Due Date
+                      {sortConfig.key === 'dueDate' && (
+                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                      )}
+                    </div>
+                  </th>
                   <th className="text-right px-4 py-3 text-sm font-medium text-neutral-600">Actions</th>
                 </tr>
               </thead>
@@ -986,7 +1063,7 @@ function ListView() {
                                     <div className="flex items-center gap-3 ml-auto">
                                       <button
                                         onClick={() => handleAddSubtask(task)}
-                                        className="text-neutral-500 hover:text-neutral-700 p-1"
+                                        className="text-neutral-500 hover:text-neutral-700 p-2.5"
                                         title="Add subtask"
                                         aria-label="Add subtask"
                                       >
@@ -994,7 +1071,7 @@ function ListView() {
                                       </button>
                                       <button
                                         onClick={() => handleEdit(task)}
-                                        className="text-neutral-500 hover:text-neutral-700 p-1"
+                                        className="text-neutral-500 hover:text-neutral-700 p-2.5"
                                         title="Edit task"
                                         aria-label="Edit task"
                                       >
@@ -1004,7 +1081,7 @@ function ListView() {
                                       </button>
                                       <button
                                         onClick={() => handleDelete(task)}
-                                        className="text-neutral-500 hover:text-red-500 p-1"
+                                        className="text-neutral-500 hover:text-red-500 p-2.5"
                                         title="Delete task"
                                         aria-label="Delete task"
                                       >

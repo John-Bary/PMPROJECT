@@ -5,6 +5,7 @@ import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import { useWorkspace } from '../contexts/WorkspaceContext';
 import CategorySection from './CategorySection';
+import TaskItem from './TaskItem';
 import TaskModal from './TaskModal';
 import TaskDetailModal from './TaskDetailModal';
 import CategoryModal from './CategoryModal';
@@ -15,7 +16,7 @@ import EmptyState from './EmptyState';
 import { useTaskActions } from '../hooks/useTaskActions';
 import { useTaskFilters } from '../hooks/useTaskFilters';
 
-function TaskList() {
+function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
   const {
     tasks,
     fetchTasks,
@@ -53,6 +54,16 @@ function TaskList() {
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const searchInputRef = useRef(null);
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
+  const [selectedMobileCategory, setSelectedMobileCategory] = useState(null);
+
+  // Handle mobile add task trigger from Dashboard top bar
+  useEffect(() => {
+    if (mobileAddTask) {
+      openCreateTask(getSuggestedCategoryId());
+      onMobileAddTaskClose?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mobileAddTask]);
 
   // Shared hooks for toggle complete and filtering
   const { handleToggleComplete, togglingTaskIds } = useTaskActions();
@@ -419,13 +430,72 @@ function TaskList() {
             </div>
           ) : (
             <>
+            {/* Mobile: Category tabs + single-column view */}
+            <div className="md:hidden">
+              {/* Category tab bar */}
+              {visibleCategories.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-3 -mx-3 px-3 scrollbar-hide mb-3">
+                  {visibleCategories.map((category) => {
+                    const isSelected = selectedMobileCategory === category.id || (!selectedMobileCategory && visibleCategories[0]?.id === category.id);
+                    const categoryTasks = getTasksByCategory(category.id);
+                    return (
+                      <button
+                        key={category.id}
+                        onClick={() => setSelectedMobileCategory(category.id)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                          isSelected
+                            ? 'bg-white border border-[#E8EBF0] shadow-card text-neutral-900'
+                            : 'text-neutral-500 hover:text-neutral-700 hover:bg-white/50'
+                        }`}
+                      >
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: category.color }} />
+                        {category.name}
+                        <span className="text-xs text-neutral-400">({categoryTasks.length})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Single-column task cards */}
+              <div className="space-y-3">
+                {(() => {
+                  const activeCategoryId = selectedMobileCategory || visibleCategories[0]?.id;
+                  const mobileTasks = activeCategoryId ? getTasksByCategory(activeCategoryId) : [];
+                  if (mobileTasks.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-neutral-400 text-sm">
+                        No tasks in this category
+                      </div>
+                    );
+                  }
+                  return mobileTasks.map((task, index) => (
+                    <TaskItem
+                      key={task.id}
+                      task={task}
+                      index={index}
+                      onOpenDetail={handleOpenDetail}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onToggleComplete={handleToggleComplete}
+                      isToggling={togglingTaskIds.has(task.id)}
+                      searchQuery={searchQuery}
+                      canEdit={userCanEdit}
+                    />
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Desktop/Tablet: Board columns */}
+            <div className="hidden md:block">
             <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
               <Droppable droppableId="categories" direction="horizontal" type="CATEGORY">
                 {(provided) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory sm:snap-none"
+                    className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-hover"
                   >
                     {visibleCategories.map((category, index) => (
                       <CategorySection
@@ -454,6 +524,7 @@ function TaskList() {
                 )}
               </Droppable>
             </DragDropContext>
+            </div>
 
             {/* Load More Button */}
             {hasMore && (

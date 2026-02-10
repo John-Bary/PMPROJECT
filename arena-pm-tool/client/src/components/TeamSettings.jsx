@@ -102,7 +102,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
     <div className="flex items-center justify-between py-3 px-4 hover:bg-neutral-50 rounded-lg transition-colors">
       <div className="flex items-center gap-3">
         {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-neutral-600 flex items-center justify-center text-white font-medium">
+        <div className="h-10 w-10 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">
           {member.user?.email?.[0]?.toUpperCase() || 'U'}
         </div>
 
@@ -295,8 +295,8 @@ function TeamSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-white">Team Members</h2>
-          <p className="mt-1 text-sm text-neutral-400">
+          <h2 className="text-2xl font-semibold text-neutral-900">Team Members</h2>
+          <p className="mt-1 text-sm text-neutral-500">
             {currentWorkspace?.name ? `Manage members of "${currentWorkspace.name}"` : 'Manage your team members and invitations'}
           </p>
         </div>
@@ -314,10 +314,10 @@ function TeamSettings() {
       </div>
 
       {/* Members Section */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-neutral-800 flex items-center gap-2">
-          <Users className="h-5 w-5 text-neutral-400" />
-          <h3 className="font-medium text-white">
+      <div className="bg-white border border-[#E8EBF0] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#E8EBF0] flex items-center gap-2">
+          <Users className="h-5 w-5 text-neutral-500" />
+          <h3 className="font-medium text-neutral-900">
             Members ({members.length})
           </h3>
         </div>
@@ -327,12 +327,12 @@ function TeamSettings() {
             <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
           </div>
         ) : members.length === 0 ? (
-          <div className="py-12 text-center text-neutral-500">
+          <div className="py-12 text-center text-neutral-400">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>No members found</p>
           </div>
         ) : (
-          <div className="divide-y divide-neutral-800 bg-white">
+          <div className="divide-y divide-neutral-200 bg-white">
             {members.map((member) => (
               <MemberRow
                 key={member.id}
@@ -348,10 +348,10 @@ function TeamSettings() {
       </div>
 
       {/* Pending Invitations Section */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-neutral-800 flex items-center gap-2">
-          <Mail className="h-5 w-5 text-neutral-400" />
-          <h3 className="font-medium text-white">
+      <div className="bg-white border border-[#E8EBF0] rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-[#E8EBF0] flex items-center gap-2">
+          <Mail className="h-5 w-5 text-neutral-500" />
+          <h3 className="font-medium text-neutral-900">
             Pending Invitations ({pendingInvitations.length})
           </h3>
         </div>
@@ -361,7 +361,7 @@ function TeamSettings() {
             <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
           </div>
         ) : pendingInvitations.length === 0 ? (
-          <div className="py-12 text-center text-neutral-500">
+          <div className="py-12 text-center text-neutral-400">
             <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
             <p>No pending invitations</p>
             {isAdmin && (
@@ -371,7 +371,7 @@ function TeamSettings() {
             )}
           </div>
         ) : (
-          <div className="divide-y divide-neutral-800 bg-white">
+          <div className="divide-y divide-neutral-200 bg-white">
             {pendingInvitations.map((invitation) => (
               <InvitationRow
                 key={invitation.id}
@@ -386,12 +386,12 @@ function TeamSettings() {
 
       {/* Role Permissions Info (for non-admins) */}
       {!isAdmin && (
-        <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4">
+        <div className="bg-neutral-50 border border-[#E8EBF0] rounded-xl p-4">
           <div className="flex items-start gap-3">
-            <Shield className="h-5 w-5 text-neutral-400 mt-0.5" />
+            <Shield className="h-5 w-5 text-neutral-500 mt-0.5" />
             <div>
-              <h4 className="font-medium text-neutral-300">Role Permissions</h4>
-              <p className="mt-1 text-sm text-neutral-500">
+              <h4 className="font-medium text-neutral-700">Role Permissions</h4>
+              <p className="mt-1 text-sm text-neutral-400">
                 Only workspace admins can invite members, change roles, or remove team members.
                 Contact an admin if you need to make changes to the team.
               </p>

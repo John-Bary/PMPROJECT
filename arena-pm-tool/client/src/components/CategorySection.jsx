@@ -63,7 +63,7 @@ function CategorySection({
         <div
           ref={categoryProvided.innerRef}
           {...categoryProvided.draggableProps}
-          className={`flex-shrink-0 min-w-[320px] w-80 snap-start transition-shadow duration-200 ${
+          className={`flex-shrink-0 min-w-[300px] w-80 lg:w-auto lg:flex-1 snap-start transition-shadow duration-200 ${
             categorySnapshot.isDragging ? 'shadow-sm bg-[#F8F9FC] rounded-lg' : ''
           }`}
         >

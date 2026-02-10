@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, X, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
 import TaskList from '../components/TaskList';
@@ -15,7 +15,20 @@ function Dashboard() {
   const [activeView, setActiveView] = useState('board'); // 'board', 'list', or 'calendar'
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    return typeof window !== 'undefined' && window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches;
+  });
+  const [showMobileAddTask, setShowMobileAddTask] = useState(false);
+
+  // Auto-collapse sidebar on tablet resize (768-1024px)
+  useEffect(() => {
+    const tabletQuery = window.matchMedia('(min-width: 768px) and (max-width: 1024px)');
+    const handleTabletChange = (e) => {
+      if (e.matches) setIsSidebarCollapsed(true);
+    };
+    tabletQuery.addEventListener('change', handleTabletChange);
+    return () => tabletQuery.removeEventListener('change', handleTabletChange);
+  }, []);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -172,25 +185,36 @@ function Dashboard() {
     <div className="flex h-screen bg-[#F8F9FC]">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-[260px]'} bg-white border-r border-[#E8EBF0] transition-all duration-200 shrink-0`}
+        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-16 lg:w-[260px]'} bg-white border-r border-[#E8EBF0] transition-all duration-200 shrink-0`}
       >
         {sidebarContent(false)}
       </aside>
 
       {/* Mobile sidebar overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/20 backdrop-blur-sm"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          {/* Sidebar */}
-          <aside className="relative w-[260px] h-full bg-white flex flex-col shadow-xl">
-            {sidebarContent(true)}
-          </aside>
-        </div>
-      )}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-50 md:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            {/* Sidebar */}
+            <motion.aside
+              initial={{ x: -260 }}
+              animate={{ x: 0 }}
+              exit={{ x: -260 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="relative w-[260px] h-full bg-white flex flex-col shadow-xl"
+            >
+              {sidebarContent(true)}
+            </motion.aside>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -198,7 +222,7 @@ function Dashboard() {
         <header className="md:hidden h-14 bg-white border-b border-[#E8EBF0] flex items-center px-4 shrink-0">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 -ml-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8F9FC] rounded-lg transition-all duration-150"
+            className="p-2.5 -ml-2 text-[#64748B] hover:text-[#0F172A] hover:bg-[#F8F9FC] rounded-lg transition-all duration-150"
             aria-label="Toggle menu"
           >
             <Menu size={24} />
@@ -207,10 +231,24 @@ function Dashboard() {
             Todoria
             <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
           </span>
+          <div className="flex-1" />
+          <button
+            onClick={() => setShowMobileAddTask(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors mr-2"
+          >
+            <Plus size={16} />
+            <span>Add</span>
+          </button>
+          <div
+            className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium shrink-0"
+            title={user?.name || 'User'}
+          >
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+          </div>
         </header>
 
         <main className="flex-1 overflow-auto">
-          <div className="max-w-6xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeView}
@@ -220,11 +258,11 @@ function Dashboard() {
                 transition={{ duration: 0.15 }}
               >
                 {activeView === 'board' ? (
-                  <TaskList />
+                  <TaskList mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
                 ) : activeView === 'list' ? (
-                  <ListView />
+                  <ListView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
                 ) : (
-                  <CalendarView />
+                  <CalendarView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
                 )}
               </motion.div>
             </AnimatePresence>

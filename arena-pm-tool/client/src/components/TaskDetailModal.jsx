@@ -19,10 +19,10 @@ import { ButtonSpinner, InlineSpinner } from './Loader';
 import { toast } from 'sonner';
 
 const priorityConfig = {
-  urgent: { label: 'Urgent', color: 'text-neutral-900 font-medium', dot: 'bg-red-500' },
-  high: { label: 'High', color: 'text-neutral-700', dot: 'bg-orange-500' },
-  medium: { label: 'Medium', color: 'text-neutral-600', dot: 'bg-yellow-500' },
-  low: { label: 'Low', color: 'text-neutral-400', dot: 'bg-neutral-300' },
+  urgent: { label: 'Urgent', color: 'text-red-700 font-medium', dot: 'bg-red-600' },
+  high: { label: 'High', color: 'text-orange-700', dot: 'bg-orange-600' },
+  medium: { label: 'Medium', color: 'text-amber-600', dot: 'bg-amber-500' },
+  low: { label: 'Low', color: 'text-green-600', dot: 'bg-green-600' },
 };
 
 function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
@@ -292,14 +292,14 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
         className="fixed inset-0 bg-black/20" />
 
       {/* Modal Container */}
-      <div className="flex min-h-full items-start justify-center p-4 pt-16 sm:pt-20">
+      <div className="flex min-h-full items-start justify-center p-0 sm:p-4 sm:pt-20">
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.2 }}
           ref={modalRef}
-          className="relative bg-white rounded-xl shadow-md w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col"
+          className="relative bg-white sm:rounded-xl shadow-md w-full h-[100dvh] sm:h-auto sm:max-w-2xl sm:max-h-[85vh] overflow-hidden flex flex-col"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}

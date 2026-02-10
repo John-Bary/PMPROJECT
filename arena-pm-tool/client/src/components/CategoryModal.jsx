@@ -5,16 +5,18 @@ import useCategoryStore from '../store/categoryStore';
 import { ButtonSpinner } from './Loader';
 
 const AVAILABLE_COLORS = [
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Yellow', value: '#eab308' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Gray', value: '#6b7280' },
+  { name: 'Indigo', value: '#6366F1' },
+  { name: 'Blue', value: '#3B82F6' },
+  { name: 'Sky', value: '#0EA5E9' },
+  { name: 'Teal', value: '#14B8A6' },
+  { name: 'Emerald', value: '#10B981' },
+  { name: 'Lime', value: '#84CC16' },
+  { name: 'Amber', value: '#F59E0B' },
+  { name: 'Orange', value: '#F97316' },
+  { name: 'Rose', value: '#F43F5E' },
+  { name: 'Pink', value: '#EC4899' },
+  { name: 'Purple', value: '#A855F7' },
+  { name: 'Slate', value: '#64748B' },
 ];
 
 function CategoryModal({ isOpen, onClose, category = null }) {
@@ -24,7 +26,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
 
   const [formData, setFormData] = useState({
     name: '',
-    color: '#14b8a6', // Default blue
+    color: '#6366F1', // Default indigo
   });
 
   useEffect(() => {
@@ -37,7 +39,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
       } else {
         setFormData({
           name: '',
-          color: '#14b8a6',
+          color: '#6366F1',
         });
       }
     }
@@ -74,7 +76,7 @@ function CategoryModal({ isOpen, onClose, category = null }) {
   };
 
   const handleClose = () => {
-    setFormData({ name: '', color: '#14b8a6' });
+    setFormData({ name: '', color: '#6366F1' });
     onClose();
   };
 

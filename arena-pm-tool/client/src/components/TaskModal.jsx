@@ -278,7 +278,7 @@ const TaskModal = ({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.2 }}
-          className="relative bg-white rounded-t-xl sm:rounded-xl shadow-md w-full sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          className="relative bg-white sm:rounded-xl shadow-md w-full h-[100dvh] sm:h-auto sm:max-w-lg sm:max-h-[90vh] overflow-y-auto">
           <div className="p-4 sm:p-6">
             {/* Mobile drag handle indicator */}
             <div className="w-12 h-1 bg-neutral-300 rounded-full mx-auto mb-4 sm:hidden"></div>
