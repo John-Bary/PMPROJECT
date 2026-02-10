@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { Camera, Trash2, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2 } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 
 const ProfileTab = () => {
-  const { user, isLoading, updateProfile, uploadAvatar, deleteAvatar } = useAuthStore();
-  const fileInputRef = useRef(null);
+  const { user, isLoading, updateProfile } = useAuthStore();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -12,8 +11,6 @@ const ProfileTab = () => {
   });
   const [errors, setErrors] = useState({});
   const [hasChanges, setHasChanges] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-
   // Initialize form with user data
   useEffect(() => {
     if (user) {
@@ -79,139 +76,16 @@ const ProfileTab = () => {
     });
   };
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      setErrors((prev) => ({
-        ...prev,
-        avatar: 'Please upload a JPG, PNG, or WebP image',
-      }));
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrors((prev) => ({
-        ...prev,
-        avatar: 'Image must be less than 5MB',
-      }));
-      return;
-    }
-
-    setIsUploading(true);
-    setErrors((prev) => ({ ...prev, avatar: undefined }));
-
-    await uploadAvatar(file);
-    setIsUploading(false);
-
-    // Clear file input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleDeleteAvatar = async () => {
-    await deleteAvatar();
-  };
-
-  const getInitials = () => {
-    const first = formData.firstName || user?.name?.split(' ')[0] || '';
-    const last = formData.lastName || user?.name?.split(' ')[1] || '';
-    if (first && last) {
-      return `${first[0]}${last[0]}`.toUpperCase();
-    }
-    return first.substring(0, 2).toUpperCase() || 'U';
-  };
-
-  const apiBaseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
-
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-semibold text-white">Profile</h2>
         <p className="mt-1 text-sm text-neutral-400">
-          Manage your personal information and profile photo.
+          Manage your personal information.
         </p>
       </div>
 
-      {/* Avatar Section */}
-      <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
-        <h3 className="text-lg font-medium text-white mb-4">Profile Photo</h3>
-
-        <div className="flex items-center gap-6">
-          {/* Avatar Preview */}
-          <div className="relative">
-            {user?.avatarUrl ? (
-              <img
-                src={`${apiBaseUrl}${user.avatarUrl}`}
-                alt="Avatar"
-                className="h-24 w-24 rounded-full object-cover border-2 border-neutral-700"
-              />
-            ) : (
-              <div className="h-24 w-24 rounded-full bg-teal-600 flex items-center justify-center text-white text-2xl font-semibold border-2 border-neutral-700">
-                {getInitials()}
-              </div>
-            )}
-
-            {isUploading && (
-              <div className="absolute inset-0 bg-neutral-900/80 rounded-full flex items-center justify-center">
-                <Loader2 className="h-8 w-8 text-teal-400 animate-spin" />
-              </div>
-            )}
-          </div>
-
-          {/* Avatar Actions */}
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={handleAvatarClick}
-                disabled={isUploading}
-                className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Camera className="h-4 w-4" />
-                <span>Upload Photo</span>
-              </button>
-
-              {user?.avatarUrl && (
-                <button
-                  type="button"
-                  onClick={handleDeleteAvatar}
-                  disabled={isUploading || isLoading}
-                  className="flex items-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  <span>Remove</span>
-                </button>
-              )}
-            </div>
-
-            <p className="text-sm text-neutral-500">
-              JPG, PNG, or WebP. Maximum file size 5MB.
-            </p>
-
-            {errors.avatar && (
-              <p className="text-sm text-red-400">{errors.avatar}</p>
-            )}
-          </div>
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-      </div>
+      {/* Avatar Section - hidden for MVP */}
 
       {/* Name Form */}
       <form onSubmit={handleSubmit} className="bg-neutral-900 border border-neutral-800 rounded-xl p-6">
