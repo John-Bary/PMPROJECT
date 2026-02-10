@@ -34,6 +34,7 @@
   "license": "ISC",
   "dependencies": {
     "@sentry/node": "^10.38.0",
+    "@supabase/supabase-js": "^2.95.3",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
