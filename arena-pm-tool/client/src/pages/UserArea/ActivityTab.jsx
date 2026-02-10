@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Activity, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { workspacesAPI } from '../../utils/api';
 import useWorkspaceStore from '../../store/workspaceStore';
 import { formatDistanceToNow } from 'date-fns';
