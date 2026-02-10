@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom';
-import { User, Settings, Bell, CheckSquare, ArrowLeft, Menu, X, Users, Shield } from 'lucide-react';
+import { User, Settings, Bell, CheckSquare, ArrowLeft, Menu, X, Users, Shield, Activity } from 'lucide-react';
 import useAuthStore from '../../store/authStore';
 import ProfileTab from './ProfileTab';
 import PreferencesTab from './PreferencesTab';
 import NotificationsTab from './NotificationsTab';
 import MyTasksTab from './MyTasksTab';
 import AccountTab from './AccountTab';
+import ActivityTab from './ActivityTab';
 import TeamSettings from '../../components/TeamSettings';
 
 const UserArea = () => {
@@ -30,6 +31,7 @@ const UserArea = () => {
     { path: '/user/notifications', label: 'Notifications', icon: Bell },
     { path: '/user/tasks', label: 'My Tasks', icon: CheckSquare },
     { path: '/user/team', label: 'Team', icon: Users },
+    { path: '/user/activity', label: 'Activity', icon: Activity },
     { path: '/user/account', label: 'Account', icon: Shield },
   ];
 
@@ -155,6 +157,7 @@ const UserArea = () => {
               <Route path="notifications" element={<NotificationsTab />} />
               <Route path="tasks" element={<MyTasksTab />} />
               <Route path="team" element={<TeamSettings />} />
+              <Route path="activity" element={<ActivityTab />} />
               <Route path="account" element={<AccountTab />} />
             </Routes>
           </main>
