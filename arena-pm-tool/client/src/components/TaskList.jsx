@@ -481,6 +481,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                       isToggling={togglingTaskIds.has(task.id)}
                       searchQuery={searchQuery}
                       canEdit={userCanEdit}
+                      noDrag
                     />
                   ));
                 })()}

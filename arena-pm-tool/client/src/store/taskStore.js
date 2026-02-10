@@ -160,16 +160,44 @@ const useTaskStore = create((set, get) => ({
 
   // Update task position (drag & drop)
   updateTaskPosition: async (id, positionData) => {
-    set({ isMutating: true });
+    const prevTasks = get().tasks;
+
+    // Optimistic update: move the task to new category/position immediately
+    set((state) => {
+      const task = state.tasks.find((t) => t.id === id);
+      if (!task) return { isMutating: true };
+
+      const newCategoryId = positionData.category_id;
+      const newPosition = positionData.position;
+
+      // Remove task from its current position
+      let updatedTasks = state.tasks.filter((t) => t.id !== id);
+
+      // Get tasks in the destination category, sorted by position
+      const destTasks = updatedTasks
+        .filter((t) => t.categoryId === newCategoryId)
+        .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+      // Insert the task at the new position and reassign positions
+      const movedTask = { ...task, categoryId: newCategoryId, position: newPosition };
+      destTasks.splice(newPosition, 0, movedTask);
+      destTasks.forEach((t, i) => { t.position = i; });
+
+      // Rebuild tasks array: keep other categories unchanged, replace dest category tasks
+      const otherTasks = updatedTasks.filter((t) => t.categoryId !== newCategoryId);
+      return { tasks: [...otherTasks, ...destTasks], isMutating: true };
+    });
+
     try {
       await tasksAPI.updatePosition(id, positionData);
-      // Refetch tasks to get updated positions
-      await get().fetchTasks(get().filters, { showLoading: false });
+      // Background refetch to sync with server (positions of other tasks may have shifted)
+      get().fetchTasks(get().filters, { showLoading: false });
       set({ isMutating: false });
       return { success: true };
     } catch (error) {
+      // Revert on failure
+      set({ tasks: prevTasks, isMutating: false });
       const errorMessage = error.response?.data?.message || 'Failed to update position';
-      set({ isMutating: false });
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
