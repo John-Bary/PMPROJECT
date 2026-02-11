@@ -214,8 +214,8 @@ const createCheckoutSession = async (req, res) => {
           workspace_id,
         },
       },
-      success_url: `${clientUrl}/settings/billing?session_id={CHECKOUT_SESSION_ID}&success=true`,
-      cancel_url: `${clientUrl}/settings/billing?canceled=true`,
+      success_url: `${clientUrl}/billing?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
+      cancel_url: `${clientUrl}/billing?checkout=cancelled`,
       metadata: {
         workspace_id,
       },
@@ -279,7 +279,7 @@ const createPortalSession = async (req, res) => {
 
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: subResult.rows[0].stripe_customer_id,
-      return_url: `${clientUrl}/settings/billing`,
+      return_url: `${clientUrl}/billing`,
     });
 
     res.json({
@@ -475,7 +475,7 @@ const handleWebhook = async (req, res) => {
             if (adminResult.rows.length > 0) {
               const admin = adminResult.rows[0];
               const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '');
-              const billingUrl = `${clientUrl}/settings/billing`;
+              const billingUrl = `${clientUrl}/billing`;
               const trialEndDate = subscription.trial_end
                 ? new Date(subscription.trial_end * 1000)
                 : null;
