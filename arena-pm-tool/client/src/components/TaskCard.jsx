@@ -10,7 +10,6 @@ import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue
 import { priorityStyles, priorityDotColors, priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
-import { InlineSpinner } from './Loader';
 
 const avatarColors = ['bg-primary', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
@@ -203,16 +202,12 @@ function TaskCard({
                     ? 'bg-primary border-primary'
                     : 'border-input hover:border-neutral-500'
                   }
-                  ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}
+                  ${isToggling ? 'cursor-not-allowed' : ''}
                 `}
                 disabled={isToggling}
                 title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
               >
-                {isToggling ? (
-                  <InlineSpinner size="sm" />
-                ) : (
-                  isCompleted && <Check size={12} className="text-primary-foreground" />
-                )}
+                {isCompleted && <Check size={12} className="text-primary-foreground" />}
               </button>
 
               <div className="flex-1 min-w-0">

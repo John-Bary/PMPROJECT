@@ -13,7 +13,6 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import SubtaskList from './SubtaskList';
 import CommentSection from './CommentSection';
-import { InlineSpinner } from './Loader';
 import { toast } from 'sonner';
 import { Dialog, DialogContent } from 'components/ui/dialog';
 import { Button } from 'components/ui/button';
@@ -37,7 +36,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editedDescription, setEditedDescription] = useState('');
   const [isSaving, setIsSaving] = useState(false);
-  const [isTogglingComplete, setIsTogglingComplete] = useState(false);
+  const isTogglingRef = useRef(false);
 
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
@@ -143,8 +142,8 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   };
 
   const handleToggleComplete = async () => {
-    if (isTogglingComplete) return;
-    setIsTogglingComplete(true);
+    if (isTogglingRef.current) return;
+    isTogglingRef.current = true;
     try {
       const newStatus = isCompleted ? 'todo' : 'completed';
 
@@ -168,7 +167,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
     } catch (error) {
       toast.error('Failed to update task status');
     } finally {
-      setIsTogglingComplete(false);
+      isTogglingRef.current = false;
     }
   };
 
@@ -250,7 +249,6 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               {/* Completion checkbox */}
               <button
                 onClick={handleToggleComplete}
-                disabled={isTogglingComplete}
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
@@ -258,15 +256,10 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                     ? 'bg-primary border-primary'
                     : 'border-input hover:border-neutral-500'
                   }
-                  ${isTogglingComplete ? 'opacity-60 cursor-not-allowed' : ''}
                 `}
                 title={isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
               >
-                {isTogglingComplete ? (
-                  <InlineSpinner size="sm" />
-                ) : (
-                  isCompleted && <Check size={14} className="text-primary-foreground" />
-                )}
+                {isCompleted && <Check size={14} className="text-primary-foreground" />}
               </button>
               <span className={`text-sm font-medium ${isCompleted ? 'text-foreground' : 'text-muted-foreground'}`}>
                 {isCompleted ? 'Completed' : 'Mark complete'}

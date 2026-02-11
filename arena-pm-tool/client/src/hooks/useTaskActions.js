@@ -12,6 +12,7 @@ export function useTaskActions() {
   const [togglingTaskIds, setTogglingTaskIds] = useState(new Set());
 
   const handleToggleComplete = useCallback(async (task) => {
+    if (togglingTaskIds.has(task.id)) return;
     setTogglingTaskIds((prev) => {
       const next = new Set(prev);
       next.add(task.id);
@@ -27,7 +28,7 @@ export function useTaskActions() {
         return next;
       });
     }
-  }, [toggleComplete, categories]);
+  }, [toggleComplete, categories, togglingTaskIds]);
 
   const isToggling = useCallback((taskId) => {
     return togglingTaskIds.has(taskId);

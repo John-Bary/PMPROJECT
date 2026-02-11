@@ -1,6 +1,7 @@
 import { act } from 'react';
 import useTaskStore from '../taskStore';
 import useWorkspaceStore from '../workspaceStore';
+import useUserStore from '../userStore';
 import { tasksAPI } from '../../utils/api';
 import { toast } from 'sonner';
 
@@ -27,6 +28,8 @@ describe('Task Store', () => {
   beforeEach(() => {
     // Set workspace ID so store operations don't bail early
     useWorkspaceStore.setState({ currentWorkspaceId: 'test-workspace-id' });
+    // Provide users for assignee resolution
+    useUserStore.setState({ users: [{ id: 10, name: 'Alice' }, { id: 20, name: 'Bob' }] });
     // Reset store to initial state
     useTaskStore.setState({
       tasks: [],
@@ -34,6 +37,7 @@ describe('Task Store', () => {
       isFetching: false,
       isMutating: false,
       error: null,
+      _taskMutationGeneration: {},
       filters: {
         category_id: null,
         assignee_ids: [],
@@ -189,6 +193,48 @@ describe('Task Store', () => {
 
       expect(toast.success).toHaveBeenCalledWith('Updated "Updated Task"');
     });
+
+    it('should optimistically update before API resolves', async () => {
+      useTaskStore.setState({
+        tasks: [{ id: 1, title: 'Old Title', priority: 'low', status: 'todo' }],
+      });
+
+      let resolveApi;
+      tasksAPI.update.mockImplementation(() => new Promise((resolve) => { resolveApi = resolve; }));
+
+      // Start the update but don't await
+      const updatePromise = useTaskStore.getState().updateTask(1, { priority: 'high' });
+
+      // Task should be updated immediately (optimistic)
+      const taskBeforeResolve = useTaskStore.getState().tasks.find(t => t.id === 1);
+      expect(taskBeforeResolve.priority).toBe('high');
+
+      // isMutating should NOT be set by updateTask
+      expect(useTaskStore.getState().isMutating).toBe(false);
+
+      // Resolve the API
+      resolveApi({ data: { data: { task: { id: 1, title: 'Old Title', priority: 'high', status: 'todo' } } } });
+      await act(async () => { await updatePromise; });
+    });
+
+    it('should rollback on API error', async () => {
+      useTaskStore.setState({
+        tasks: [{ id: 1, title: 'Task', priority: 'low', status: 'todo' }],
+      });
+
+      tasksAPI.update.mockRejectedValue({
+        response: { data: { message: 'Server error' } }
+      });
+
+      await act(async () => {
+        await useTaskStore.getState().updateTask(1, { priority: 'high' });
+      });
+
+      // Should have rolled back to original
+      const task = useTaskStore.getState().tasks.find(t => t.id === 1);
+      expect(task.priority).toBe('low');
+      expect(toast.error).toHaveBeenCalledWith('Server error');
+    });
   });
 
   describe('deleteTask', () => {
@@ -221,6 +267,53 @@ describe('Task Store', () => {
       });
 
       expect(toast.success).toHaveBeenCalledWith('Deleted "Task to Delete"');
+    });
+
+    it('should optimistically remove task before API resolves', async () => {
+      useTaskStore.setState({
+        tasks: [
+          { id: 1, title: 'Task 1' },
+          { id: 2, title: 'Task 2' },
+        ],
+      });
+
+      let resolveApi;
+      tasksAPI.delete.mockImplementation(() => new Promise((resolve) => { resolveApi = resolve; }));
+
+      const deletePromise = useTaskStore.getState().deleteTask(1);
+
+      // Task should be removed immediately
+      expect(useTaskStore.getState().tasks).toHaveLength(1);
+      expect(useTaskStore.getState().tasks.find(t => t.id === 1)).toBeUndefined();
+
+      // isMutating should NOT be set
+      expect(useTaskStore.getState().isMutating).toBe(false);
+
+      resolveApi({});
+      await act(async () => { await deletePromise; });
+    });
+
+    it('should rollback on API error (task reappears)', async () => {
+      useTaskStore.setState({
+        tasks: [
+          { id: 1, title: 'Task 1' },
+          { id: 2, title: 'Task 2' },
+        ],
+      });
+
+      tasksAPI.delete.mockRejectedValue({
+        response: { data: { message: 'Delete failed' } }
+      });
+
+      await act(async () => {
+        await useTaskStore.getState().deleteTask(1);
+      });
+
+      // Task should reappear after rollback
+      const tasks = useTaskStore.getState().tasks;
+      expect(tasks).toHaveLength(2);
+      expect(tasks.find(t => t.id === 1)).toBeDefined();
+      expect(toast.error).toHaveBeenCalledWith('Delete failed');
     });
   });
 
@@ -259,6 +352,52 @@ describe('Task Store', () => {
       const updatedTask = useTaskStore.getState().tasks.find(t => t.id === 1);
       expect(updatedTask.status).toBe('todo');
       expect(toast.success).toHaveBeenCalledWith('Marked "Task" as incomplete');
+    });
+
+    it('should optimistically change status and category', async () => {
+      const task = { id: 1, title: 'Task', status: 'todo', categoryId: 10 };
+      useTaskStore.setState({ tasks: [task] });
+
+      const categories = [
+        { id: 10, name: 'To Do' },
+        { id: 20, name: 'Completed' },
+      ];
+
+      let resolveApi;
+      tasksAPI.update.mockImplementation(() => new Promise((resolve) => { resolveApi = resolve; }));
+
+      const togglePromise = useTaskStore.getState().toggleComplete(task, categories);
+
+      // Should optimistically update status and category immediately
+      const optimisticTask = useTaskStore.getState().tasks.find(t => t.id === 1);
+      expect(optimisticTask.status).toBe('completed');
+      expect(optimisticTask.categoryId).toBe(20);
+      expect(optimisticTask.completedAt).toBeTruthy();
+
+      // isMutating should NOT be set
+      expect(useTaskStore.getState().isMutating).toBe(false);
+
+      resolveApi({ data: { data: { task: { ...task, status: 'completed', categoryId: 20, completedAt: new Date().toISOString() } } } });
+      await act(async () => { await togglePromise; });
+    });
+
+    it('should rollback on API error', async () => {
+      const task = { id: 1, title: 'Task', status: 'todo', categoryId: 10 };
+      useTaskStore.setState({ tasks: [task] });
+
+      tasksAPI.update.mockRejectedValue({
+        response: { data: { message: 'Toggle failed' } }
+      });
+
+      await act(async () => {
+        await useTaskStore.getState().toggleComplete(task);
+      });
+
+      // Should rollback
+      const rolledBackTask = useTaskStore.getState().tasks.find(t => t.id === 1);
+      expect(rolledBackTask.status).toBe('todo');
+      expect(rolledBackTask.categoryId).toBe(10);
+      expect(toast.error).toHaveBeenCalledWith('Toggle failed');
     });
   });
 

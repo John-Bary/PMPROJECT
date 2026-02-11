@@ -54,7 +54,6 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
   const [editingTask, setEditingTask] = useState(null);
   const [defaultCategoryId, setDefaultCategoryId] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
-  const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
@@ -139,20 +138,14 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
 
   const confirmDelete = async () => {
     if (deletingTask) {
-      setIsDeletingTask(true);
-      try {
-        await deleteTask(deletingTask.id);
-        setDeletingTask(null);
-      } finally {
-        setIsDeletingTask(false);
-      }
+      const id = deletingTask.id;
+      setDeletingTask(null);
+      await deleteTask(id);
     }
   };
 
   const cancelDelete = () => {
-    if (!isDeletingTask) {
-      setDeletingTask(null);
-    }
+    setDeletingTask(null);
   };
 
   const handleCloseModal = () => {
@@ -583,16 +576,14 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingTask}>
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={isDeletingTask}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive"
             >
-              {isDeletingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isDeletingTask ? 'Deleting...' : 'Delete'}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

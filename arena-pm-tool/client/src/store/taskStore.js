@@ -3,10 +3,35 @@ import { create } from 'zustand';
 import { tasksAPI } from '../utils/api';
 import { toast } from 'sonner';
 import useWorkspaceStore from './workspaceStore';
+import useUserStore from './userStore';
 import analytics, { EVENTS } from '../utils/analytics';
 
 // Helper to get current workspace ID
 const getWorkspaceId = () => useWorkspaceStore.getState().currentWorkspaceId;
+
+// Maps snake_case API fields to camelCase task object fields for optimistic updates
+const buildOptimisticTaskData = (apiData) => {
+  const mapped = {};
+  if ('due_date' in apiData) mapped.dueDate = apiData.due_date;
+  if ('category_id' in apiData) mapped.categoryId = apiData.category_id;
+  if ('completed_at' in apiData) mapped.completedAt = apiData.completed_at;
+  if ('parent_task_id' in apiData) mapped.parentTaskId = apiData.parent_task_id;
+  if ('assignee_ids' in apiData) {
+    const allUsers = useUserStore.getState().users;
+    mapped.assignees = apiData.assignee_ids.map((id) => {
+      const user = allUsers.find((u) => u.id === id);
+      return user ? { id: user.id, name: user.name } : { id, name: 'Unknown' };
+    });
+  }
+  // Pass through camelCase fields directly (title, description, priority, status, etc.)
+  const snakeKeys = ['due_date', 'category_id', 'completed_at', 'parent_task_id', 'assignee_ids', 'workspace_id'];
+  for (const [key, value] of Object.entries(apiData)) {
+    if (!snakeKeys.includes(key)) {
+      mapped[key] = value;
+    }
+  }
+  return mapped;
+};
 
 const useTaskStore = create((set, get) => ({
   tasks: [],
@@ -17,6 +42,7 @@ const useTaskStore = create((set, get) => ({
   error: null,
   nextCursor: null,
   hasMore: false,
+  _taskMutationGeneration: {},
   filters: {
     category_id: null,
     assignee_ids: [], // Changed from assignee_id to support multiple assignees
@@ -130,29 +156,45 @@ const useTaskStore = create((set, get) => ({
     }
   },
 
-  // Update task
+  // Update task (optimistic)
   updateTask: async (id, taskData) => {
-    set({ isMutating: true });
+    const prevTasks = get().tasks;
+    const optimistic = buildOptimisticTaskData(taskData);
+
+    // Bump generation counter for this task to handle rapid consecutive updates
+    const gen = (get()._taskMutationGeneration[id] || 0) + 1;
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === id ? { ...task, ...optimistic } : task
+      ),
+      _taskMutationGeneration: { ...state._taskMutationGeneration, [id]: gen },
+    }));
+
     try {
       const response = await tasksAPI.update(id, taskData);
       const updatedTask = response.data.data.task;
       const taskTitle =
         updatedTask?.title ||
-        get().tasks.find((task) => task.id === id)?.title ||
+        prevTasks.find((task) => task.id === id)?.title ||
         'Task';
 
-      set((state) => ({
-        tasks: state.tasks.map((task) =>
-          task.id === id ? { ...task, ...updatedTask } : task
-        ),
-        isMutating: false,
-      }));
+      // Only reconcile if no newer mutation has fired for this task
+      if (get()._taskMutationGeneration[id] === gen) {
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, ...updatedTask } : task
+          ),
+        }));
+      }
 
       toast.success(`Updated "${taskTitle}"`);
       return { success: true, task: updatedTask };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to update task';
-      set({ isMutating: false });
+      // Only rollback if no newer mutation has fired
+      if (get()._taskMutationGeneration[id] === gen) {
+        set({ tasks: prevTasks });
+      }
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -203,30 +245,32 @@ const useTaskStore = create((set, get) => ({
     }
   },
 
-  // Delete task
+  // Delete task (optimistic)
   deleteTask: async (id) => {
-    set({ isMutating: true });
-    const taskTitle = get().tasks.find((task) => task.id === id)?.title || 'Task';
+    const prevTasks = get().tasks;
+    const taskTitle = prevTasks.find((task) => task.id === id)?.title || 'Task';
+
+    // Immediately remove the task from the UI
+    set((state) => ({
+      tasks: state.tasks.filter((task) => task.id !== id),
+    }));
+
     try {
       await tasksAPI.delete(id);
-
-      set((state) => ({
-        tasks: state.tasks.filter((task) => task.id !== id),
-        isMutating: false,
-      }));
-
       toast.success(`Deleted "${taskTitle}"`);
       return { success: true };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to delete task';
-      set({ isMutating: false });
+      // Rollback: task reappears
+      set({ tasks: prevTasks });
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
   },
 
-  // Toggle task completion
+  // Toggle task completion (optimistic)
   toggleComplete: async (task, categories = []) => {
+    const prevTasks = get().tasks;
     const newStatus = task.status === 'completed' ? 'todo' : 'completed';
 
     // Find the Completed category and To Do category
@@ -241,20 +285,30 @@ const useTaskStore = create((set, get) => ({
       newCategoryId = todoCategory.id;
     }
 
-    set({ isMutating: true });
+    const completedAt = newStatus === 'completed' ? new Date().toISOString() : null;
+
+    // Optimistic update
+    set((state) => ({
+      tasks: state.tasks.map((t) =>
+        t.id === task.id
+          ? { ...t, status: newStatus, completedAt, categoryId: newCategoryId }
+          : t
+      ),
+    }));
+
     try {
       const response = await tasksAPI.update(task.id, {
         status: newStatus,
-        completed_at: newStatus === 'completed' ? new Date().toISOString() : null,
+        completed_at: completedAt,
         category_id: newCategoryId,
       });
       const updatedTask = response.data.data.task;
 
+      // Reconcile with server response
       set((state) => ({
         tasks: state.tasks.map((t) =>
           t.id === task.id ? { ...t, ...updatedTask } : t
         ),
-        isMutating: false,
       }));
 
       const label = task?.title || 'Task';
@@ -266,7 +320,8 @@ const useTaskStore = create((set, get) => ({
       return { success: true, task: updatedTask };
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to update task';
-      set({ isMutating: false });
+      // Rollback
+      set({ tasks: prevTasks });
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
