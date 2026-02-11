@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Search,
@@ -182,27 +182,70 @@ function ListView() {
 
   /**
    * Handle drag-and-drop reordering of tasks and subtasks.
-   * Supports reordering parent tasks within their category and
-   * subtasks within their parent task only.
+   * Supports:
+   * - Moving parent tasks within a category (reorder)
+   * - Moving parent tasks between categories
+   * - Reordering subtasks within the same parent
    */
   const handleDragEnd = async (result) => {
     const { destination, source, draggableId } = result;
 
-    // Early exit: no drop target, cross-category drop, or same position
+    // Early exit: no drop target or same exact position
     if (!destination) return;
-    if (destination.droppableId !== source.droppableId) return;
-    if (destination.index === source.index) return;
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) return;
 
-    const categoryId = parseInt(destination.droppableId, 10);
+    const sourceCategoryId = parseInt(source.droppableId, 10);
+    const destCategoryId = parseInt(destination.droppableId, 10);
     const isSubtask = draggableId.startsWith('subtask-');
     const taskId = parseInt(draggableId.replace('subtask-', '').replace('task-', ''), 10);
 
-    const categoryParents = parentTasks.filter(task => task.categoryId === categoryId);
+    // --- Cross-category move (parent tasks only) ---
+    if (sourceCategoryId !== destCategoryId) {
+      if (isSubtask) return; // Subtasks cannot move across categories
 
-    // Build flat list of visible rows (parents + expanded subtasks) for index mapping
-    const buildCategoryRows = () => {
+      // Build the destination category's flat rows to find the correct parent-task position
+      const destSortedParents = tasksByCategory[destCategoryId] || [];
+      const destRows = [];
+      destSortedParents.forEach((parent) => {
+        destRows.push({ task: parent, isSubtask: false });
+        if (expandedTasks[parent.id]) {
+          const subs = getSubtasks(parent.id);
+          subs.forEach((sub) => destRows.push({ task: sub, isSubtask: true }));
+        }
+      });
+
+      // Map the visual drop index to a parent-task position
+      const destRow = destRows[destination.index];
+      let position;
+      if (!destRow) {
+        // Dropped past the last item — append to end
+        position = destSortedParents.length;
+      } else if (destRow.isSubtask) {
+        // Dropped onto a subtask row — place after its parent in parent order
+        const parentOfSub = destSortedParents.find(p => p.id === destRow.task.parentTaskId);
+        position = parentOfSub
+          ? destSortedParents.indexOf(parentOfSub) + 1
+          : destSortedParents.length;
+      } else {
+        position = destSortedParents.indexOf(destRow.task);
+        if (position === -1) position = destSortedParents.length;
+      }
+
+      await updateTaskPosition(taskId, { category_id: destCategoryId, position });
+      return;
+    }
+
+    // --- Same-category operations ---
+    // Use the sorted parent list that matches the rendered order
+    const sortedParents = tasksByCategory[destCategoryId] || [];
+
+    // Build flat list of visible rows matching what is rendered
+    const buildCategoryRows = (parents) => {
       const rows = [];
-      categoryParents.forEach((parent) => {
+      parents.forEach((parent) => {
         rows.push({ task: parent, isSubtask: false });
         if (expandedTasks[parent.id]) {
           const subs = getSubtasks(parent.id);
@@ -212,46 +255,50 @@ function ListView() {
       return rows;
     };
 
-    const categoryRows = buildCategoryRows();
+    const categoryRows = buildCategoryRows(sortedParents);
     const sourceRow = categoryRows[source.index];
     const destRow = categoryRows[destination.index];
     if (!sourceRow || !destRow) return;
 
-    // Dragging parent tasks
+    // --- Parent task reorder within same category ---
     if (!isSubtask) {
+      // Don't allow dropping a parent task onto a subtask row
       if (sourceRow.isSubtask || destRow.isSubtask) return;
 
-      const newParentOrder = [...categoryParents];
+      const newParentOrder = [...sortedParents];
       const fromIdx = newParentOrder.findIndex(t => t.id === taskId);
       const toIdx = newParentOrder.findIndex(t => t.id === destRow.task.id);
       if (fromIdx === -1 || toIdx === -1) return;
 
-      // Reorder parents locally for index calculation
       const [moved] = newParentOrder.splice(fromIdx, 1);
       newParentOrder.splice(toIdx, 0, moved);
 
-      await updateTaskPosition(taskId, { category_id: categoryId, position: toIdx });
+      await updateTaskPosition(taskId, { category_id: destCategoryId, position: toIdx });
       return;
     }
 
-    // Dragging subtasks (only within the same parent)
+    // --- Subtask reorder within the same parent ---
     if (!sourceRow.isSubtask || !destRow.isSubtask) return;
     if (sourceRow.parentId !== destRow.parentId) return;
 
     const parentId = sourceRow.parentId;
-    const parentTask = tasks.find(t => t.id === parentId);
-    if (!parentTask) return;
-
-    const categoryTasksOrdered = tasks
-      .filter(t => t.categoryId === categoryId)
-      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-
     const siblings = getSubtasks(parentId);
     const draggedTask = tasks.find(t => t.id === taskId);
     if (!draggedTask) return;
 
-    const reorderedSiblings = siblings.filter(t => t.id !== taskId);
-    reorderedSiblings.splice(destination.index, 0, draggedTask);
+    // Build reordered siblings list
+    const fromSubIdx = siblings.findIndex(t => t.id === taskId);
+    const toSubIdx = siblings.findIndex(t => t.id === destRow.task.id);
+    if (fromSubIdx === -1 || toSubIdx === -1) return;
+
+    const reorderedSiblings = [...siblings];
+    const [movedSub] = reorderedSiblings.splice(fromSubIdx, 1);
+    reorderedSiblings.splice(toSubIdx, 0, movedSub);
+
+    // Find position within all category tasks
+    const categoryTasksOrdered = tasks
+      .filter(t => t.categoryId === destCategoryId)
+      .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
     let siblingCursor = 0;
     const newCategoryOrder = categoryTasksOrdered.map((task) => {
@@ -266,7 +313,7 @@ function ListView() {
     const newIndex = newCategoryOrder.findIndex(t => t.id === taskId);
     if (newIndex === -1) return;
 
-    await updateTaskPosition(taskId, { category_id: categoryId, position: newIndex });
+    await updateTaskPosition(taskId, { category_id: destCategoryId, position: newIndex });
   };
 
   // Toggle task expansion to show/hide subtasks
