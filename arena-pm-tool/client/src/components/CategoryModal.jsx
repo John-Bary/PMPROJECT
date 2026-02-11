@@ -125,8 +125,8 @@ function CategoryModal({ isOpen, onClose, category = null }) {
                   onClick={() => setFormData({ ...formData, color: color.value })}
                   className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 ${
                     formData.color === color.value
-                      ? 'ring-2 ring-primary-600 ring-offset-2'
-                      : 'hover:ring-2 hover:ring-neutral-300 hover:ring-offset-1'
+                      ? 'ring-2 ring-primary ring-offset-2'
+                      : 'hover:ring-2 hover:ring-border hover:ring-offset-1'
                   }`}
                   style={{ backgroundColor: color.value }}
                   title={color.name}

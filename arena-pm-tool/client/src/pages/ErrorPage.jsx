@@ -27,17 +27,17 @@ function ErrorPage({ statusCode, title, message, onRetry }) {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-      <div className="max-w-xl w-full bg-white shadow-sm rounded-xl border border-neutral-200 p-8 text-center space-y-6">
-        <div className="mx-auto w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center">
+    <div className="min-h-screen bg-muted flex items-center justify-center px-4">
+      <div className="max-w-xl w-full bg-card shadow-sm rounded-xl border border-border p-8 text-center space-y-6">
+        <div className="mx-auto w-14 h-14 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
           <AlertTriangle size={28} />
         </div>
         <div className="space-y-2">
-          <p className="text-sm font-semibold text-red-600 tracking-wide">
+          <p className="text-sm font-semibold text-destructive tracking-wide">
             {isNotFound ? 'Error 404' : `Error ${resolvedStatus || 500}`}
           </p>
-          <h1 className="text-xl font-semibold text-neutral-900">{heading}</h1>
-          <p className="text-neutral-600 leading-relaxed">{description}</p>
+          <h1 className="text-xl font-semibold text-foreground">{heading}</h1>
+          <p className="text-muted-foreground leading-relaxed">{description}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button onClick={handleHome}>

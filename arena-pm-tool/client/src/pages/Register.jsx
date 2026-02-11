@@ -97,14 +97,14 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardHeader className="text-center">
             {/* Invite Banner */}
             {inviteToken && (
-              <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
-                <p className="text-sm text-neutral-700">
+              <div className="bg-accent border border-border rounded-lg p-3 mb-4 text-center">
+                <p className="text-sm text-foreground">
                   Create an account to accept your workspace invitation
                 </p>
               </div>
@@ -128,7 +128,7 @@ function Register() {
                   className={errors.name ? 'border-red-500' : ''}
                   placeholder="John Doe"
                 />
-                {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+                {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
               </div>
 
               <div>
@@ -144,7 +144,7 @@ function Register() {
                   className={errors.email ? 'border-red-500' : ''}
                   placeholder="your@email.com"
                 />
-                {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email}</p>}
+                {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
               </div>
 
               <div>
@@ -160,7 +160,7 @@ function Register() {
                   className={errors.password ? 'border-red-500' : ''}
                   placeholder="Must include uppercase, lowercase, and a digit"
                 />
-                {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password}</p>}
+                {errors.password && <p className="mt-1 text-sm text-destructive">{errors.password}</p>}
               </div>
 
               <div>
@@ -177,7 +177,7 @@ function Register() {
                   placeholder="Re-enter your password"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
+                  <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>
                 )}
               </div>
 
@@ -191,20 +191,20 @@ function Register() {
                       setAcceptedTerms(e.target.checked);
                       if (errors.terms) setErrors({ ...errors, terms: '' });
                     }}
-                    className="mt-1 h-4 w-4 rounded border-neutral-300 text-primary-600 focus:ring-primary-600"
+                    className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-primary"
                   />
-                  <span className="text-sm text-neutral-600">
+                  <span className="text-sm text-muted-foreground">
                     I agree to the{' '}
-                    <Link to="/terms" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
+                    <Link to="/terms" target="_blank" className="text-foreground hover:text-foreground underline">
                       Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link to="/privacy" target="_blank" className="text-neutral-900 hover:text-neutral-700 underline">
+                    <Link to="/privacy" target="_blank" className="text-foreground hover:text-foreground underline">
                       Privacy Policy
                     </Link>
                   </span>
                 </label>
-                {errors.terms && <p className="mt-1 text-sm text-red-600">{errors.terms}</p>}
+                {errors.terms && <p className="mt-1 text-sm text-destructive">{errors.terms}</p>}
               </div>
 
               <Button type="submit" className="w-full" disabled={isLoading}>
@@ -214,11 +214,11 @@ function Register() {
             </form>
 
             {/* Login Link */}
-            <p className="mt-6 text-center text-sm text-neutral-600">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               Already have an account?{' '}
               <Link
                 to={inviteToken ? `/login?invite=${encodeURIComponent(inviteToken)}` : '/login'}
-                className="text-neutral-900 hover:text-neutral-700 font-medium"
+                className="text-foreground hover:text-foreground font-medium"
               >
                 Sign in
               </Link>

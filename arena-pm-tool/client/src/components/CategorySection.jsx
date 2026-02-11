@@ -64,7 +64,7 @@ function CategorySection({
           ref={categoryProvided.innerRef}
           {...categoryProvided.draggableProps}
           className={`flex-shrink-0 min-w-[300px] w-80 lg:w-auto lg:flex-1 snap-start transition-shadow duration-200 ${
-            categorySnapshot.isDragging ? 'shadow-sm bg-[#F8F9FC] rounded-lg' : ''
+            categorySnapshot.isDragging ? 'shadow-sm bg-background rounded-lg' : ''
           }`}
         >
           {/* Category Header */}
@@ -99,7 +99,7 @@ function CategorySection({
                   style={{ backgroundColor: category.color }}
                 ></div>
                 <h3 className="text-[13px] uppercase tracking-wide font-medium text-[#64748B] truncate">{category.name}</h3>
-                <span className="font-mono text-xs sm:text-sm text-neutral-500 flex-shrink-0">({tasks.length})</span>
+                <span className="font-mono text-xs sm:text-sm text-muted-foreground flex-shrink-0">({tasks.length})</span>
               </div>
 
               {/* Category Action Buttons - only show for users who can edit */}
@@ -107,7 +107,7 @@ function CategorySection({
                 <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <button
                     onClick={() => onEditCategory(category)}
-                    className="p-1.5 sm:p-1 text-[#94A3B8] hover:text-[#64748B] hover:bg-[#F8F9FC] rounded-lg transition-all duration-150"
+                    className="p-1.5 sm:p-1 text-[#94A3B8] hover:text-[#64748B] hover:bg-background rounded-lg transition-all duration-150"
                     title="Edit category"
                     aria-label={`Edit ${category.name} category`}
                   >
@@ -137,7 +137,7 @@ function CategorySection({
                 onKeyDown={handleQuickAdd}
                 placeholder="Add a task..."
                 disabled={isQuickAdding}
-                className="w-full px-3 py-2 text-sm bg-transparent border-b border-transparent focus:border-primary-300 placeholder:text-[#94A3B8] text-neutral-900 outline-none transition-colors disabled:opacity-50"
+                className="w-full px-3 py-2 text-sm bg-transparent border-b border-transparent focus:border-ring placeholder:text-muted-foreground text-foreground outline-none transition-colors disabled:opacity-50"
               />
             </div>
           )}
@@ -150,7 +150,7 @@ function CategorySection({
                 {...provided.droppableProps}
                 className={`space-y-3 transition-all duration-300 ease-in-out min-h-[50px] ${
                   isCollapsed ? 'max-h-0 opacity-0 overflow-hidden' : 'max-h-[10000px] opacity-100 overflow-visible'
-                } ${snapshot.isDraggingOver && !isDraggingCategory ? 'bg-primary-50 rounded-lg' : ''}`}
+                } ${snapshot.isDraggingOver && !isDraggingCategory ? 'bg-accent rounded-lg' : ''}`}
               >
                 {tasks.length > 0 ? (
                   tasks.map((task, taskIndex) => (

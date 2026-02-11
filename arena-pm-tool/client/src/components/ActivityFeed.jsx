@@ -47,18 +47,18 @@ function ActivityFeed({ workspaceId }) {
   if (!workspaceId) return null;
 
   return (
-    <div className="bg-white rounded-lg border border-neutral-200 p-4">
+    <div className="bg-card rounded-lg border border-border p-4">
       <div className="flex items-center gap-2 mb-4">
-        <Activity size={18} className="text-neutral-500" />
-        <h3 className="text-sm font-semibold text-neutral-900">Recent Activity</h3>
+        <Activity size={18} className="text-muted-foreground" />
+        <h3 className="text-sm font-semibold text-foreground">Recent Activity</h3>
       </div>
 
       {isLoading ? (
         <div className="flex justify-center py-6">
-          <Loader2 size={20} className="animate-spin text-neutral-400" />
+          <Loader2 size={20} className="animate-spin text-muted-foreground" />
         </div>
       ) : activities.length === 0 ? (
-        <p className="text-sm text-neutral-400 text-center py-4">No activity yet.</p>
+        <p className="text-sm text-muted-foreground text-center py-4">No activity yet.</p>
       ) : (
         <ul className="space-y-0">
           {activities.map((activity, index) => {
@@ -70,16 +70,16 @@ function ActivityFeed({ workspaceId }) {
               <li key={activity.id}>
                 <div className="flex items-start gap-3 text-sm py-3">
                   <Avatar className="h-6 w-6 flex-shrink-0 mt-0.5">
-                    <AvatarFallback className="text-xs font-medium bg-neutral-100 text-neutral-600">
+                    <AvatarFallback className="text-xs font-medium bg-accent text-muted-foreground">
                       {userName.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="text-neutral-700">
+                    <p className="text-foreground">
                       <span className="font-medium">{userName}</span>{' '}
                       {formatAction(activity)}
                     </p>
-                    <p className="text-xs text-neutral-400 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                     </p>
                   </div>

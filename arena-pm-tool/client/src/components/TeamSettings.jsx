@@ -54,11 +54,11 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
   };
 
   return (
-    <div className="flex items-center justify-between py-3 px-4 hover:bg-neutral-50 rounded-lg transition-colors">
+    <div className="flex items-center justify-between py-3 px-4 hover:bg-muted rounded-lg transition-colors">
       <div className="flex items-center gap-3">
         {/* Avatar */}
         <Avatar className="h-10 w-10">
-          <AvatarFallback className="bg-primary-600 text-white font-medium">
+          <AvatarFallback className="bg-primary text-primary-foreground font-medium">
             {member.user?.email?.[0]?.toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
@@ -66,7 +66,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
         {/* Info */}
         <div>
           <div className="flex items-center gap-2">
-            <span className="font-medium text-neutral-900">
+            <span className="font-medium text-foreground">
               {member.user?.email || 'Unknown User'}
             </span>
             {isCurrentUser && (
@@ -75,7 +75,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-1 text-sm text-neutral-500">
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <RoleIcon className="h-3.5 w-3.5" />
             <span className="capitalize">{member.role}</span>
           </div>
@@ -108,7 +108,7 @@ function MemberRow({ member, isAdmin, isCurrentUser, onRoleChange, onRemove }) {
             variant="ghost"
             size="icon"
             onClick={() => onRemove(member)}
-            className="text-neutral-400 hover:text-red-500 hover:bg-red-50"
+            className="text-muted-foreground hover:text-red-500 hover:bg-red-50"
             title="Remove member"
           >
             <Trash2 className="h-4 w-4" />
@@ -125,11 +125,11 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
   const isExpired = new Date(invitation.expires_at) < new Date();
 
   return (
-    <div className={`flex items-center justify-between py-3 px-4 rounded-lg ${isExpired ? 'bg-neutral-100' : 'hover:bg-neutral-50'} transition-colors`}>
+    <div className={`flex items-center justify-between py-3 px-4 rounded-lg ${isExpired ? 'bg-accent' : 'hover:bg-muted'} transition-colors`}>
       <div className="flex items-center gap-3">
         {/* Email Icon */}
         <Avatar className="h-10 w-10">
-          <AvatarFallback className={isExpired ? 'bg-neutral-200 text-neutral-400' : 'bg-amber-100 text-amber-600'}>
+          <AvatarFallback className={isExpired ? 'bg-input text-muted-foreground' : 'bg-amber-100 text-amber-600'}>
             <Mail className="h-5 w-5" />
           </AvatarFallback>
         </Avatar>
@@ -137,16 +137,16 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
         {/* Info */}
         <div>
           <div className="flex items-center gap-2">
-            <span className={`font-medium ${isExpired ? 'text-neutral-400' : 'text-neutral-900'}`}>
+            <span className={`font-medium ${isExpired ? 'text-muted-foreground' : 'text-foreground'}`}>
               {invitation.email}
             </span>
             {isExpired && (
-              <Badge variant="secondary" className="text-xs text-neutral-500">
+              <Badge variant="secondary" className="text-xs text-muted-foreground">
                 Expired
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-2 text-sm text-neutral-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="capitalize">{roleInfo.label}</span>
             <span className="text-neutral-300">&#8226;</span>
             <div className="flex items-center gap-1">
@@ -168,7 +168,7 @@ function InvitationRow({ invitation, isAdmin, onCancel }) {
           variant="ghost"
           size="icon"
           onClick={() => onCancel(invitation)}
-          className="text-neutral-400 hover:text-red-500 hover:bg-red-50"
+          className="text-muted-foreground hover:text-red-500 hover:bg-red-50"
           title="Cancel invitation"
         >
           <X className="h-4 w-4" />
@@ -262,8 +262,8 @@ function TeamSettings() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-neutral-900">Team Members</h2>
-          <p className="mt-1 text-sm text-neutral-500">
+          <h2 className="text-2xl font-semibold text-foreground">Team Members</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             {currentWorkspace?.name ? `Manage members of "${currentWorkspace.name}"` : 'Manage your team members and invitations'}
           </p>
         </div>
@@ -281,7 +281,7 @@ function TeamSettings() {
       <Card>
         <CardHeader className="pb-0">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-neutral-500" />
+            <Users className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-base">
               Members ({members.length})
             </CardTitle>
@@ -290,15 +290,15 @@ function TeamSettings() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
             </div>
           ) : members.length === 0 ? (
-            <div className="py-12 text-center text-neutral-400">
+            <div className="py-12 text-center text-muted-foreground">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No members found</p>
             </div>
           ) : (
-            <div className="divide-y divide-neutral-200">
+            <div className="divide-y divide-border">
               {members.map((member) => (
                 <MemberRow
                   key={member.id}
@@ -318,7 +318,7 @@ function TeamSettings() {
       <Card>
         <CardHeader className="pb-0">
           <div className="flex items-center gap-2">
-            <Mail className="h-5 w-5 text-neutral-500" />
+            <Mail className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-base">
               Pending Invitations ({pendingInvitations.length})
             </CardTitle>
@@ -327,10 +327,10 @@ function TeamSettings() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
             </div>
           ) : pendingInvitations.length === 0 ? (
-            <div className="py-12 text-center text-neutral-400">
+            <div className="py-12 text-center text-muted-foreground">
               <Mail className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No pending invitations</p>
               {isAdmin && (
@@ -340,7 +340,7 @@ function TeamSettings() {
               )}
             </div>
           ) : (
-            <div className="divide-y divide-neutral-200">
+            <div className="divide-y divide-border">
               {pendingInvitations.map((invitation) => (
                 <InvitationRow
                   key={invitation.id}
@@ -356,13 +356,13 @@ function TeamSettings() {
 
       {/* Role Permissions Info (for non-admins) */}
       {!isAdmin && (
-        <Card className="bg-neutral-50">
+        <Card className="bg-muted">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <Shield className="h-5 w-5 text-neutral-500 mt-0.5" />
+              <Shield className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div>
-                <h4 className="font-medium text-neutral-700">Role Permissions</h4>
-                <p className="mt-1 text-sm text-neutral-400">
+                <h4 className="font-medium text-foreground">Role Permissions</h4>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Only workspace admins can invite members, change roles, or remove team members.
                   Contact an admin if you need to make changes to the team.
                 </p>
@@ -400,7 +400,7 @@ function TeamSettings() {
             <AlertDialogAction
               onClick={handleConfirm}
               disabled={isActionLoading}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {isActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {confirmModal.type === 'remove-member'

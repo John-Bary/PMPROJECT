@@ -140,7 +140,7 @@ function CommentSection({ taskId }) {
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-neutral-700 mb-4">Comments</h3>
+      <h3 className="text-sm font-medium text-foreground mb-4">Comments</h3>
 
       {/* Comment Input */}
       <div className="flex gap-3 mb-6">
@@ -156,12 +156,12 @@ function CommentSection({ taskId }) {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 resize-none text-sm"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm"
             rows={2}
             disabled={isSubmitting}
           />
           <div className="flex items-center justify-between mt-2">
-            <span className="text-xs text-neutral-400">
+            <span className="text-xs text-muted-foreground">
               Press {navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl'}+Enter to send
             </span>
             <Button
@@ -189,10 +189,10 @@ function CommentSection({ taskId }) {
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
           <InlineSpinner />
-          <span className="ml-2 text-sm text-neutral-500">Loading comments...</span>
+          <span className="ml-2 text-sm text-muted-foreground">Loading comments...</span>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-6 text-sm text-neutral-400">
+        <div className="text-center py-6 text-sm text-muted-foreground">
           No comments yet. Be the first to comment!
         </div>
       ) : (
@@ -206,14 +206,14 @@ function CommentSection({ taskId }) {
               </Avatar>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-neutral-900">
+                  <span className="text-sm font-medium text-foreground">
                     {comment.authorName || 'Unknown'}
                   </span>
-                  <span className="text-xs text-neutral-400">
+                  <span className="text-xs text-muted-foreground">
                     {formatCommentTime(comment.createdAt)}
                   </span>
                   {comment.updatedAt !== comment.createdAt && (
-                    <span className="text-xs text-neutral-400">(edited)</span>
+                    <span className="text-xs text-muted-foreground">(edited)</span>
                   )}
 
                   {/* Actions Menu */}
@@ -222,7 +222,7 @@ function CommentSection({ taskId }) {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className="p-1 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded opacity-0 group-hover:opacity-100 transition"
+                            className="p-1 text-muted-foreground hover:text-muted-foreground hover:bg-accent rounded opacity-0 group-hover:opacity-100 transition"
                           >
                             <MoreHorizontal size={16} />
                           </button>
@@ -238,7 +238,7 @@ function CommentSection({ taskId }) {
                           <DropdownMenuItem
                             onClick={() => handleDeleteComment(comment.id)}
                             disabled={deletingIds.has(comment.id)}
-                            className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                            className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-red-50"
                           >
                             {deletingIds.has(comment.id) ? (
                               <>
@@ -265,7 +265,7 @@ function CommentSection({ taskId }) {
                       ref={editTextareaRef}
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 resize-none text-sm"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm"
                       rows={2}
                     />
                     <div className="flex gap-2 mt-2">
@@ -288,7 +288,7 @@ function CommentSection({ taskId }) {
                     </div>
                   </div>
                 ) : (
-                  <p className="mt-1 text-sm text-neutral-700 whitespace-pre-wrap break-words">
+                  <p className="mt-1 text-sm text-foreground whitespace-pre-wrap break-words">
                     {comment.content}
                   </p>
                 )}

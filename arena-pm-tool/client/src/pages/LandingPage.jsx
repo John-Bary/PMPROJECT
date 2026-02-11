@@ -213,16 +213,16 @@ function LandingPage() {
         <div key={col.title} className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-2">
             <div className={`w-2 h-2 rounded-full ${col.color}`} />
-            <span className="text-xs font-semibold text-neutral-500">{col.title}</span>
-            <span className="text-xs text-neutral-300 ml-auto">{col.cards.length}</span>
+            <span className="text-xs font-semibold text-muted-foreground">{col.title}</span>
+            <span className="text-xs text-muted-foreground ml-auto">{col.cards.length}</span>
           </div>
           <div className="space-y-2">
             {(compact ? col.cards.slice(0, 2) : col.cards).map((card, i) => (
               <div
                 key={i}
-                className={`bg-white rounded-lg border border-neutral-200 p-2.5 shadow-xs ${card.done ? 'opacity-60' : ''}`}
+                className={`bg-card rounded-lg border border-border p-2.5 shadow-xs ${card.done ? 'opacity-60' : ''}`}
               >
-                <p className={`text-xs font-medium ${card.done ? 'line-through text-neutral-400' : 'text-neutral-700'}`}>
+                <p className={`text-xs font-medium ${card.done ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                   {card.title}
                 </p>
                 <div className="flex items-center justify-between mt-2">
@@ -242,11 +242,11 @@ function LandingPage() {
   );
 
   return (
-    <div className="min-h-screen bg-white scroll-smooth">
+    <div className="min-h-screen bg-background scroll-smooth">
       {/* ─── Navbar ─── */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-5 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-neutral-900 tracking-tight">
+          <Link to="/" className="text-xl font-bold text-foreground tracking-tight">
             Todoria
           </Link>
 
@@ -256,7 +256,7 @@ function LandingPage() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 {link.label}
               </a>
@@ -265,13 +265,13 @@ function LandingPage() {
 
           {/* Desktop actions */}
           <div className="hidden sm:flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-700 bg-neutral-100 px-3 py-1 rounded-full">
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground bg-accent px-3 py-1 rounded-full">
               <Shield size={13} />
               Free Plan Available
             </span>
             <Link
               to="/login"
-              className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Sign In
             </Link>
@@ -285,7 +285,7 @@ function LandingPage() {
           {/* Mobile menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 -mr-2 text-neutral-600 hover:text-neutral-900 transition-colors"
+            className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -294,19 +294,19 @@ function LandingPage() {
 
         {/* Mobile dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-neutral-100 bg-white/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3">
+          <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3">
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-medium text-neutral-600 hover:text-neutral-900 py-1"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground py-1"
               >
                 {link.label}
               </a>
             ))}
-            <hr className="border-neutral-100" />
-            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-neutral-600 hover:text-neutral-900 py-1">
+            <hr className="border-border" />
+            <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-muted-foreground hover:text-foreground py-1">
               Sign In
             </Link>
             <Button asChild size="sm" className="w-full">
@@ -323,10 +323,10 @@ function LandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Copy + Form */}
           <div className="animate-slide-up">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-neutral-900 leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight tracking-tight">
               Manage projects without the chaos.
             </h1>
-            <p className="mt-4 sm:mt-5 text-base sm:text-lg text-neutral-500 leading-relaxed max-w-lg">
+            <p className="mt-4 sm:mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg">
               The simple, focused project management tool for teams that want to get work done — not configure tools.
             </p>
 
@@ -336,27 +336,27 @@ function LandingPage() {
                 placeholder="Your name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition"
+                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition"
               />
               <input
                 type="email"
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-neutral-200 bg-white text-sm text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition"
+                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition"
               />
               <Button type="submit" className="w-full">
                 Start for Free
               </Button>
             </form>
-            <p className="mt-3 text-xs text-neutral-400">
+            <p className="mt-3 text-xs text-muted-foreground">
               Free forever for small teams. No credit card required.
             </p>
           </div>
 
           {/* Right: Rich board mockup */}
           <div className="relative hidden lg:block animate-fade-in" style={{ animationDelay: '200ms' }}>
-            <div className="rounded-2xl bg-gradient-to-br from-neutral-50 to-neutral-100 border border-neutral-200 p-5 shadow-md">
+            <div className="rounded-2xl bg-gradient-to-br from-muted to-accent border border-border p-5 shadow-md">
               {/* Window chrome */}
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex gap-1.5">
@@ -364,7 +364,7 @@ function LandingPage() {
                   <div className="w-3 h-3 rounded-full bg-amber-400" />
                   <div className="w-3 h-3 rounded-full bg-green-400" />
                 </div>
-                <div className="ml-2 flex items-center gap-2 text-xs text-neutral-400">
+                <div className="ml-2 flex items-center gap-2 text-xs text-muted-foreground">
                   <Kanban size={12} />
                   <span className="font-medium">Board View</span>
                 </div>
@@ -373,7 +373,7 @@ function LandingPage() {
               {renderBoardMockup()}
             </div>
             {/* Decorative blur */}
-            <div className="absolute -z-10 -top-8 -right-8 w-40 h-40 bg-neutral-200 rounded-full blur-3xl opacity-40" />
+            <div className="absolute -z-10 -top-8 -right-8 w-40 h-40 bg-input rounded-full blur-3xl opacity-40" />
           </div>
         </div>
       </section>
@@ -381,13 +381,13 @@ function LandingPage() {
       {/* ─── The Problem ─── */}
       <section
         ref={problemRef}
-        className={`bg-neutral-50 border-y border-neutral-100 ${sectionAnim(problemInView)}`}
+        className={`bg-muted border-y border-border ${sectionAnim(problemInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             The Problem
           </h2>
-          <p className="mt-3 text-neutral-500 text-center max-w-xl mx-auto">
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
             Project management tools promise simplicity, then deliver the opposite.
           </p>
 
@@ -396,13 +396,13 @@ function LandingPage() {
               <div
                 key={i}
                 {...cardAnim(problemInView, i)}
-                className={`rounded-xl border border-neutral-200 bg-white p-6 sm:p-8 ${cardAnim(problemInView, i).className}`}
+                className={`rounded-xl border border-border bg-card p-6 sm:p-8 ${cardAnim(problemInView, i).className}`}
               >
                 <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500 font-bold text-lg">
                   {i + 1}
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-neutral-900">{point.title}</h3>
-                <p className="mt-2 text-neutral-500 leading-relaxed text-sm">{point.description}</p>
+                <h3 className="mt-4 text-lg font-semibold text-foreground">{point.title}</h3>
+                <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{point.description}</p>
               </div>
             ))}
           </div>
@@ -416,10 +416,10 @@ function LandingPage() {
         className={`scroll-mt-20 ${sectionAnim(featuresInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             How We Solve This
           </h2>
-          <p className="mt-3 text-neutral-500 text-center max-w-xl mx-auto">
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
             Todoria does three things perfectly — boards, lists, and calendars. Nothing more.
           </p>
 
@@ -429,14 +429,14 @@ function LandingPage() {
               return (
                 <div
                   key={i}
-                  className={`rounded-xl border border-neutral-150 p-6 sm:p-8 hover:shadow-md hover:border-neutral-200 ${cardAnim(featuresInView, i).className}`}
+                  className={`rounded-xl border border-border p-6 sm:p-8 hover:shadow-md hover:border-border ${cardAnim(featuresInView, i).className}`}
                   style={cardAnim(featuresInView, i).style}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-neutral-600" />
+                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-muted-foreground" />
                   </div>
-                  <h3 className="mt-4 text-lg font-semibold text-neutral-900">{feature.title}</h3>
-                  <p className="mt-2 text-neutral-500 leading-relaxed text-sm">{feature.description}</p>
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">{feature.title}</h3>
+                  <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{feature.description}</p>
                 </div>
               );
             })}
@@ -448,10 +448,10 @@ function LandingPage() {
       <section
         id="how-it-works"
         ref={stepsRef}
-        className={`scroll-mt-20 bg-neutral-50 border-y border-neutral-100 ${sectionAnim(stepsInView)}`}
+        className={`scroll-mt-20 bg-muted border-y border-border ${sectionAnim(stepsInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             How It Works
           </h2>
 
@@ -464,13 +464,13 @@ function LandingPage() {
               >
                 {/* Arrow connector (desktop only) */}
                 {i < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-6 -right-3 text-neutral-300">
+                  <div className="hidden md:block absolute top-6 -right-3 text-muted-foreground">
                     <ArrowRight size={24} />
                   </div>
                 )}
-                <span className="text-4xl sm:text-5xl font-bold text-neutral-900">{step.number}</span>
-                <h3 className="mt-4 text-lg font-semibold text-neutral-900">{step.title}</h3>
-                <p className="mt-2 text-neutral-500 leading-relaxed text-sm max-w-xs">{step.description}</p>
+                <span className="text-4xl sm:text-5xl font-bold text-foreground">{step.number}</span>
+                <h3 className="mt-4 text-lg font-semibold text-foreground">{step.title}</h3>
+                <p className="mt-2 text-muted-foreground leading-relaxed text-sm max-w-xs">{step.description}</p>
               </div>
             ))}
           </div>
@@ -486,9 +486,9 @@ function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left: Tabbed mockups */}
-            <div className="rounded-2xl bg-gradient-to-br from-neutral-50 to-neutral-100 border border-neutral-200 p-6 sm:p-8">
+            <div className="rounded-2xl bg-gradient-to-br from-muted to-accent border border-border p-6 sm:p-8">
               {/* Tab bar */}
-              <div className="flex gap-1 mb-5 bg-neutral-100 rounded-lg p-1 w-fit">
+              <div className="flex gap-1 mb-5 bg-accent rounded-lg p-1 w-fit">
                 {[
                   { id: 'board', label: 'Board', icon: Kanban },
                   { id: 'list', label: 'List', icon: List },
@@ -501,8 +501,8 @@ function LandingPage() {
                       onClick={() => setActiveShowcase(tab.id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                         activeShowcase === tab.id
-                          ? 'bg-white text-neutral-900 shadow-xs'
-                          : 'text-neutral-500 hover:text-neutral-700'
+                          ? 'bg-card text-foreground shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
                       }`}
                     >
                       <TabIcon size={13} />
@@ -518,7 +518,7 @@ function LandingPage() {
               {/* List View */}
               {activeShowcase === 'list' && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 px-3 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-3 px-3 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <span className="w-4" />
                     <span className="flex-1">Task</span>
                     <span className="w-14 text-center hidden sm:block">Priority</span>
@@ -528,15 +528,15 @@ function LandingPage() {
                   {listTasks.map((task, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-3 bg-white rounded-lg border border-neutral-200 px-3 py-2.5 shadow-xs"
+                      className="flex items-center gap-3 bg-card rounded-lg border border-border px-3 py-2.5 shadow-xs"
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        task.status === 'completed' ? 'border-primary-600 bg-primary-600' : 'border-neutral-300'
+                        task.status === 'completed' ? 'border-primary bg-primary' : 'border-input'
                       }`}>
-                        {task.status === 'completed' && <Check size={10} className="text-white" />}
+                        {task.status === 'completed' && <Check size={10} className="text-primary-foreground" />}
                       </div>
                       <span className={`flex-1 text-xs font-medium truncate ${
-                        task.status === 'completed' ? 'line-through text-neutral-400' : 'text-neutral-700'
+                        task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'
                       }`}>
                         {task.title}
                       </span>
@@ -549,10 +549,10 @@ function LandingPage() {
                             <span className="text-[8px] font-bold text-white">{task.assignee}</span>
                           </div>
                         ) : (
-                          <div className="w-5 h-5 rounded-full border border-dashed border-neutral-300" />
+                          <div className="w-5 h-5 rounded-full border border-dashed border-input" />
                         )}
                       </div>
-                      <span className="w-12 text-right text-[10px] text-neutral-400 hidden sm:block">{task.date}</span>
+                      <span className="w-12 text-right text-[10px] text-muted-foreground hidden sm:block">{task.date}</span>
                     </div>
                   ))}
                 </div>
@@ -562,19 +562,19 @@ function LandingPage() {
               {activeShowcase === 'calendar' && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-sm font-semibold text-neutral-700">January 2026</span>
+                    <span className="text-sm font-semibold text-foreground">January 2026</span>
                     <div className="flex gap-1">
-                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-neutral-400">
+                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-muted-foreground">
                         <ChevronLeft size={14} />
                       </div>
-                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-neutral-400">
+                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-muted-foreground">
                         <ChevronRight size={14} />
                       </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-7 gap-1 mb-1">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                      <div key={i} className="text-center text-[9px] font-medium text-neutral-400">{d}</div>
+                      <div key={i} className="text-center text-[9px] font-medium text-muted-foreground">{d}</div>
                     ))}
                   </div>
                   <div className="grid grid-cols-7 gap-1">
@@ -587,12 +587,12 @@ function LandingPage() {
                         <div
                           key={i}
                           className={`aspect-square rounded-md text-[9px] p-0.5 flex flex-col ${
-                            dayNum ? 'bg-white border border-neutral-100' : ''
+                            dayNum ? 'bg-card border border-border' : ''
                           } ${isToday ? 'ring-1 ring-neutral-400' : ''}`}
                         >
                           {dayNum && (
                             <>
-                              <span className={`font-medium ${isToday ? 'text-neutral-600' : 'text-neutral-500'}`}>{dayNum}</span>
+                              <span className={`font-medium ${isToday ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{dayNum}</span>
                               {task && (
                                 <div className={`mt-auto h-1 rounded-full ${task.color}`} title={task.title} />
                               )}
@@ -608,7 +608,7 @@ function LandingPage() {
 
             {/* Right: Key benefits */}
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
                 Built for focus, not feature-creep.
               </h2>
               <div className="mt-8 space-y-5">
@@ -627,12 +627,12 @@ function LandingPage() {
                   },
                 ].map((benefit, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="mt-0.5 w-6 h-6 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                      <Check size={14} className="text-neutral-600" />
+                    <div className="mt-0.5 w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+                      <Check size={14} className="text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-neutral-900">{benefit.title}</h3>
-                      <p className="mt-1 text-sm text-neutral-500 leading-relaxed">{benefit.description}</p>
+                      <h3 className="font-semibold text-foreground">{benefit.title}</h3>
+                      <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{benefit.description}</p>
                     </div>
                   </div>
                 ))}
@@ -646,13 +646,13 @@ function LandingPage() {
       <section
         id="pricing"
         ref={pricingRef}
-        className={`scroll-mt-20 bg-neutral-50 border-y border-neutral-100 ${sectionAnim(pricingInView)}`}
+        className={`scroll-mt-20 bg-muted border-y border-border ${sectionAnim(pricingInView)}`}
       >
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             Simple, Transparent Pricing
           </h2>
-          <p className="mt-3 text-neutral-500 text-center max-w-xl mx-auto">
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
             Start free. Upgrade when your team grows. No hidden fees, no surprises.
           </p>
 
@@ -662,14 +662,14 @@ function LandingPage() {
               return (
                 <div
                   key={plan.id}
-                  className={`relative flex flex-col rounded-xl border-2 p-6 sm:p-8 bg-white ${
+                  className={`relative flex flex-col rounded-xl border-2 p-6 sm:p-8 bg-card ${
                     cardAnim(pricingInView, i).className
-                  } ${plan.highlighted ? 'border-primary-600 ring-2 ring-primary-100' : 'border-neutral-200'}`}
+                  } ${plan.highlighted ? 'border-primary ring-2 ring-accent' : 'border-border'}`}
                   style={cardAnim(pricingInView, i).style}
                 >
                   {plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <span className="bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                      <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                         {plan.badge}
                       </span>
                     </div>
@@ -677,22 +677,22 @@ function LandingPage() {
 
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
-                      {PlanIcon && <PlanIcon size={18} className="text-primary-600" />}
-                      <h3 className="text-lg font-semibold text-neutral-900">{plan.name}</h3>
+                      {PlanIcon && <PlanIcon size={18} className="text-primary" />}
+                      <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
                     </div>
-                    <p className="text-sm text-neutral-500">{plan.description}</p>
+                    <p className="text-sm text-muted-foreground">{plan.description}</p>
                   </div>
 
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-neutral-900">{plan.price}</span>
-                    <span className="text-neutral-500 text-sm">{plan.period}</span>
+                    <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                    <span className="text-muted-foreground text-sm">{plan.period}</span>
                   </div>
 
                   <ul className="space-y-3 mb-8 flex-1">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2.5 text-sm">
-                        <Check size={16} className="text-primary-600 flex-shrink-0 mt-0.5" />
-                        <span className="text-neutral-700">{feature}</span>
+                        <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-foreground">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -701,8 +701,8 @@ function LandingPage() {
                     to="/register"
                     className={`w-full py-3 rounded-lg font-medium text-sm text-center transition-all block ${
                       plan.highlighted
-                        ? 'bg-primary-600 text-white hover:bg-primary-700'
-                        : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                        : 'bg-accent text-foreground hover:bg-input'
                     }`}
                   >
                     {plan.cta}
@@ -712,7 +712,7 @@ function LandingPage() {
             })}
           </div>
 
-          <p className="text-center text-xs text-neutral-400 mt-8">
+          <p className="text-center text-xs text-muted-foreground mt-8">
             All plans include SSL encryption and daily backups. Cancel anytime.
           </p>
         </div>
@@ -725,7 +725,7 @@ function LandingPage() {
         className={`scroll-mt-20 ${sectionAnim(faqInView)}`}
       >
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 text-center tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             Frequently Asked Questions
           </h2>
 
@@ -735,18 +735,18 @@ function LandingPage() {
               return (
                 <div
                   key={i}
-                  className="rounded-xl border border-neutral-200 bg-white overflow-hidden"
+                  className="rounded-xl border border-border bg-card overflow-hidden"
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : i)}
                     className="w-full flex items-center justify-between px-6 py-4 text-left"
                     aria-expanded={isOpen}
                   >
-                    <span className="font-medium text-neutral-900 pr-4">{faq.q}</span>
+                    <span className="font-medium text-foreground pr-4">{faq.q}</span>
                     {isOpen ? (
-                      <Minus size={18} className="text-neutral-400 flex-shrink-0" />
+                      <Minus size={18} className="text-muted-foreground flex-shrink-0" />
                     ) : (
-                      <Plus size={18} className="text-neutral-400 flex-shrink-0" />
+                      <Plus size={18} className="text-muted-foreground flex-shrink-0" />
                     )}
                   </button>
                   <div
@@ -754,7 +754,7 @@ function LandingPage() {
                       isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <div className="px-6 pb-5 text-sm text-neutral-500 leading-relaxed">
+                    <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
                       {faq.a}
                     </div>
                   </div>
@@ -768,13 +768,13 @@ function LandingPage() {
       {/* ─── Final CTA ─── */}
       <section
         ref={ctaRef}
-        className={`bg-neutral-50 border-y border-neutral-100 ${sectionAnim(ctaInView)}`}
+        className={`bg-muted border-y border-border ${sectionAnim(ctaInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-24 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
             Ready to Get Started?
           </h2>
-          <p className="mt-3 text-neutral-500 max-w-md mx-auto">
+          <p className="mt-3 text-muted-foreground max-w-md mx-auto">
             Join teams who manage projects without the chaos. Free forever for small teams.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -789,58 +789,58 @@ function LandingPage() {
               </a>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-neutral-400">
+          <p className="mt-4 text-sm text-muted-foreground">
             No credit card required. Cancel anytime.
           </p>
         </div>
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="bg-white border-t border-neutral-100">
+      <footer className="bg-background border-t border-border">
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-12 sm:py-16">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
-              <Link to="/" className="text-lg font-bold text-neutral-900 tracking-tight">
+              <Link to="/" className="text-lg font-bold text-foreground tracking-tight">
                 Todoria
               </Link>
-              <p className="mt-3 text-sm text-neutral-500 leading-relaxed max-w-xs">
+              <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
                 Simple project management for focused teams. Boards, lists, and calendars — nothing more.
               </p>
             </div>
 
             {/* Product */}
             <div>
-              <h4 className="text-sm font-semibold text-neutral-900 mb-4">Product</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-4">Product</h4>
               <ul className="space-y-2.5">
-                <li><a href="#features" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">Features</a></li>
-                <li><a href="#pricing" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">Pricing</a></li>
-                <li><a href="#how-it-works" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">How It Works</a></li>
-                <li><a href="#faq" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">FAQ</a></li>
+                <li><a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Features</a></li>
+                <li><a href="#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a></li>
+                <li><a href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">How It Works</a></li>
+                <li><a href="#faq" className="text-sm text-muted-foreground hover:text-foreground transition-colors">FAQ</a></li>
               </ul>
             </div>
 
             {/* Company */}
             <div>
-              <h4 className="text-sm font-semibold text-neutral-900 mb-4">Company</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-4">Company</h4>
               <ul className="space-y-2.5">
-                <li><a href="mailto:support@todoria.app" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">Contact</a></li>
+                <li><a href="mailto:support@todoria.app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a></li>
               </ul>
             </div>
 
             {/* Legal */}
             <div>
-              <h4 className="text-sm font-semibold text-neutral-900 mb-4">Legal</h4>
+              <h4 className="text-sm font-semibold text-foreground mb-4">Legal</h4>
               <ul className="space-y-2.5">
-                <li><Link to="/privacy" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">Terms of Service</Link></li>
-                <li><Link to="/dpa" className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors">DPA</Link></li>
+                <li><Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
+                <li><Link to="/dpa" className="text-sm text-muted-foreground hover:text-foreground transition-colors">DPA</Link></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-12 pt-6 border-t border-neutral-100 text-sm text-neutral-400 text-center sm:text-left">
+          <div className="mt-12 pt-6 border-t border-border text-sm text-muted-foreground text-center sm:text-left">
             &copy; {new Date().getFullYear()} Todoria. All rights reserved.
           </div>
         </div>

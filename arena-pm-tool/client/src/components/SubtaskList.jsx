@@ -275,13 +275,13 @@ function SubtaskList({ taskId, categoryId }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-neutral-700">Subtasks</h3>
+        <h3 className="text-sm font-medium text-foreground">Subtasks</h3>
         {totalCount > 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-neutral-500">{completedCount}/{totalCount}</span>
-            <div className="w-20 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+            <span className="text-xs text-muted-foreground">{completedCount}/{totalCount}</span>
+            <div className="w-20 h-1.5 bg-accent rounded-full overflow-hidden">
               <div
-                className="h-full bg-primary-600 rounded-full transition-all duration-300"
+                className="h-full bg-primary rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
@@ -293,7 +293,7 @@ function SubtaskList({ taskId, categoryId }) {
       {isLoading ? (
         <div className="flex items-center justify-center py-4">
           <InlineSpinner />
-          <span className="ml-2 text-sm text-neutral-500">Loading subtasks...</span>
+          <span className="ml-2 text-sm text-muted-foreground">Loading subtasks...</span>
         </div>
       ) : (
         <div className="space-y-1">
@@ -307,7 +307,7 @@ function SubtaskList({ taskId, categoryId }) {
               key={subtask.id}
               className={`
                 group flex flex-col gap-1 px-2 py-2 rounded-lg
-                hover:bg-neutral-50 transition
+                hover:bg-muted transition
                 ${subtask.status === 'completed' ? 'opacity-60' : ''}
               `}
             >
@@ -331,14 +331,14 @@ function SubtaskList({ taskId, categoryId }) {
                     onChange={(e) => setEditingTitle(e.target.value)}
                     onBlur={handleSaveEdit}
                     onKeyDown={handleEditKeyDown}
-                    className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-primary-600 rounded-none focus:ring-0 px-0"
+                    className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-primary rounded-none focus:ring-0 px-0"
                   />
                 ) : (
                   <span
                     onClick={() => handleStartEdit(subtask)}
                     className={`
                       flex-1 text-sm cursor-text
-                      ${subtask.status === 'completed' ? 'line-through text-neutral-500' : 'text-neutral-700'}
+                      ${subtask.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'}
                     `}
                   >
                     {subtask.title}
@@ -352,7 +352,7 @@ function SubtaskList({ taskId, categoryId }) {
                   variant="ghost"
                   size="icon"
                   className={`
-                    flex-shrink-0 h-7 w-7 text-neutral-400 hover:text-red-500
+                    flex-shrink-0 h-7 w-7 text-muted-foreground hover:text-red-500
                     hover:bg-red-50 opacity-0 group-hover:opacity-100 transition
                     ${deletingIds.has(subtask.id) ? 'opacity-100' : ''}
                   `}
@@ -382,21 +382,21 @@ function SubtaskList({ taskId, categoryId }) {
 
                   {/* Priority Dropdown */}
                   {activePriorityDropdown === subtask.id && (
-                    <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
+                    <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
                       <div className="py-1">
                         {priorities.map((priority) => (
                           <button
                             key={priority}
                             onClick={() => handlePrioritySelect(subtask.id, priority)}
-                            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-neutral-100 flex items-center justify-between transition-all ${
-                              subtask.priority === priority ? 'bg-neutral-100' : ''
+                            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all ${
+                              subtask.priority === priority ? 'bg-accent' : ''
                             }`}
                           >
                             <span className={`px-1.5 py-0.5 rounded border ${getPriorityColor(priority)}`}>
                               {priority}
                             </span>
                             {subtask.priority === priority && (
-                              <Check size={12} className="text-primary-600" />
+                              <Check size={12} className="text-primary" />
                             )}
                           </button>
                         ))}
@@ -412,7 +412,7 @@ function SubtaskList({ taskId, categoryId }) {
                     className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition text-xs ${
                       subtaskIsOverdue
                         ? 'text-red-600 font-medium bg-red-50 border border-red-200'
-                        : 'text-neutral-500 hover:bg-neutral-100'
+                        : 'text-muted-foreground hover:bg-accent'
                     }`}
                     title={subtaskIsOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                   >
@@ -442,7 +442,7 @@ function SubtaskList({ taskId, categoryId }) {
                 <div className="relative" ref={el => assigneeDropdownRefs.current[subtask.id] = el} data-dropdown>
                   <button
                     onClick={() => setActiveAssigneeDropdown(activeAssigneeDropdown === subtask.id ? null : subtask.id)}
-                    className="flex items-center hover:bg-neutral-100 rounded px-1 py-0.5 transition"
+                    className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition"
                     title="Manage assignees"
                     aria-label="Manage assignees"
                   >
@@ -468,14 +468,14 @@ function SubtaskList({ taskId, categoryId }) {
                             </div>
                           )}
                         </div>
-                        <ChevronDown size={8} className="text-neutral-400 ml-0.5" />
+                        <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                       </div>
                     ) : (
-                      <div className="flex items-center text-xs text-neutral-400">
-                        <div className="w-4 h-4 rounded-full bg-neutral-200 flex items-center justify-center text-[9px]">
+                      <div className="flex items-center text-xs text-muted-foreground">
+                        <div className="w-4 h-4 rounded-full bg-input flex items-center justify-center text-[9px]">
                           ?
                         </div>
-                        <ChevronDown size={8} className="text-neutral-400 ml-0.5" />
+                        <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                       </div>
                     )}
                   </button>
@@ -500,10 +500,10 @@ function SubtaskList({ taskId, categoryId }) {
 
       {/* Add Subtask */}
       {isAddingSubtask ? (
-        <div className="mt-2 px-2 py-2 bg-neutral-50 rounded-lg">
+        <div className="mt-2 px-2 py-2 bg-muted rounded-lg">
           {/* Title input row */}
           <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded border-2 border-neutral-200 flex-shrink-0" />
+            <div className="w-5 h-5 rounded border-2 border-border flex-shrink-0" />
             <Input
               ref={newSubtaskInputRef}
               type="text"
@@ -511,7 +511,7 @@ function SubtaskList({ taskId, categoryId }) {
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Subtask title"
-              className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-neutral-300 rounded-none focus:border-primary-600 focus:ring-0 px-0"
+              className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-input rounded-none focus:border-primary focus:ring-0 px-0"
               disabled={isCreating}
             />
           </div>
@@ -530,7 +530,7 @@ function SubtaskList({ taskId, categoryId }) {
               </button>
 
               {showNewPriorityDropdown && (
-                <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
+                <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
                   <div className="py-1">
                     {priorities.map((priority) => (
                       <button
@@ -539,15 +539,15 @@ function SubtaskList({ taskId, categoryId }) {
                           setNewSubtaskPriority(priority);
                           setShowNewPriorityDropdown(false);
                         }}
-                        className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-neutral-100 flex items-center justify-between transition-all ${
-                          newSubtaskPriority === priority ? 'bg-neutral-100' : ''
+                        className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all ${
+                          newSubtaskPriority === priority ? 'bg-accent' : ''
                         }`}
                       >
                         <span className={`px-1.5 py-0.5 rounded border ${getPriorityColor(priority)}`}>
                           {priority}
                         </span>
                         {newSubtaskPriority === priority && (
-                          <Check size={12} className="text-primary-600" />
+                          <Check size={12} className="text-primary" />
                         )}
                       </button>
                     ))}
@@ -560,7 +560,7 @@ function SubtaskList({ taskId, categoryId }) {
             <div className="relative" ref={newDateRef}>
               <button
                 onClick={() => setShowNewDatePicker(!showNewDatePicker)}
-                className="flex items-center gap-1 px-1.5 py-0.5 hover:bg-neutral-100 rounded transition text-xs text-neutral-500"
+                className="flex items-center gap-1 px-1.5 py-0.5 hover:bg-accent rounded transition text-xs text-muted-foreground"
                 disabled={isCreating}
               >
                 {newSubtaskDueDate ? (
@@ -587,7 +587,7 @@ function SubtaskList({ taskId, categoryId }) {
             <div className="relative" ref={newAssigneeRef} data-dropdown>
               <button
                 onClick={() => setShowNewAssigneeDropdown(!showNewAssigneeDropdown)}
-                className="flex items-center hover:bg-neutral-100 rounded px-1 py-0.5 transition"
+                className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition"
                 disabled={isCreating}
                 aria-label="Assign subtask"
               >
@@ -613,15 +613,15 @@ function SubtaskList({ taskId, categoryId }) {
                         </div>
                       )}
                     </div>
-                    <ChevronDown size={8} className="text-neutral-400 ml-0.5" />
+                    <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                   </div>
                 ) : (
-                  <div className="flex items-center text-xs text-neutral-400">
-                    <div className="w-4 h-4 rounded-full bg-neutral-200 flex items-center justify-center text-[9px]">
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <div className="w-4 h-4 rounded-full bg-input flex items-center justify-center text-[9px]">
                       ?
                     </div>
                     <span className="ml-1">Assign</span>
-                    <ChevronDown size={8} className="text-neutral-400 ml-0.5" />
+                    <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                   </div>
                 )}
               </button>
@@ -681,7 +681,7 @@ function SubtaskList({ taskId, categoryId }) {
         <Button
           onClick={() => setIsAddingSubtask(true)}
           variant="ghost"
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 mt-1 w-full justify-start"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-1 w-full justify-start"
         >
           <Plus size={16} />
           <span>Add subtask</span>

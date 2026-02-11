@@ -102,8 +102,8 @@ const PreferencesTab = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-neutral-900">Preferences</h2>
-        <p className="mt-1 text-sm text-neutral-500">
+        <h2 className="text-2xl font-semibold text-foreground">Preferences</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Customize your language and timezone settings.
         </p>
       </div>
@@ -113,12 +113,12 @@ const PreferencesTab = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-neutral-50 rounded-lg">
-                <Globe className="h-6 w-6 text-neutral-700" />
+              <div className="p-3 bg-muted rounded-lg">
+                <Globe className="h-6 w-6 text-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-neutral-900">Language</h3>
-                <p className="mt-1 text-sm text-neutral-500 mb-4">
+                <h3 className="text-lg font-medium text-foreground">Language</h3>
+                <p className="mt-1 text-sm text-muted-foreground mb-4">
                   Select your preferred language for the interface.
                 </p>
 
@@ -143,12 +143,12 @@ const PreferencesTab = () => {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-neutral-50 rounded-lg">
-                <Clock className="h-6 w-6 text-neutral-700" />
+              <div className="p-3 bg-muted rounded-lg">
+                <Clock className="h-6 w-6 text-foreground" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-medium text-neutral-900">Timezone</h3>
-                <p className="mt-1 text-sm text-neutral-500 mb-4">
+                <h3 className="text-lg font-medium text-foreground">Timezone</h3>
+                <p className="mt-1 text-sm text-muted-foreground mb-4">
                   Set your timezone for due dates and reminders.
                 </p>
 
@@ -170,7 +170,7 @@ const PreferencesTab = () => {
                     <Button
                       type="button"
                       variant="link"
-                      className="h-auto p-0 text-sm text-neutral-600 hover:text-neutral-900"
+                      className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
                       onClick={handleUseDetectedTimezone}
                     >
                       Use detected timezone: {detectedTimezone}

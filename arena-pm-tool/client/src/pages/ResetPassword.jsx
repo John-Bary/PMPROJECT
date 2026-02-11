@@ -57,7 +57,7 @@ function ResetPassword() {
   // No token in URL
   if (!token) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="shadow-sm">
             <CardContent className="pt-6 text-center">
@@ -66,8 +66,8 @@ function ResetPassword() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Invalid Reset Link</h2>
-              <p className="text-neutral-600 text-sm mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-2">Invalid Reset Link</h2>
+              <p className="text-muted-foreground text-sm mb-6">
                 This password reset link is invalid or missing a token. Please request a new one.
               </p>
               <Button asChild>
@@ -83,7 +83,7 @@ function ResetPassword() {
   // Success state
   if (isSuccess) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="shadow-sm">
             <CardContent className="pt-6 text-center">
@@ -92,8 +92,8 @@ function ResetPassword() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 mb-2">Password Reset!</h2>
-              <p className="text-neutral-600 text-sm mb-6">
+              <h2 className="text-xl font-bold text-foreground mb-2">Password Reset!</h2>
+              <p className="text-muted-foreground text-sm mb-6">
                 Your password has been successfully reset. You can now sign in with your new password.
               </p>
               <Button onClick={() => navigate('/login')}>
@@ -107,7 +107,7 @@ function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardHeader className="text-center">
@@ -131,7 +131,7 @@ function ResetPassword() {
                   minLength={8}
                   placeholder="Enter new password"
                 />
-                <p className="mt-1 text-xs text-neutral-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Must be 8+ characters with uppercase, lowercase, and a digit.
                 </p>
               </div>
@@ -158,8 +158,8 @@ function ResetPassword() {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-neutral-600">
-              <Link to="/login" className="text-neutral-900 hover:text-neutral-700 font-medium">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              <Link to="/login" className="text-foreground hover:text-foreground font-medium">
                 Back to Sign In
               </Link>
             </p>

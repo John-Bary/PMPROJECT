@@ -45,7 +45,7 @@ function VerifyEmail() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardContent className="pt-6 text-center">
@@ -56,12 +56,12 @@ function VerifyEmail() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-neutral-900 mb-2">Email Verified!</h2>
-                <p className="text-neutral-600 text-sm mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-2">Email Verified!</h2>
+                <p className="text-muted-foreground text-sm mb-6">
                   Your email has been successfully verified. You can now access all features.
                 </p>
                 {isAuthenticated ? (
-                  <p className="text-neutral-500 text-sm">Redirecting to dashboard...</p>
+                  <p className="text-muted-foreground text-sm">Redirecting to dashboard...</p>
                 ) : (
                   <Button asChild>
                     <Link to="/login">Go to Login</Link>
@@ -75,8 +75,8 @@ function VerifyEmail() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-neutral-900 mb-2">Verification Failed</h2>
-                <p className="text-neutral-600 text-sm mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-2">Verification Failed</h2>
+                <p className="text-muted-foreground text-sm mb-6">
                   This verification link is invalid or has expired. Please request a new one.
                 </p>
                 <Button asChild>

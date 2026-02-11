@@ -35,9 +35,9 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 
 // Role configuration for badges
 const roleConfig = {
-  admin: { label: 'Admin', icon: ShieldCheck, color: 'text-neutral-900', bg: 'bg-neutral-100', border: 'border-neutral-300' },
-  member: { label: 'Member', icon: Shield, color: 'text-neutral-700', bg: 'bg-neutral-50', border: 'border-neutral-200' },
-  viewer: { label: 'Viewer', icon: Eye, color: 'text-neutral-500', bg: 'bg-neutral-50', border: 'border-neutral-200' },
+  admin: { label: 'Admin', icon: ShieldCheck, color: 'text-foreground', bg: 'bg-accent', border: 'border-input' },
+  member: { label: 'Member', icon: Shield, color: 'text-foreground', bg: 'bg-muted', border: 'border-border' },
+  viewer: { label: 'Viewer', icon: Eye, color: 'text-muted-foreground', bg: 'bg-muted', border: 'border-border' },
 };
 
 // Role badge component
@@ -67,15 +67,15 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
     <Card
       className={`relative group cursor-pointer hover:shadow-lg ${
         isSelected
-          ? 'border-primary-600 ring-2 ring-primary-600/20 shadow-md border-2'
-          : 'border-neutral-200 hover:border-neutral-300'
+          ? 'border-primary ring-2 ring-ring/20 shadow-md border-2'
+          : 'border-border hover:border-input'
       }`}
       onClick={() => onSelect(workspace.id)}
     >
       {/* Selection indicator */}
       {isSelected && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center shadow-md z-10">
-          <Check className="w-4 h-4 text-white" />
+        <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full flex items-center justify-center shadow-md z-10">
+          <Check className="w-4 h-4 text-primary-foreground" />
         </div>
       )}
 
@@ -83,7 +83,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
         {/* Header with avatar and menu */}
         <div className="flex items-start justify-between mb-4">
           <Avatar className="w-14 h-14 rounded-xl text-lg">
-            <AvatarFallback className="rounded-xl bg-primary-600 text-white font-bold text-lg">
+            <AvatarFallback className="rounded-xl bg-primary text-primary-foreground font-bold text-lg">
               {getInitials(workspace.name)}
             </AvatarFallback>
           </Avatar>
@@ -98,7 +98,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
                   e.stopPropagation();
                   setShowMenu(!showMenu);
                 }}
-                className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-neutral-600"
+                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground"
               >
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
@@ -112,14 +112,14 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
                       setShowMenu(false);
                     }}
                   />
-                  <div className="absolute right-0 top-8 z-20 w-40 bg-white rounded-lg shadow-sm border border-neutral-200 py-1 animate-fade-in">
+                  <div className="absolute right-0 top-8 z-20 w-40 bg-card rounded-lg shadow-sm border border-border py-1 animate-fade-in">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowMenu(false);
                         onEdit(workspace);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted transition-colors"
                     >
                       <Edit2 className="w-4 h-4" />
                       Rename
@@ -131,7 +131,7 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
                           setShowMenu(false);
                           onDelete(workspace);
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-red-50 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete
@@ -145,12 +145,12 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
         </div>
 
         {/* Workspace name */}
-        <h3 className="text-lg font-semibold text-neutral-900 mb-2 truncate">
+        <h3 className="text-lg font-semibold text-foreground mb-2 truncate">
           {workspace.name}
         </h3>
 
         {/* Meta info */}
-        <div className="flex items-center gap-3 text-sm text-neutral-500 mb-4">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground mb-4">
           <span className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             {workspace.memberCount || 1} {workspace.memberCount === 1 ? 'member' : 'members'}
@@ -161,13 +161,13 @@ function WorkspaceCard({ workspace, isSelected, onSelect, onEdit, onDelete, curr
         <div className="flex items-center justify-between">
           <RoleBadge role={workspace.userRole} />
           {isOwner && (
-            <span className="text-xs text-neutral-400 font-medium">Owner</span>
+            <span className="text-xs text-muted-foreground font-medium">Owner</span>
           )}
         </div>
       </CardContent>
 
       {/* Quick select button on hover */}
-      <div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-2 bg-gradient-to-t from-white via-white to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute inset-x-0 bottom-0 px-5 pb-5 pt-2 bg-gradient-to-t from-card via-card to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
         <Button
           onClick={(e) => {
             e.stopPropagation();
@@ -190,7 +190,7 @@ function DeleteConfirmModal({ workspace, isOpen, onClose, onConfirm, isDeleting 
       <AlertDialogContent>
         <AlertDialogHeader>
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Trash2 className="w-6 h-6 text-red-600" />
+            <Trash2 className="w-6 h-6 text-destructive" />
           </div>
           <AlertDialogTitle className="text-center">
             Delete Workspace
@@ -206,7 +206,7 @@ function DeleteConfirmModal({ workspace, isOpen, onClose, onConfirm, isDeleting 
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
-            className="bg-red-600 hover:bg-red-700"
+            className="bg-destructive hover:bg-destructive/90"
           >
             {isDeleting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
             {isDeleting ? 'Deleting...' : 'Delete'}
@@ -238,15 +238,15 @@ function RenameModal({ workspace, isOpen, onClose, onConfirm, isLoading }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="fixed inset-0 bg-black/20" onClick={onClose} />
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-sm w-full max-w-md animate-scale-in">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
-            <h3 className="text-lg font-semibold text-neutral-900">Rename Workspace</h3>
+        <div className="relative bg-card rounded-xl shadow-sm w-full max-w-md animate-scale-in">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <h3 className="text-lg font-semibold text-foreground">Rename Workspace</h3>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="w-5 h-5" />
             </Button>
           </div>
           <form onSubmit={handleSubmit} className="p-6">
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
+            <label className="block text-sm font-medium text-foreground mb-2">
               Workspace Name
             </label>
             <Input
@@ -353,11 +353,11 @@ function WorkspaceSelectionPage() {
   // Show empty state if no workspaces
   if (!isLoading && workspaces.length === 0) {
     return (
-      <div className="min-h-screen bg-neutral-50">
+      <div className="min-h-screen bg-muted">
         {/* Simple header */}
-        <header className="bg-white border-b border-neutral-200">
+        <header className="bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-bold text-neutral-900">Todoria</h1>
+            <h1 className="text-xl font-bold text-foreground">Todoria</h1>
             <Button
               variant="ghost"
               onClick={handleLogout}
@@ -371,13 +371,13 @@ function WorkspaceSelectionPage() {
 
         {/* Empty state */}
         <div className="max-w-2xl mx-auto px-4 py-16 text-center">
-          <div className="w-20 h-20 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Briefcase className="w-10 h-10 text-neutral-600" />
+          <div className="w-20 h-20 bg-accent rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Briefcase className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h2 className="text-2xl font-bold text-neutral-900 mb-3">
+          <h2 className="text-2xl font-bold text-foreground mb-3">
             Welcome to Todoria, {user?.name?.split(' ')[0]}!
           </h2>
-          <p className="text-neutral-600 mb-8 max-w-md mx-auto">
+          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
             Get started by creating your first workspace. Workspaces help you organize projects and collaborate with your team.
           </p>
           <Button onClick={() => setIsCreateModalOpen(true)} size="lg">
@@ -388,29 +388,29 @@ function WorkspaceSelectionPage() {
           <div className="mt-12 grid sm:grid-cols-3 gap-6 text-left">
             <Card>
               <CardContent className="p-5">
-                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                  <LayoutGrid className="w-5 h-5 text-neutral-600" />
+                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center mb-3">
+                  <LayoutGrid className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold text-neutral-900 mb-1">Organize Tasks</h3>
-                <p className="text-sm text-neutral-500">Create categories and manage tasks with drag & drop.</p>
+                <h3 className="font-semibold text-foreground mb-1">Organize Tasks</h3>
+                <p className="text-sm text-muted-foreground">Create categories and manage tasks with drag & drop.</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-5">
-                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                  <Users className="w-5 h-5 text-neutral-600" />
+                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center mb-3">
+                  <Users className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold text-neutral-900 mb-1">Collaborate</h3>
-                <p className="text-sm text-neutral-500">Invite team members and assign tasks together.</p>
+                <h3 className="font-semibold text-foreground mb-1">Collaborate</h3>
+                <p className="text-sm text-muted-foreground">Invite team members and assign tasks together.</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-5">
-                <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center mb-3">
-                  <Clock className="w-5 h-5 text-neutral-600" />
+                <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center mb-3">
+                  <Clock className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <h3 className="font-semibold text-neutral-900 mb-1">Track Progress</h3>
-                <p className="text-sm text-neutral-500">Use calendar and list views to stay on schedule.</p>
+                <h3 className="font-semibold text-foreground mb-1">Track Progress</h3>
+                <p className="text-sm text-muted-foreground">Use calendar and list views to stay on schedule.</p>
               </CardContent>
             </Card>
           </div>
@@ -425,13 +425,13 @@ function WorkspaceSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="bg-white border-b border-neutral-200 sticky top-0 z-30">
+      <header className="bg-card border-b border-border sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-xl font-bold text-neutral-900">Todoria</h1>
+              <h1 className="text-xl font-bold text-foreground">Todoria</h1>
               <Badge variant="secondary" className="hidden sm:inline-flex">
                 {workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}
               </Badge>
@@ -463,15 +463,15 @@ function WorkspaceSelectionPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page header */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-neutral-900 mb-2">Select a Workspace</h2>
-          <p className="text-neutral-600">Choose a workspace to continue or create a new one.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Select a Workspace</h2>
+          <p className="text-muted-foreground">Choose a workspace to continue or create a new one.</p>
         </div>
 
         {/* Toolbar */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           {/* Search */}
           <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               type="text"
               value={searchQuery}
@@ -483,7 +483,7 @@ function WorkspaceSelectionPage() {
 
           <div className="flex items-center gap-3">
             {/* View toggle */}
-            <div className="flex items-center bg-white border border-neutral-300 rounded-lg p-1">
+            <div className="flex items-center bg-card border border-input rounded-lg p-1">
               <Button
                 variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="icon"
@@ -515,8 +515,8 @@ function WorkspaceSelectionPage() {
         {/* Workspace grid/list */}
         {filteredWorkspaces.length === 0 ? (
           <div className="text-center py-12">
-            <Search className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
-            <p className="text-neutral-500">No workspaces found matching "{searchQuery}"</p>
+            <Search className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground">No workspaces found matching "{searchQuery}"</p>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -545,26 +545,26 @@ function WorkspaceSelectionPage() {
                 <div
                   key={workspace.id}
                   onClick={() => handleSelectWorkspace(workspace.id)}
-                  className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-neutral-50 transition-colors ${
-                    index !== filteredWorkspaces.length - 1 ? 'border-b border-neutral-100' : ''
-                  } ${workspace.id === currentWorkspaceId ? 'bg-neutral-100' : ''}`}
+                  className={`flex items-center gap-4 p-4 cursor-pointer hover:bg-muted transition-colors ${
+                    index !== filteredWorkspaces.length - 1 ? 'border-b border-border' : ''
+                  } ${workspace.id === currentWorkspaceId ? 'bg-accent' : ''}`}
                 >
                   <Avatar className="w-12 h-12 rounded-lg">
-                    <AvatarFallback className="rounded-lg bg-primary-600 text-white font-bold">
+                    <AvatarFallback className="rounded-lg bg-primary text-primary-foreground font-bold">
                       {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-neutral-900 truncate">{workspace.name}</h3>
-                    <p className="text-sm text-neutral-500">
+                    <h3 className="font-semibold text-foreground truncate">{workspace.name}</h3>
+                    <p className="text-sm text-muted-foreground">
                       {workspace.memberCount || 1} member{workspace.memberCount !== 1 ? 's' : ''}
                     </p>
                   </div>
                   <RoleBadge role={workspace.userRole} />
                   {workspace.id === currentWorkspaceId && (
-                    <span className="text-xs text-neutral-600 font-medium">Current</span>
+                    <span className="text-xs text-muted-foreground font-medium">Current</span>
                   )}
-                  <ChevronRight className="w-5 h-5 text-neutral-400" />
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </div>
               ))}
             </CardContent>

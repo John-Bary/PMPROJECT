@@ -11,7 +11,7 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
 
-const avatarColors = ['bg-primary-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
+const avatarColors = ['bg-primary', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
 function TaskCard({
   task,
@@ -151,13 +151,13 @@ function TaskCard({
             {...provided.dragHandleProps}
             onClick={handleCardClick}
             className={`
-              bg-white rounded-xl border border-[#E8EBF0] shadow-card
+              bg-card rounded-xl border border-border shadow-card
               hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150
               ${task.priority ? `border-l-[3px] ${priorityBorderColors[task.priority]}` : ''}
               ${compact ? 'p-2' : 'p-4'}
               cursor-pointer
               ${isCompleted ? 'opacity-50' : ''}
-              ${snapshot.isDragging ? 'shadow-elevated border-[#E8EBF0]' : ''}
+              ${snapshot.isDragging ? 'shadow-elevated border-border' : ''}
             `}
           >
             {/* Header: Checkbox + Title */}
@@ -168,8 +168,8 @@ function TaskCard({
                   flex-shrink-0 w-5 h-5 rounded-md border-2
                   flex items-center justify-center transition-all duration-150
                   ${isCompleted
-                    ? 'bg-primary-600 border-primary-600'
-                    : 'border-neutral-300 hover:border-neutral-500'
+                    ? 'bg-primary border-primary'
+                    : 'border-input hover:border-neutral-500'
                   }
                   ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}
                 `}
@@ -179,14 +179,14 @@ function TaskCard({
                 {isToggling ? (
                   <InlineSpinner size="sm" />
                 ) : (
-                  isCompleted && <Check size={12} className="text-white" />
+                  isCompleted && <Check size={12} className="text-primary-foreground" />
                 )}
               </button>
 
               <div className="flex-1 min-w-0">
                 <h4 className={`
-                  text-sm font-medium text-[#0F172A] line-clamp-2 leading-tight
-                  ${isCompleted ? 'line-through text-neutral-500' : ''}
+                  text-sm font-medium text-foreground line-clamp-2 leading-tight
+                  ${isCompleted ? 'line-through text-muted-foreground' : ''}
                 `}>
                   {task.title}
                 </h4>
@@ -195,19 +195,19 @@ function TaskCard({
 
             {/* Description preview */}
             {!compact && task.description && (
-              <p className="mt-1.5 ml-7 text-xs text-neutral-500 line-clamp-2">
+              <p className="mt-1.5 ml-7 text-xs text-muted-foreground line-clamp-2">
                 {task.description}
               </p>
             )}
 
             {/* Subtasks progress */}
             {totalSubtasks > 0 && (
-              <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-neutral-500">
-                <ListTodo size={12} className="text-neutral-400" />
+              <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ListTodo size={12} className="text-muted-foreground" />
                 <span>{completedSubtasks}/{totalSubtasks}</span>
-                <div className="flex-1 h-0.5 bg-neutral-100 rounded-full overflow-hidden max-w-[60px]">
+                <div className="flex-1 h-0.5 bg-accent rounded-full overflow-hidden max-w-[60px]">
                   <div
-                    className="h-full bg-primary-500 rounded-full transition-all"
+                    className="h-full bg-primary rounded-full transition-all"
                     style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
                   />
                 </div>
@@ -232,7 +232,7 @@ function TaskCard({
                 </button>
 
                 {showPriorityDropdown && (
-                  <div className="absolute left-0 mt-1 w-28 bg-white border border-neutral-200 rounded-lg shadow-sm z-50">
+                  <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50">
                     <div className="py-1">
                       {priorities.map((priority) => (
                         <button
@@ -240,14 +240,14 @@ function TaskCard({
                           onClick={() => handlePrioritySelect(priority)}
                           className={`
                             w-full px-2 py-1.5 text-left text-xs font-medium
-                            hover:bg-neutral-50 flex items-center gap-2 transition
-                            ${task.priority === priority ? 'bg-neutral-50' : ''}
+                            hover:bg-muted flex items-center gap-2 transition
+                            ${task.priority === priority ? 'bg-muted' : ''}
                           `}
                         >
                           <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
                           {priority}
                           {task.priority === priority && (
-                            <Check size={12} className="ml-auto text-neutral-600" />
+                            <Check size={12} className="ml-auto text-muted-foreground" />
                           )}
                         </button>
                       ))}
@@ -265,7 +265,7 @@ function TaskCard({
                     rounded transition text-xs
                     ${isOverdue
                       ? 'text-red-500 font-medium'
-                      : 'text-neutral-500 hover:bg-neutral-100'}
+                      : 'text-muted-foreground hover:bg-accent'}
                   `}
                   title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                 >
@@ -312,8 +312,8 @@ function TaskCard({
                       )}
                     </div>
                   ) : (
-                    <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center">
-                      <span className="text-neutral-400 text-[11px]">?</span>
+                    <div className="w-6 h-6 rounded-full bg-input flex items-center justify-center">
+                      <span className="text-muted-foreground text-[11px]">?</span>
                     </div>
                   )}
                 </button>

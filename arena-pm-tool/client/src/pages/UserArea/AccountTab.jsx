@@ -133,8 +133,8 @@ const AccountTab = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-semibold text-neutral-900">Account</h2>
-        <p className="mt-1 text-sm text-neutral-500">
+        <h2 className="text-2xl font-semibold text-foreground">Account</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           Manage your password, export data, or delete your account.
         </p>
       </div>
@@ -143,7 +143,7 @@ const AccountTab = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Lock className="h-5 w-5 text-neutral-500" />
+            <Lock className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-lg">Change Password</CardTitle>
           </div>
         </CardHeader>
@@ -213,12 +213,12 @@ const AccountTab = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Download className="h-5 w-5 text-neutral-500" />
+            <Download className="h-5 w-5 text-muted-foreground" />
             <CardTitle className="text-lg">Export Data</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Download all your tasks as a CSV file. This includes task titles, descriptions, statuses, priorities, due dates, and categories.
           </p>
 
@@ -247,7 +247,7 @@ const AccountTab = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-neutral-600 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Permanently delete your account and all associated data. This action cannot be undone.
           </p>
 
@@ -299,7 +299,7 @@ const AccountTab = () => {
             <AlertDialogAction
               onClick={handleDeleteAccount}
               disabled={isDeleting || !deletePassword}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isDeleting ? 'Deleting...' : 'Yes, Delete My Account'}

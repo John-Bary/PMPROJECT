@@ -17,7 +17,7 @@ const plans = [
       'Up to 3 members',
       'Board + List views',
     ],
-    className: 'border-neutral-200',
+    className: 'border-border',
   },
   {
     id: 'pro',
@@ -37,7 +37,7 @@ const plans = [
     ],
     cta: 'Upgrade to Pro',
     popular: true,
-    className: 'border-primary-600 ring-2 ring-primary-100',
+    className: 'border-primary ring-2 ring-accent',
   },
 ];
 
@@ -91,7 +91,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
               >
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-primary-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
                       Most Popular
                     </span>
                   </div>
@@ -99,22 +99,22 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
                 <div className="mb-4">
                   <div className="flex items-center gap-2 mb-2">
-                    {Icon && <Icon size={20} className="text-primary-600" />}
-                    <h3 className="text-lg font-semibold text-neutral-900">{plan.name}</h3>
+                    {Icon && <Icon size={20} className="text-primary" />}
+                    <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
                   </div>
-                  <p className="text-sm text-neutral-500">{plan.description}</p>
+                  <p className="text-sm text-muted-foreground">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
-                  <span className="text-3xl font-bold text-neutral-900">{plan.price}</span>
-                  <span className="text-neutral-500 text-sm">{plan.period}</span>
+                  <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground text-sm">{plan.period}</span>
                 </div>
 
                 <ul className="space-y-3 mb-6 flex-1">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <Check size={16} className="text-primary-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-neutral-700">{feature}</span>
+                      <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
+                      <span className="text-foreground">{feature}</span>
                     </li>
                   ))}
                 </ul>
@@ -122,7 +122,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                 {isCurrent ? (
                   <Button
                     variant="ghost"
-                    className="w-full bg-neutral-100 text-neutral-400 cursor-not-allowed hover:bg-neutral-100 hover:text-neutral-400"
+                    className="w-full bg-accent text-muted-foreground cursor-not-allowed hover:bg-accent hover:text-muted-foreground"
                     disabled
                   >
                     Current Plan
@@ -162,7 +162,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
               variant="link"
               onClick={handleManage}
               disabled={loadingPlan === 'manage'}
-              className="text-sm text-neutral-500 hover:text-neutral-700 underline"
+              className="text-sm text-muted-foreground hover:text-foreground underline"
             >
               {loadingPlan === 'manage' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Manage subscription & billing
@@ -170,7 +170,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
           </div>
         )}
 
-        <p className="text-center text-xs text-neutral-400 mt-6">
+        <p className="text-center text-xs text-muted-foreground mt-6">
           All plans include SSL encryption and daily backups. Cancel anytime.
         </p>
       </DialogContent>

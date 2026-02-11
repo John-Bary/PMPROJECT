@@ -111,8 +111,8 @@ const MyTasksTab = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-semibold text-neutral-900">My Tasks</h2>
-        <p className="mt-1 text-sm text-neutral-500">
+        <h2 className="text-2xl font-semibold text-foreground">My Tasks</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
           View and manage all tasks assigned to you.
         </p>
       </div>
@@ -121,8 +121,8 @@ const MyTasksTab = () => {
       <div className="flex flex-col sm:flex-row gap-4 justify-between">
         {/* Status Filter */}
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-neutral-500" />
-          <div className="flex bg-neutral-50 border border-[#E8EBF0] rounded-lg p-1">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <div className="flex bg-muted border border-border rounded-lg p-1">
             {[
               { value: 'all', label: 'All' },
               { value: 'open', label: 'Open' },
@@ -133,7 +133,7 @@ const MyTasksTab = () => {
                 variant={statusFilter === option.value ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setStatusFilter(option.value)}
-                className={statusFilter === option.value ? '' : 'text-neutral-500 hover:text-neutral-900'}
+                className={statusFilter === option.value ? '' : 'text-muted-foreground hover:text-foreground'}
               >
                 {option.label}
               </Button>
@@ -155,7 +155,7 @@ const MyTasksTab = () => {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 text-neutral-500 animate-spin" />
+              <Loader2 className="h-8 w-8 text-muted-foreground animate-spin" />
             </div>
           ) : error ? (
             <div className="flex items-center justify-center py-12 text-red-400">
@@ -163,9 +163,9 @@ const MyTasksTab = () => {
               <span>{error}</span>
             </div>
           ) : tasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
-              <CheckCircle2 className="h-12 w-12 mb-4 text-neutral-300" />
-              <p className="text-lg font-medium text-neutral-700">No tasks assigned to you</p>
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+              <CheckCircle2 className="h-12 w-12 mb-4 text-muted-foreground" />
+              <p className="text-lg font-medium text-foreground">No tasks assigned to you</p>
               <p className="text-sm mt-1">
                 {statusFilter === 'completed'
                   ? 'You have no completed tasks.'
@@ -175,7 +175,7 @@ const MyTasksTab = () => {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-neutral-200">
+            <div className="divide-y divide-border">
               {tasks.map((task) => {
                 const dueInfo = formatDueDate(task.dueDate);
 
@@ -183,7 +183,7 @@ const MyTasksTab = () => {
                   <div
                     key={task.id}
                     onClick={() => handleTaskClick(task.id)}
-                    className="flex items-center gap-4 px-4 py-4 hover:bg-neutral-50 cursor-pointer transition-colors group"
+                    className="flex items-center gap-4 px-4 py-4 hover:bg-muted cursor-pointer transition-colors group"
                   >
                     {/* Status Icon */}
                     <div className="flex-shrink-0">{getStatusIcon(task.status)}</div>
@@ -194,8 +194,8 @@ const MyTasksTab = () => {
                         <h4
                           className={`font-medium truncate ${
                             task.status === 'completed'
-                              ? 'text-neutral-400 line-through'
-                              : 'text-neutral-900'
+                              ? 'text-muted-foreground line-through'
+                              : 'text-foreground'
                           }`}
                         >
                           {task.title}
@@ -214,7 +214,7 @@ const MyTasksTab = () => {
                       <div className="flex items-center gap-4 mt-1">
                         {/* Category */}
                         {task.categoryName && (
-                          <span className="flex items-center gap-1.5 text-sm text-neutral-500">
+                          <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                             <span
                               className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: task.categoryColor || '#6b7280' }}
@@ -231,7 +231,7 @@ const MyTasksTab = () => {
                                 ? 'text-red-400'
                                 : dueInfo.isUrgent
                                 ? 'text-yellow-400'
-                                : 'text-neutral-500'
+                                : 'text-muted-foreground'
                             }`}
                           >
                             <Calendar className="h-3.5 w-3.5" />
@@ -242,7 +242,7 @@ const MyTasksTab = () => {
                     </div>
 
                     {/* Go to task icon */}
-                    <ExternalLink className="h-4 w-4 text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <ExternalLink className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                 );
               })}
@@ -253,7 +253,7 @@ const MyTasksTab = () => {
 
       {/* Task Count */}
       {!isLoading && !error && tasks.length > 0 && (
-        <p className="text-sm text-neutral-400 text-center">
+        <p className="text-sm text-muted-foreground text-center">
           Showing {tasks.length} task{tasks.length !== 1 ? 's' : ''}
         </p>
       )}

@@ -30,7 +30,7 @@ function ForgotPassword() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted flex items-center justify-center p-4">
         <div className="w-full max-w-md">
           <Card className="shadow-sm">
             <CardContent className="pt-6">
@@ -40,8 +40,8 @@ function ForgotPassword() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-bold text-neutral-900 mb-2">Check your email</h2>
-                <p className="text-neutral-600 text-sm mb-6">
+                <h2 className="text-xl font-bold text-foreground mb-2">Check your email</h2>
+                <p className="text-muted-foreground text-sm mb-6">
                   If an account exists for <strong>{email}</strong>, we sent a password reset link. Check your inbox and spam folder.
                 </p>
                 <Button asChild variant="link">
@@ -58,7 +58,7 @@ function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardHeader className="text-center">
@@ -66,7 +66,7 @@ function ForgotPassword() {
             <CardDescription>Reset your password</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-neutral-600 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               Enter the email address associated with your account and we'll send you a link to reset your password.
             </p>
 
@@ -92,9 +92,9 @@ function ForgotPassword() {
               </Button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-neutral-600">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               Remember your password?{' '}
-              <Link to="/login" className="text-neutral-900 hover:text-neutral-700 font-medium">
+              <Link to="/login" className="text-foreground hover:text-foreground font-medium">
                 Sign in
               </Link>
             </p>

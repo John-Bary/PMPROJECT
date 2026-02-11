@@ -132,7 +132,7 @@ function AssigneeDropdown({
       aria-label={variant === 'multi' ? 'Select assignees' : 'Select assignee'}
       aria-multiselectable={variant === 'multi'}
       className={`
-        fixed bg-white border border-neutral-200 rounded-lg shadow-sm z-[100]
+        fixed bg-card border border-border rounded-lg shadow-sm z-[100]
         animate-fade-in overflow-hidden
         ${position.placement === 'top' ? 'origin-bottom' : 'origin-top'}
       `}
@@ -158,18 +158,18 @@ function AssigneeDropdown({
                 <div className={`
                   flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all
                   ${isSelected(user.id)
-                    ? 'bg-primary-600 border-primary-600'
-                    : 'border-neutral-300'
+                    ? 'bg-primary border-primary'
+                    : 'border-input'
                   }
                 `}>
-                  {isSelected(user.id) && <Check size={10} className="text-white" />}
+                  {isSelected(user.id) && <Check size={10} className="text-primary-foreground" />}
                 </div>
                 <Avatar className="h-6 w-6">
                   <AvatarFallback className="text-xs bg-neutral-600 text-white font-semibold">
                     {user.name?.charAt(0).toUpperCase() || '?'}
                   </AvatarFallback>
                 </Avatar>
-                <span className={`text-sm truncate ${isSelected(user.id) ? 'font-medium text-neutral-900' : 'text-neutral-700'}`}>
+                <span className={`text-sm truncate ${isSelected(user.id) ? 'font-medium text-foreground' : 'text-foreground'}`}>
                   {user.name}
                 </span>
               </CommandItem>
