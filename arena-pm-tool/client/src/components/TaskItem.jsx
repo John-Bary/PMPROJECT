@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Pencil, Trash2, Check, ChevronDown, Calendar } from 'lucide-react';
+import { Pencil, Trash2, Check, ChevronDown, Calendar, ArrowRightLeft } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
@@ -10,15 +10,18 @@ import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 import { InlineSpinner } from './Loader';
 
-function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false }) {
+function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false, categories = [] }) {
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
+  const [showMoveDropdown, setShowMoveDropdown] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const assigneeDropdownRef = useRef(null);
   const datePickerRef = useRef(null);
   const priorityDropdownRef = useRef(null);
+  const moveDropdownRef = useRef(null);
   const titleInputRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
@@ -81,11 +84,29 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
     };
   }, [showPriorityDropdown]);
 
+  // Close move dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (moveDropdownRef.current && !moveDropdownRef.current.contains(event.target)) {
+        setShowMoveDropdown(false);
+      }
+    };
+
+    if (showMoveDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMoveDropdown]);
+
   // Close all dropdowns when search query changes
   useEffect(() => {
     setShowPriorityDropdown(false);
     setShowAssigneeDropdown(false);
     setShowDatePicker(false);
+    setShowMoveDropdown(false);
   }, [searchQuery]);
 
   const handleAssigneeClick = (e) => {
@@ -147,6 +168,28 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   };
 
   const priorities = ['low', 'medium', 'high', 'urgent'];
+
+  // Move task to a different category (mobile)
+  const handleMoveToCategory = async (categoryId) => {
+    setIsMoving(true);
+    try {
+      await updateTask(task.id, { category_id: categoryId });
+      setShowMoveDropdown(false);
+    } catch (error) {
+      // Error is handled in taskStore
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
+  const handleMoveClick = (e) => {
+    e.stopPropagation();
+    if (!canEdit) return;
+    setShowMoveDropdown(!showMoveDropdown);
+  };
+
+  // Other categories this task can move to
+  const otherCategories = categories.filter(c => c.id !== task.categoryId);
 
   const handleTitleClick = (e) => {
     e.stopPropagation();
@@ -211,6 +254,40 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
           {canEdit && (
             <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Move to category - mobile only */}
+              {noDrag && otherCategories.length > 0 && (
+                <div className="relative" ref={moveDropdownRef}>
+                  <button
+                    onClick={handleMoveClick}
+                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
+                    title="Move to category"
+                    aria-label="Move to category"
+                    disabled={isMoving}
+                  >
+                    {isMoving ? (
+                      <InlineSpinner size="sm" />
+                    ) : (
+                      <ArrowRightLeft size={14} />
+                    )}
+                  </button>
+                  {showMoveDropdown && (
+                    <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-elevated z-50 p-1">
+                      <p className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to</p>
+                      {otherCategories.map((cat) => (
+                        <button
+                          key={cat.id}
+                          onClick={(e) => { e.stopPropagation(); handleMoveToCategory(cat.id); }}
+                          className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-md flex items-center gap-2 transition-colors duration-150"
+                          disabled={isMoving}
+                        >
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                          <span className="truncate">{cat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
               <button
                 onClick={handleEdit}
                 className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"

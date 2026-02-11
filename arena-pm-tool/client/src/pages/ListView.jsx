@@ -494,14 +494,14 @@ function ListView() {
             )}
           </div>
 
-          {/* Add Task Button - Always visible */}
+          {/* Add Task Button — hidden on mobile (Dashboard mobile header has one) */}
           <Button
             onClick={() => setIsModalOpen(true)}
             disabled={disablePrimaryAction}
+            className="hidden sm:inline-flex"
           >
-            <Plus size={18} className="sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : 'Add Task'}</span>
-            <span className="sm:hidden">Add</span>
+            <Plus size={18} className="w-5 h-5" />
+            <span>{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : 'Add Task'}</span>
           </Button>
         </div>
 

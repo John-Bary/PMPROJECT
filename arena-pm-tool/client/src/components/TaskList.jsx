@@ -322,17 +322,16 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             )}
           </div>
 
-          {/* Add Task Button */}
+          {/* Add Task Button — hidden on mobile (Dashboard mobile header has one) */}
           <Button
             onClick={() => openCreateTask(getSuggestedCategoryId())}
             disabled={disablePrimaryAction}
             size="lg"
-            className="flex-shrink-0"
+            className="flex-shrink-0 hidden sm:inline-flex"
             title={!userCanEdit ? 'View-only access' : ''}
           >
-            <Plus size={18} className="sm:w-5 sm:h-5" />
-            <span className="hidden sm:inline">{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : !userCanEdit ? 'View Only' : 'Add Task'}</span>
-            <span className="sm:hidden">{!userCanEdit ? 'View' : 'Add'}</span>
+            <Plus size={18} className="w-5 h-5" />
+            <span>{isLoadingData ? 'Loading...' : isMutating ? 'Working...' : !userCanEdit ? 'View Only' : 'Add Task'}</span>
           </Button>
         </div>
 
@@ -495,6 +494,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                       searchQuery={searchQuery}
                       canEdit={userCanEdit}
                       noDrag
+                      categories={visibleCategories}
                     />
                   ));
                 })()}
