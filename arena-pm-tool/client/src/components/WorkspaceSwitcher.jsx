@@ -76,8 +76,8 @@ function WorkspaceSwitcher({ className = '' }) {
         <DropdownMenuTrigger asChild>
           <button
             disabled={isLoading || isSwitching}
-            className="flex items-center gap-2 px-3 py-2 bg-card hover:bg-muted
-                       border border-border rounded-lg transition-colors duration-150 min-w-[180px]
+            className="flex items-center gap-2 px-3 py-2 w-full bg-card hover:bg-muted
+                       border border-border rounded-lg transition-colors duration-150
                        disabled:opacity-50 disabled:cursor-not-allowed
                        focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none"
             aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
