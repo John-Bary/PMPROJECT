@@ -215,11 +215,11 @@ function Dashboard() {
           <div className="flex-1" />
           <Button
             onClick={() => setShowMobileAddTask(true)}
-            size="sm"
-            className="mr-2"
+            size="default"
+            className="mr-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
           >
-            <Plus size={16} />
-            <span>Add</span>
+            <Plus size={16} className="h-4 w-4" />
+            <span>Add task</span>
           </Button>
           <Avatar className="w-8 h-8" title={user?.name || 'User'}>
             <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">

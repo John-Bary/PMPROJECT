@@ -77,8 +77,9 @@ function WorkspaceSwitcher({ className = '' }) {
           <button
             disabled={isLoading || isSwitching}
             className="flex items-center gap-2 px-3 py-2 bg-card hover:bg-muted
-                       border border-border rounded-lg transition-colors min-w-[180px]
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       border border-border rounded-lg transition-colors duration-150 min-w-[180px]
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none"
             aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
           >
             {isSwitching ? (
@@ -112,8 +113,8 @@ function WorkspaceSwitcher({ className = '' }) {
                 <DropdownMenuItem
                   key={workspace.id}
                   onClick={() => handleSwitch(workspace.id)}
-                  className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer ${
-                    workspace.id === currentWorkspace?.id ? 'bg-accent' : ''
+                  className={`flex items-center gap-3 px-2 py-1.5 cursor-pointer rounded-md transition-colors duration-150 ${
+                    workspace.id === currentWorkspace?.id ? 'bg-accent' : 'hover:bg-muted/50'
                   }`}
                 >
                   <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center
@@ -142,34 +143,34 @@ function WorkspaceSwitcher({ className = '' }) {
           {/* Actions */}
           <DropdownMenuItem
             onClick={() => navigate('/workspaces')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
+            className="flex items-center gap-3 px-2 py-1.5 cursor-pointer text-foreground rounded-md transition-colors duration-150 hover:bg-accent"
           >
             <LayoutGrid className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">View All Workspaces</span>
+            <span className="text-sm">View all workspaces</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
+            className="flex items-center gap-3 px-2 py-1.5 cursor-pointer text-foreground rounded-md transition-colors duration-150 hover:bg-accent"
           >
             <Plus className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Create Workspace</span>
+            <span className="text-sm">Create workspace</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => navigate('/user/preferences')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
+            className="flex items-center gap-3 px-2 py-1.5 cursor-pointer text-foreground rounded-md transition-colors duration-150 hover:bg-accent"
           >
             <Settings className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Workspace Settings</span>
+            <span className="text-sm">Workspace settings</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => navigate('/user/team')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
+            className="flex items-center gap-3 px-2 py-1.5 cursor-pointer text-foreground rounded-md transition-colors duration-150 hover:bg-accent"
           >
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Manage Members</span>
+            <span className="text-sm">Manage members</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

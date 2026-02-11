@@ -144,7 +144,7 @@ function AssigneeDropdown({
       }}
     >
       <Command className="rounded-lg">
-        <CommandInput placeholder="Search users..." className="h-9" />
+        <CommandInput placeholder="Search by name..." className="h-9" />
         <CommandList style={{ maxHeight: `${maxHeight - 44}px` }}>
           <CommandEmpty>No users found.</CommandEmpty>
           <CommandGroup heading={variant === 'multi' ? 'Select assignees' : 'Select assignee'}>
@@ -153,10 +153,10 @@ function AssigneeDropdown({
                 key={user.id}
                 value={user.name}
                 onSelect={() => handleToggle(user.id)}
-                className="flex items-center gap-2 cursor-pointer"
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer hover:bg-accent rounded-md transition-colors duration-150"
               >
                 <div className={`
-                  flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-all
+                  flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center transition-colors duration-150
                   ${isSelected(user.id)
                     ? 'bg-primary border-primary'
                     : 'border-input'
@@ -164,7 +164,7 @@ function AssigneeDropdown({
                 `}>
                   {isSelected(user.id) && <Check size={10} className="text-primary-foreground" />}
                 </div>
-                <Avatar className="h-6 w-6">
+                <Avatar className="h-6 w-6 flex-shrink-0">
                   <AvatarFallback className="text-xs bg-neutral-600 text-white font-semibold">
                     {user.name?.charAt(0).toUpperCase() || '?'}
                   </AvatarFallback>

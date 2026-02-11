@@ -17,6 +17,7 @@ import { InlineSpinner } from './Loader';
 import { toast } from 'sonner';
 import { Dialog, DialogContent } from 'components/ui/dialog';
 import { Button } from 'components/ui/button';
+import { Separator } from 'components/ui/separator';
 
 const priorityConfig = {
   urgent: { label: 'Urgent', color: 'text-red-700 font-medium', dot: 'bg-red-600' },
@@ -252,6 +253,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 disabled={isTogglingComplete}
                 className={`
                   w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
                   ${isCompleted
                     ? 'bg-primary border-primary'
                     : 'border-input hover:border-neutral-500'
@@ -271,12 +273,12 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               {/* More menu */}
               <div className="relative" ref={moreMenuRef}>
                 <button
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition"
+                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   aria-label="More actions"
                   aria-expanded={showMoreMenu}
                 >
@@ -286,7 +288,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                   <div className="absolute right-0 mt-1 w-40 bg-card border border-border rounded-lg shadow-sm z-50">
                     <button
                       onClick={handleDelete}
-                      className="w-full px-4 py-2 text-left text-sm text-destructive hover:bg-destructive/10 flex items-center gap-2 rounded-lg transition"
+                      className="w-full px-4 py-2 text-left text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 flex items-center gap-2 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Trash2 size={16} />
                       Delete task
@@ -298,7 +300,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label="Close task details"
               >
                 <X size={20} />
@@ -308,9 +310,9 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
 
           {/* Content - Scrollable */}
           <div className="flex-1 overflow-y-auto">
-            <div className="px-6 py-4">
+            <div className="p-6">
               {/* Task Title */}
-              <div className="mb-6">
+              <div className="mb-5">
                 {isEditingTitle ? (
                   <input
                     ref={titleInputRef}
@@ -343,194 +345,189 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 )}
               </div>
 
-              {/* Task Fields */}
-              <div className="space-y-4 mb-6">
-                {/* Assignees - Multiple assignees with chips */}
-                <div className="flex items-start gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-muted-foreground pt-1.5">
-                    <User size={16} />
-                    <span>Assignees</span>
-                  </div>
-                  <div className="relative flex-1" ref={assigneeDropdownRef}>
-                    {/* Display selected assignees as chips */}
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {(task.assignees || []).map((assignee) => (
-                        <span
-                          key={assignee.id}
-                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent text-foreground rounded-full text-sm border border-border"
-                        >
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-xs font-semibold bg-neutral-600">
-                            {assignee.name.charAt(0).toUpperCase()}
-                          </div>
-                          <span className="max-w-[100px] truncate">{assignee.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleAssigneeToggle(assignee.id)}
-                            className="ml-0.5 p-0.5 hover:bg-input rounded-full transition-colors"
-                            aria-label={`Remove ${assignee.name} from assignees`}
+              {/* Task Properties Section */}
+              <div className="mb-5">
+                <h3 className="text-sm font-medium text-foreground mb-2">Properties</h3>
+                <div className="space-y-3">
+                  {/* Assignees, Due Date, Priority - grouped row */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-lg border border-border p-3">
+                    {/* Assignees */}
+                    <div className="relative" ref={assigneeDropdownRef}>
+                      <span className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
+                        <User size={14} className="text-muted-foreground" />
+                        Assignees
+                      </span>
+                      {/* Display selected assignees as chips */}
+                      <div className="flex flex-wrap gap-1.5 mb-1">
+                        {(task.assignees || []).map((assignee) => (
+                          <span
+                            key={assignee.id}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-accent text-foreground rounded-full text-xs border border-border"
                           >
-                            <X size={12} />
-                          </button>
-                        </span>
-                      ))}
+                            <div className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-semibold bg-neutral-600">
+                              {assignee.name.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="max-w-[80px] truncate">{assignee.name}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleAssigneeToggle(assignee.id)}
+                              className="ml-0.5 p-0.5 hover:bg-input rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              aria-label={`Remove ${assignee.name} from assignees`}
+                            >
+                              <X size={10} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
+                        className="flex items-center gap-1.5 px-2 py-1 hover:bg-accent rounded-md transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {(task.assignees || []).length === 0 ? (
+                          <>
+                            <div className="w-5 h-5 rounded-full bg-input flex items-center justify-center">
+                              <User size={12} className="text-muted-foreground" />
+                            </div>
+                            <span className="text-muted-foreground text-xs">Add assignee</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">+ Add more</span>
+                        )}
+                      </button>
+
+                      {showAssigneeDropdown && (
+                        <AssigneeDropdown
+                          users={users}
+                          selectedIds={(task?.assignees || []).map(a => a.id)}
+                          onToggle={handleAssigneeToggle}
+                          onClose={() => setShowAssigneeDropdown(false)}
+                          triggerRef={assigneeDropdownRef}
+                          variant="multi"
+                        />
+                      )}
                     </div>
 
-                    <button
-                      onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-lg transition text-sm"
-                    >
-                      {(task.assignees || []).length === 0 ? (
-                        <>
-                          <div className="w-6 h-6 rounded-full bg-input flex items-center justify-center">
-                            <User size={14} className="text-muted-foreground" />
-                          </div>
-                          <span className="text-muted-foreground">Add assignee</span>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-muted-foreground text-xs">+ Add more</span>
-                        </>
-                      )}
-                      <ChevronDown size={14} className="ml-auto text-muted-foreground" />
-                    </button>
-
-                    {showAssigneeDropdown && (
-                      <AssigneeDropdown
-                        users={users}
-                        selectedIds={(task?.assignees || []).map(a => a.id)}
-                        onToggle={handleAssigneeToggle}
-                        onClose={() => setShowAssigneeDropdown(false)}
-                        triggerRef={assigneeDropdownRef}
-                        variant="multi"
-                      />
-                    )}
-                  </div>
-                </div>
-
-                {/* Due Date */}
-                <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar size={16} />
-                    <span>Due date</span>
-                  </div>
-                  <div className="relative flex-1" ref={datePickerRef}>
-                    <button
-                      onClick={() => setShowDatePicker(!showDatePicker)}
-                      className={`flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-lg transition text-sm ${isOverdue ? 'text-red-600' : ''}`}
-                      aria-label={isOverdue ? `Due date: ${formattedDueDate} (overdue)` : `Due date: ${formattedDueDate || 'none'}`}
-                    >
-                      {isOverdue ? <AlertCircle size={16} className="text-red-500" aria-hidden="true" /> : <Calendar size={16} className="text-muted-foreground" />}
-                      {isOverdue && <span className="text-red-600 font-semibold text-xs">Overdue</span>}
-                      <span className={formattedDueDate ? (isOverdue ? 'text-red-600 font-medium' : 'text-foreground') : 'text-muted-foreground'}>
-                        {formattedDueDate || 'Add due date'}
+                    {/* Due Date */}
+                    <div className="relative" ref={datePickerRef}>
+                      <span className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
+                        <Calendar size={14} className="text-muted-foreground" />
+                        Due date
                       </span>
-                      {formattedDueDate && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleClearDate();
-                          }}
-                          className="ml-1 p-0.5 hover:bg-input rounded transition"
-                          title="Clear date"
-                          aria-label="Clear due date"
-                        >
-                          <X size={12} className="text-muted-foreground" />
-                        </button>
-                      )}
-                    </button>
-                  </div>
-                </div>
+                      <button
+                        onClick={() => setShowDatePicker(!showDatePicker)}
+                        className={`flex items-center gap-1.5 px-2 py-1 hover:bg-accent rounded-md transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${isOverdue ? 'text-red-600' : ''}`}
+                        aria-label={isOverdue ? `Due date: ${formattedDueDate} (overdue)` : `Due date: ${formattedDueDate || 'none'}`}
+                      >
+                        {isOverdue ? <AlertCircle size={14} className="text-red-500" aria-hidden="true" /> : <Calendar size={14} className="text-muted-foreground" />}
+                        {isOverdue && <span className="text-red-600 font-semibold text-xs">Overdue</span>}
+                        <span className={formattedDueDate ? (isOverdue ? 'text-red-600 font-medium text-xs' : 'text-foreground text-xs') : 'text-muted-foreground text-xs'}>
+                          {formattedDueDate || 'Add due date'}
+                        </span>
+                        {formattedDueDate && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleClearDate();
+                            }}
+                            className="ml-1 p-0.5 hover:bg-input rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            title="Clear date"
+                            aria-label="Clear due date"
+                          >
+                            <X size={10} className="text-muted-foreground" />
+                          </button>
+                        )}
+                      </button>
+                    </div>
 
-                {/* Category */}
-                <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-muted-foreground">
-                    <FolderOpen size={16} />
-                    <span>Category</span>
-                  </div>
-                  <div className="relative flex-1" ref={categoryDropdownRef}>
-                    <button
-                      onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-lg transition text-sm"
-                    >
-                      {currentCategory ? (
-                        <>
-                          <div
-                            className="w-3 h-3 rounded-full"
-                            style={{ backgroundColor: currentCategory.color }}
-                          />
-                          <span className="text-foreground">{currentCategory.name}</span>
-                        </>
-                      ) : (
-                        <span className="text-muted-foreground">Select category</span>
-                      )}
-                      <ChevronDown size={14} className="text-muted-foreground" />
-                    </button>
+                    {/* Priority */}
+                    <div className="relative" ref={priorityDropdownRef}>
+                      <span className="text-sm font-medium text-foreground flex items-center gap-1.5 mb-1">
+                        <Flag size={14} className="text-muted-foreground" />
+                        Priority
+                      </span>
+                      <button
+                        onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
+                        className="flex items-center gap-1.5 px-2 py-1 hover:bg-accent rounded-md transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <div className={`w-2 h-2 rounded-full ${currentPriority.dot}`} />
+                        <span className={`text-xs ${currentPriority.color}`}>{currentPriority.label}</span>
+                        <ChevronDown size={12} className="text-muted-foreground" />
+                      </button>
 
-                    {showCategoryDropdown && (
-                      <div className="absolute left-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-sm z-50">
-                        <div className="py-1">
-                          {categories.map((category) => (
-                            <button
-                              key={category.id}
-                              onClick={() => handleCategorySelect(category.id)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 ${task.categoryId === category.id ? 'bg-muted' : ''}`}
-                            >
-                              <div
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: category.color }}
-                              />
-                              <span>{category.name}</span>
-                              {task.categoryId === category.id && <Check size={14} className="ml-auto text-muted-foreground" />}
-                            </button>
-                          ))}
+                      {showPriorityDropdown && (
+                        <div className="absolute left-0 mt-1 w-36 bg-card border border-border rounded-lg shadow-sm z-50">
+                          <div className="py-1">
+                            {Object.entries(priorityConfig).map(([key, config]) => (
+                              <button
+                                key={key}
+                                onClick={() => handlePrioritySelect(key)}
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${task.priority === key ? 'bg-muted' : ''}`}
+                              >
+                                <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+                                <span className={config.color}>{config.label}</span>
+                                {task.priority === key && <Check size={14} className="ml-auto text-muted-foreground" />}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Priority */}
-                <div className="flex items-center gap-4">
-                  <div className="w-24 flex items-center gap-2 text-sm text-muted-foreground">
-                    <Flag size={16} />
-                    <span>Priority</span>
-                  </div>
-                  <div className="relative flex-1" ref={priorityDropdownRef}>
-                    <button
-                      onClick={() => setShowPriorityDropdown(!showPriorityDropdown)}
-                      className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-lg transition text-sm"
-                    >
-                      <div className={`w-2 h-2 rounded-full ${currentPriority.dot}`} />
-                      <span className={currentPriority.color}>{currentPriority.label}</span>
-                      <ChevronDown size={14} className="text-muted-foreground" />
-                    </button>
+                  {/* Category */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-24 flex items-center gap-2 text-sm text-muted-foreground">
+                      <FolderOpen size={16} />
+                      <span>Category</span>
+                    </div>
+                    <div className="relative flex-1" ref={categoryDropdownRef}>
+                      <button
+                        onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+                        className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-lg transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {currentCategory ? (
+                          <>
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: currentCategory.color }}
+                            />
+                            <span className="text-foreground">{currentCategory.name}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">Select category</span>
+                        )}
+                        <ChevronDown size={14} className="text-muted-foreground" />
+                      </button>
 
-                    {showPriorityDropdown && (
-                      <div className="absolute left-0 mt-1 w-36 bg-card border border-border rounded-lg shadow-sm z-50">
-                        <div className="py-1">
-                          {Object.entries(priorityConfig).map(([key, config]) => (
-                            <button
-                              key={key}
-                              onClick={() => handlePrioritySelect(key)}
-                              className={`w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 ${task.priority === key ? 'bg-muted' : ''}`}
-                            >
-                              <div className={`w-2 h-2 rounded-full ${config.dot}`} />
-                              <span className={config.color}>{config.label}</span>
-                              {task.priority === key && <Check size={14} className="ml-auto text-muted-foreground" />}
-                            </button>
-                          ))}
+                      {showCategoryDropdown && (
+                        <div className="absolute left-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-sm z-50">
+                          <div className="py-1">
+                            {categories.map((category) => (
+                              <button
+                                key={category.id}
+                                onClick={() => handleCategorySelect(category.id)}
+                                className={`w-full px-3 py-2 text-left text-sm hover:bg-accent flex items-center gap-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${task.categoryId === category.id ? 'bg-muted' : ''}`}
+                              >
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                <span>{category.name}</span>
+                                {task.categoryId === category.id && <Check size={14} className="ml-auto text-muted-foreground" />}
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border my-6" />
-
-              {/* Description */}
-              <div className="mb-6">
+              {/* Description Section */}
+              <Separator className="my-5" />
+              <div className="mb-5">
                 <h3 className="text-sm font-medium text-foreground mb-2">Description</h3>
                 {isEditingDescription ? (
                   <div>
@@ -538,7 +535,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                       ref={descriptionRef}
                       value={editedDescription}
                       onChange={(e) => setEditedDescription(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm"
                       rows={4}
                       placeholder="Add a description..."
                     />
@@ -552,7 +549,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                         Save
                       </Button>
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => {
                           setEditedDescription(task.description || '');
@@ -566,7 +563,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 ) : (
                   <div
                     onClick={() => setIsEditingDescription(true)}
-                    className="min-h-[60px] px-3 py-2 rounded-lg hover:bg-muted cursor-text transition"
+                    className="min-h-[60px] px-3 py-2 rounded-lg hover:bg-muted cursor-text transition-colors"
                   >
                     {task.description ? (
                       <p className="text-sm text-foreground whitespace-pre-wrap">{task.description}</p>
@@ -577,21 +574,17 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
                 )}
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border my-6" />
-
-              {/* Subtasks */}
-              <div className="mb-6">
+              {/* Subtasks Section */}
+              <Separator className="my-5" />
+              <div className="mb-5">
                 <SubtaskList
                   taskId={task.id}
                   categoryId={task.categoryId}
                 />
               </div>
 
-              {/* Divider */}
-              <div className="border-t border-border my-6" />
-
-              {/* Comments */}
+              {/* Comments Section */}
+              <Separator className="my-5" />
               <div>
                 <CommentSection taskId={task.id} />
               </div>

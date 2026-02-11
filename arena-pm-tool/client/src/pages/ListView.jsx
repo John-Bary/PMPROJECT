@@ -23,7 +23,7 @@ import DatePicker from '../components/DatePicker';
 import AssigneeDropdown from '../components/AssigneeDropdown';
 import { InlineSpinner, TaskRowSkeleton } from '../components/Loader';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
-import { getPriorityColor } from '../utils/priorityStyles';
+import { priorityPillStyles, priorityDotColors } from '../utils/priorityStyles';
 import { useTaskActions } from '../hooks/useTaskActions';
 import { useTaskFilters } from '../hooks/useTaskFilters';
 import { Button } from 'components/ui/button';
@@ -541,14 +541,14 @@ function ListView() {
         <div className="bg-card rounded-xl border border-border overflow-x-auto">
           {/* Desktop Table Header */}
           <table className="w-full hidden md:table">
-            <thead className="bg-background border-b border-border">
+            <thead className="bg-muted/80 border-b border-border">
               <tr>
-                <th className="w-12 px-4 py-3"></th>
-                <th className="text-left px-4 py-3 text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">Task</th>
-                <th className="text-left px-4 py-3 text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">Priority</th>
-                <th className="text-left px-4 py-3 text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">Assignee</th>
-                <th className="text-left px-4 py-3 text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">Due Date</th>
-                <th className="text-right px-4 py-3 text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">Actions</th>
+                <th className="w-10 px-3 py-2"></th>
+                <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Task</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Priority</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Due date</th>
+                <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Assignee</th>
+                <th className="text-right px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -579,52 +579,52 @@ function ListView() {
             <table className="w-full hidden md:table">
               <thead className="bg-muted/80 border-b border-border">
                 <tr>
-                  <th className="w-12 px-4 py-3"></th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
+                  <th className="w-10 px-3 py-2"></th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
                       onClick={() => handleSort('title')}>
                     <div className="flex items-center gap-1">
                       Task
                       {sortConfig.key === 'title' && (
-                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
                       )}
                     </div>
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
+                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
                       onClick={() => handleSort('priority')}>
                     <div className="flex items-center gap-1">
                       Priority
                       {sortConfig.key === 'priority' && (
-                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
                       )}
                     </div>
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
+                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
+                      onClick={() => handleSort('dueDate')}>
+                    <div className="flex items-center gap-1">
+                      Due date
+                      {sortConfig.key === 'dueDate' && (
+                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                      )}
+                    </div>
+                  </th>
+                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
                       onClick={() => handleSort('assignee')}>
                     <div className="flex items-center gap-1">
                       Assignee
                       {sortConfig.key === 'assignee' && (
-                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
                       )}
                     </div>
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground select-none"
-                      onClick={() => handleSort('dueDate')}>
-                    <div className="flex items-center gap-1">
-                      Due Date
-                      {sortConfig.key === 'dueDate' && (
-                        <ChevronDown size={14} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                      )}
-                    </div>
-                  </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground">Actions</th>
+                  <th className="text-right px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
                 </tr>
               </thead>
               {/* Quick-Add Row */}
               <tbody>
-                <tr className="border-b border-border">
-                  <td colSpan="6" className="px-4 py-0">
-                    <div className="flex items-center gap-3">
-                      <Plus size={16} className="text-muted-foreground flex-shrink-0" />
+                <tr>
+                  <td colSpan="6" className="px-3 py-2">
+                    <div className="flex items-center gap-2 border border-dashed border-border rounded-md px-3 py-2 text-muted-foreground hover:border-primary/50 hover:text-foreground cursor-pointer transition-colors">
+                      <Plus size={16} className="flex-shrink-0" />
                       <input
                         ref={quickAddInputRef}
                         type="text"
@@ -633,7 +633,7 @@ function ListView() {
                         onKeyDown={handleQuickAdd}
                         placeholder="Add a task... (press Enter)"
                         disabled={isQuickAdding || !categories.length}
-                        className="w-full py-2.5 text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50"
+                        className="w-full text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50 cursor-text"
                       />
                     </div>
                   </td>
@@ -666,19 +666,19 @@ function ListView() {
                         >
                           {/* Category Header Row */}
                           <tr className="bg-accent border-b border-border">
-                            <td colSpan="6" className="px-4 py-2">
+                            <td colSpan="6" className="px-3 py-2">
                               <button
                                 onClick={() => toggleCategoryCollapse(category.id)}
                                 className="flex items-center gap-2 w-full text-left hover:opacity-70 transition-all duration-150"
                               >
-                                {isCategoryCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                                {isCategoryCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                                 <div className="flex items-center gap-2">
                                   <div
-                                    className="w-3 h-3 rounded-full"
+                                    className="w-2.5 h-2.5 rounded-full"
                                     style={{ backgroundColor: category.color }}
                                   ></div>
-                                  <span className="font-semibold text-foreground">{category.name}</span>
-                                  <span className="text-sm text-muted-foreground">({categoryTasks.length})</span>
+                                  <span className="text-sm font-bold text-foreground">{category.name}</span>
+                                  <span className="text-xs text-muted-foreground">({categoryTasks.length})</span>
                                 </div>
                               </button>
                             </td>
@@ -702,14 +702,14 @@ function ListView() {
                                   <tr
                                     ref={dragProvided.innerRef}
                                     {...dragProvided.draggableProps}
-                                    className={`hover:bg-muted transition-all duration-150 ${isCompleted ? 'opacity-60' : ''} ${dragSnapshot.isDragging ? 'bg-muted' : ''}`}
+                                    className={`border-b border-border hover:bg-muted/50 transition-colors duration-150 ${isCompleted ? 'opacity-50' : ''} ${dragSnapshot.isDragging ? 'bg-muted shadow-sm' : ''}`}
                                   >
                                     {/* Drag handle + expand/collapse (parents) */}
-                                    <td className="px-4 py-3">
-                                      <div className="flex items-center gap-2">
+                                    <td className="px-3 py-2">
+                                      <div className="flex items-center gap-1">
                                         <span
                                           {...dragProvided.dragHandleProps}
-                                          className="text-muted-foreground hover:text-foreground cursor-grab"
+                                          className="text-muted-foreground cursor-grab active:cursor-grabbing"
                                           title="Drag to reorder"
                                         >
                                           <GripVertical size={14} />
@@ -717,20 +717,20 @@ function ListView() {
                                         {!isSubtask && hasSubtasks ? (
                                           <button
                                             onClick={() => toggleTaskExpansion(task.id)}
-                                            className="text-muted-foreground hover:text-foreground transition-all duration-150"
+                                            className="text-muted-foreground hover:text-foreground transition-colors duration-150"
                                             title={isExpanded ? "Collapse subtasks" : "Expand subtasks"}
                                           >
-                                            {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
+                                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                           </button>
                                         ) : (
-                                          <div className="w-[18px]"></div>
+                                          <div className="w-4"></div>
                                         )}
                                       </div>
                                     </td>
 
                                     {/* Task Title and Description */}
-                                    <td className="px-4 py-3">
-                                      <div className={`flex items-center gap-3 ${isSubtask ? 'pl-6' : ''}`}>
+                                    <td className="px-3 py-2">
+                                      <div className={`flex items-center gap-2 ${isSubtask ? 'pl-6' : ''}`}>
                                         <button
                                           onClick={() => handleToggleComplete(task)}
                                           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
@@ -751,34 +751,35 @@ function ListView() {
                                             )
                                           )}
                                         </button>
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-0">
                                           <button
                                             onClick={() => handleOpenDetail(task)}
-                                            className={`font-medium text-left hover:text-foreground  transition-all duration-150 ${isSubtask ? 'text-foreground' : 'text-foreground'} ${isCompleted ? 'line-through' : ''}`}
+                                            className={`text-sm font-medium text-foreground text-left hover:underline transition-colors duration-150 leading-tight ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
                                           >
                                             {task.title}
                                             {!isSubtask && hasSubtasks && (
-                                              <span className="ml-2 text-xs text-muted-foreground no-underline">
+                                              <span className="ml-2 text-xs font-normal text-muted-foreground no-underline">
                                                 {task.completedSubtaskCount}/{task.subtaskCount}
                                               </span>
                                             )}
                                           </button>
                                           {task.description && (
-                                            <div className="text-sm text-muted-foreground line-clamp-1 mt-1">{task.description}</div>
+                                            <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{task.description}</div>
                                           )}
                                         </div>
                                       </div>
                                     </td>
 
                                     {/* Priority */}
-                                    <td className="px-4 py-3">
+                                    <td className="px-3 py-2">
                                       <div className="relative" ref={el => dropdownRefs.current[`priority-${task.id}`] = el}>
                                         <button
                                           onClick={() => toggleDropdown(task.id, 'priority')}
-                                          className={`px-2 py-1 rounded text-xs font-medium border hover:opacity-80 transition flex items-center gap-1 ${getPriorityColor(task.priority)}`}
+                                          className={`px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1 hover:opacity-80 transition-opacity ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}
                                         >
+                                          <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[task.priority] || priorityDotColors.medium}`} />
                                           {task.priority}
-                                          <ChevronDown size={10} />
+                                          <ChevronDown size={10} className="opacity-60" />
                                         </button>
 
                                         {activeDropdown?.taskId === task.id && activeDropdown?.type === 'priority' && (
@@ -788,15 +789,16 @@ function ListView() {
                                                 <button
                                                   key={priority}
                                                   onClick={() => handlePrioritySelect(task.id, priority)}
-                                                  className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all duration-150 ${
+                                                  className={`w-full px-3 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-colors duration-150 ${
                                                     task.priority === priority ? 'bg-accent' : ''
                                                   }`}
                                                 >
-                                                  <span className={`px-2 py-1 rounded border ${getPriorityColor(priority)}`}>
+                                                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border ${priorityPillStyles[priority]}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[priority]}`} />
                                                     {priority}
                                                   </span>
                                                   {task.priority === priority && (
-                                                    <Check size={14} className="text-foreground" />
+                                                    <Check size={12} className="text-foreground" />
                                                   )}
                                                 </button>
                                               ))}
@@ -806,21 +808,66 @@ function ListView() {
                                       </div>
                                     </td>
 
+                                    {/* Due Date */}
+                                    <td className="px-3 py-2">
+                                      <div className="relative">
+                                        <button
+                                          ref={el => dropdownRefs.current[`date-${task.id}`] = el}
+                                          onClick={() => toggleDropdown(task.id, 'date')}
+                                          className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors duration-150 text-xs ${
+                                            isTaskOverdue(task)
+                                              ? 'text-red-500 font-medium'
+                                              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                                          }`}
+                                        >
+                                          {task.dueDate ? (() => {
+                                            const overdue = isTaskOverdue(task);
+                                            const label = formatDueDate(task.dueDate);
+                                            return (
+                                              <>
+                                                {overdue ? <AlertCircle size={12} className="text-red-500" aria-hidden="true" /> : <Calendar size={12} />}
+                                                {overdue && <span className="font-semibold">Overdue</span>}
+                                                {overdue && <span className="mx-0.5" aria-hidden="true">·</span>}
+                                                <span className={overdue ? 'font-medium' : ''}>
+                                                  {label}
+                                                </span>
+                                              </>
+                                            );
+                                          })() : (
+                                            <>
+                                              <Calendar size={12} />
+                                              <span>Set date</span>
+                                            </>
+                                          )}
+                                        </button>
+
+                                        {activeDropdown?.taskId === task.id && activeDropdown?.type === 'date' && (
+                                          <DatePicker
+                                            selected={toLocalDate(task.dueDate)}
+                                            onSelect={(date) => handleDateSelect(task.id, date)}
+                                            onClose={closeDropdown}
+                                            triggerRef={{ current: dropdownRefs.current[`date-${task.id}`] }}
+                                          />
+                                        )}
+
+                                      </div>
+                                    </td>
+
                                     {/* Assignees - Avatar stack with multi-select */}
-                                    <td className="px-4 py-3">
+                                    <td className="px-3 py-2">
                                       <div className="relative" ref={el => dropdownRefs.current[`assignee-${task.id}`] = el}>
                                         <button
                                           onClick={() => toggleDropdown(task.id, 'assignee')}
-                                          className="flex items-center gap-1 hover:bg-accent rounded-lg px-2 py-1 -mx-2 transition-all duration-150"
+                                          className="flex items-center gap-1 hover:bg-accent rounded-md px-1.5 py-0.5 transition-colors duration-150"
                                         >
                                           {(task.assignees || []).length > 0 ? (
                                             <>
                                               {/* Avatar Stack */}
-                                              <div className="flex -space-x-1.5">
+                                              <div className="flex -space-x-1">
                                                 {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
                                                   <div
                                                     key={assignee.id}
-                                                    className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                                                    className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
                                                     style={{ zIndex: 3 - idx }}
                                                     title={assignee.name}
                                                   >
@@ -829,22 +876,22 @@ function ListView() {
                                                 ))}
                                                 {(task.assignees || []).length > 3 && (
                                                   <div
-                                                    className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                                                    className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
                                                     title={`+${(task.assignees || []).length - 3} more`}
                                                   >
                                                     +{(task.assignees || []).length - 3}
                                                   </div>
                                                 )}
                                               </div>
-                                              <ChevronDown size={12} className="text-muted-foreground ml-1" />
+                                              <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
                                             </>
                                           ) : (
                                             <>
-                                              <div className="w-6 h-6 rounded-full bg-neutral-300 flex items-center justify-center text-white text-xs font-medium">
-                                                ?
+                                              <div className="w-6 h-6 rounded-full bg-input flex items-center justify-center">
+                                                <span className="text-muted-foreground text-[11px]">?</span>
                                               </div>
-                                              <span className="text-sm text-muted-foreground">Assign</span>
-                                              <ChevronDown size={12} className="text-muted-foreground" />
+                                              <span className="text-xs text-muted-foreground">Assign</span>
+                                              <ChevronDown size={10} className="text-muted-foreground" />
                                             </>
                                           )}
                                         </button>
@@ -862,81 +909,36 @@ function ListView() {
                                       </div>
                                     </td>
 
-                                    {/* Due Date */}
-                                    <td className="px-4 py-3">
-                                      <div className="relative">
-                                        <button
-                                          ref={el => dropdownRefs.current[`date-${task.id}`] = el}
-                                          onClick={() => toggleDropdown(task.id, 'date')}
-                                          className={`flex items-center gap-1 px-2 py-1 -mx-2 rounded-lg transition-all duration-150 text-xs ${
-                                            isTaskOverdue(task)
-                                              ? 'bg-red-50 border border-red-200'
-                                              : 'hover:bg-accent'
-                                          }`}
-                                        >
-                                          {task.dueDate ? (() => {
-                                            const overdue = isTaskOverdue(task);
-                                            const label = formatDueDate(task.dueDate);
-                                            return (
-                                              <>
-                                                {overdue ? <AlertCircle size={12} className="text-red-500" aria-hidden="true" /> : <Calendar size={12} />}
-                                                {overdue && <span className="text-red-600 font-semibold">Overdue</span>}
-                                                {overdue && <span className="text-red-400 mx-0.5" aria-hidden="true">·</span>}
-                                                <span className={overdue ? 'text-red-600 font-medium' : 'text-foreground'}>
-                                                  {label}
-                                                </span>
-                                              </>
-                                            );
-                                          })() : (
-                                            <>
-                                              <Calendar size={12} />
-                                              <span className="text-muted-foreground">Set date</span>
-                                            </>
-                                          )}
-                                        </button>
-
-                                        {activeDropdown?.taskId === task.id && activeDropdown?.type === 'date' && (
-                                          <DatePicker
-                                            selected={toLocalDate(task.dueDate)}
-                                            onSelect={(date) => handleDateSelect(task.id, date)}
-                                            onClose={closeDropdown}
-                                            triggerRef={{ current: dropdownRefs.current[`date-${task.id}`] }}
-                                          />
-                                        )}
-
-                                      </div>
-                                    </td>
-
                                     {/* Actions */}
-                                    <td className="px-4 py-3">
-                                      <div className="flex items-center justify-end gap-2">
+                                    <td className="px-3 py-2">
+                                      <div className="flex items-center justify-end gap-1">
                                         {!isSubtask && (
                                           <button
                                             onClick={() => handleAddSubtask(task)}
-                                            className="text-muted-foreground hover:text-foreground transition-all duration-150"
+                                            className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
                                             title="Add subtask"
                                             aria-label="Add subtask"
                                           >
-                                            <Plus size={18} />
+                                            <Plus size={16} />
                                           </button>
                                         )}
                                         <button
                                           onClick={() => handleEdit(task)}
-                                          className="text-muted-foreground hover:text-foreground transition-all duration-150"
+                                          className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
                                           title={isSubtask ? 'Edit subtask' : 'Edit task'}
                                           aria-label={isSubtask ? 'Edit subtask' : 'Edit task'}
                                         >
-                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                           </svg>
                                         </button>
                                         <button
                                           onClick={() => handleDelete(task)}
-                                          className="text-muted-foreground hover:text-destructive transition-all duration-150"
+                                          className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-accent transition-colors duration-150"
                                           title={isSubtask ? 'Delete subtask' : 'Delete task'}
                                           aria-label={isSubtask ? 'Delete subtask' : 'Delete task'}
                                         >
-                                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                           </svg>
                                         </button>
@@ -974,17 +976,17 @@ function ListView() {
             {/* Mobile Card View */}
             <div className="md:hidden">
               {/* Mobile Quick-Add */}
-              <div className="border-b border-border px-4">
-                <div className="flex items-center gap-3">
-                  <Plus size={16} className="text-muted-foreground flex-shrink-0" />
+              <div className="px-3 py-2">
+                <div className="flex items-center gap-2 border border-dashed border-border rounded-md px-3 py-2 text-muted-foreground hover:border-primary/50 hover:text-foreground cursor-pointer transition-colors">
+                  <Plus size={16} className="flex-shrink-0" />
                   <input
                     type="text"
                     value={quickAddTitle}
                     onChange={(e) => setQuickAddTitle(e.target.value)}
                     onKeyDown={handleQuickAdd}
-                    placeholder="Add a task..."
+                    placeholder="Add a task... (press Enter)"
                     disabled={isQuickAdding || !categories.length}
-                    className="w-full py-3 text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50"
+                    className="w-full text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50 cursor-text"
                   />
                 </div>
               </div>
@@ -998,15 +1000,15 @@ function ListView() {
                       {/* Category Header */}
                       <button
                         onClick={() => toggleCategoryCollapse(category.id)}
-                        className="flex items-center gap-2 w-full px-4 py-3 bg-muted text-left transition-all duration-150"
+                        className="flex items-center gap-2 w-full px-3 py-2 bg-muted text-left transition-colors duration-150"
                       >
-                        {isCategoryCollapsed ? <ChevronRight size={18} /> : <ChevronDown size={18} />}
+                        {isCategoryCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                         <div
-                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                           style={{ backgroundColor: category.color }}
                         ></div>
-                        <span className="font-semibold text-foreground flex-1">{category.name}</span>
-                        <span className="text-sm text-muted-foreground">({categoryTasks.length})</span>
+                        <span className="text-sm font-bold text-foreground flex-1">{category.name}</span>
+                        <span className="text-xs text-muted-foreground">({categoryTasks.length})</span>
                       </button>
 
                       {/* Category Tasks */}
@@ -1022,9 +1024,9 @@ function ListView() {
                             return (
                               <div key={task.id}>
                                 {/* Task Card */}
-                                <div className={`p-4 ${isCompleted ? 'opacity-60' : ''}`}>
+                                <div className={`px-3 py-2 ${isCompleted ? 'opacity-50' : ''}`}>
                                   {/* Task Header */}
-                                  <div className="flex items-start gap-3 mb-2">
+                                  <div className="flex items-start gap-2 mb-1.5">
                                     <button
                                       onClick={() => handleToggleComplete(task)}
                                       className={`flex-shrink-0 w-5 h-5 mt-0.5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
@@ -1048,25 +1050,26 @@ function ListView() {
                                     <div className="flex-1 min-w-0">
                                       <button
                                         onClick={() => handleOpenDetail(task)}
-                                        className={`font-medium text-foreground text-left hover:text-foreground transition-all duration-150 ${isCompleted ? 'line-through' : ''}`}
+                                        className={`text-sm font-medium text-foreground text-left hover:underline transition-colors duration-150 leading-tight ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
                                       >
                                         {task.title}
                                         {hasSubtasks && (
-                                          <span className="ml-2 text-xs text-muted-foreground">
+                                          <span className="ml-2 text-xs font-normal text-muted-foreground">
                                             {task.completedSubtaskCount}/{task.subtaskCount}
                                           </span>
                                         )}
                                       </button>
                                       {task.description && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{task.description}</p>
+                                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{task.description}</p>
                                       )}
                                     </div>
                                   </div>
 
-                                  {/* Task Metadata - Stacked on mobile */}
-                                  <div className="flex flex-wrap items-center gap-2 ml-8 mb-2">
+                                  {/* Task Metadata - Stacked on mobile (priority -> due date -> assignee) */}
+                                  <div className="flex flex-wrap items-center gap-2 ml-7 mb-1.5">
                                     {/* Priority */}
-                                    <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getPriorityColor(task.priority)}`}>
+                                    <span className={`px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1 ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}>
+                                      <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[task.priority] || priorityDotColors.medium}`} />
                                       {task.priority}
                                     </span>
 
@@ -1074,7 +1077,7 @@ function ListView() {
                                     {task.dueDate && (
                                       <span className={`text-xs flex items-center gap-1 px-1.5 py-0.5 rounded ${
                                         isTaskOverdue(task)
-                                          ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                                          ? 'text-red-500 font-medium'
                                           : 'text-muted-foreground'
                                       }`}>
                                         <Calendar size={12} />
@@ -1091,7 +1094,7 @@ function ListView() {
                                           {(task.assignees || []).slice(0, 2).map((assignee, idx) => (
                                             <div
                                               key={assignee.id}
-                                              className="w-5 h-5 rounded-full bg-neutral-500 flex items-center justify-center text-white text-xs font-medium border border-white"
+                                              className="w-5 h-5 rounded-full bg-neutral-500 flex items-center justify-center text-white text-[10px] font-semibold ring-1 ring-white"
                                               style={{ zIndex: 2 - idx }}
                                               title={assignee.name}
                                             >
@@ -1099,7 +1102,7 @@ function ListView() {
                                             </div>
                                           ))}
                                           {(task.assignees || []).length > 2 && (
-                                            <div className="w-5 h-5 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-medium border border-white">
+                                            <div className="w-5 h-5 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[10px] font-semibold ring-1 ring-white">
                                               +{(task.assignees || []).length - 2}
                                             </div>
                                           )}
@@ -1109,28 +1112,28 @@ function ListView() {
                                   </div>
 
                                   {/* Task Actions */}
-                                  <div className="flex items-center justify-between ml-8">
+                                  <div className="flex items-center justify-between ml-7">
                                     {hasSubtasks && (
                                       <button
                                         onClick={() => toggleTaskExpansion(task.id)}
-                                        className="text-xs text-foreground flex items-center gap-1"
+                                        className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
                                       >
                                         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                         {isExpanded ? 'Hide' : 'Show'} subtasks
                                       </button>
                                     )}
-                                    <div className="flex items-center gap-3 ml-auto">
+                                    <div className="flex items-center gap-1 ml-auto">
                                       <button
                                         onClick={() => handleAddSubtask(task)}
-                                        className="text-muted-foreground hover:text-foreground p-2.5"
+                                        className="text-muted-foreground hover:text-foreground p-1.5 rounded hover:bg-accent transition-colors"
                                         title="Add subtask"
                                         aria-label="Add subtask"
                                       >
-                                        <Plus size={18} />
+                                        <Plus size={16} />
                                       </button>
                                       <button
                                         onClick={() => handleEdit(task)}
-                                        className="text-muted-foreground hover:text-foreground p-2.5"
+                                        className="text-muted-foreground hover:text-foreground p-1.5 rounded hover:bg-accent transition-colors"
                                         title="Edit task"
                                         aria-label="Edit task"
                                       >
@@ -1140,7 +1143,7 @@ function ListView() {
                                       </button>
                                       <button
                                         onClick={() => handleDelete(task)}
-                                        className="text-muted-foreground hover:text-destructive p-2.5"
+                                        className="text-muted-foreground hover:text-destructive p-1.5 rounded hover:bg-accent transition-colors"
                                         title="Delete task"
                                         aria-label="Delete task"
                                       >
@@ -1158,8 +1161,8 @@ function ListView() {
                                   const isSubtaskToggling = togglingTaskIds.has(subtask.id);
 
                                   return (
-                                    <div key={subtask.id} className={`p-4 pl-12 bg-muted border-t border-border ${isSubtaskCompleted ? 'opacity-60' : ''}`}>
-                                      <div className="flex items-start gap-3">
+                                    <div key={subtask.id} className={`px-3 py-2 pl-10 bg-muted/50 border-t border-border ${isSubtaskCompleted ? 'opacity-50' : ''}`}>
+                                      <div className="flex items-start gap-2">
                                         <button
                                           onClick={() => handleToggleComplete(subtask)}
                                           className={`flex-shrink-0 w-4 h-4 mt-0.5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
@@ -1181,14 +1184,14 @@ function ListView() {
                                           )}
                                         </button>
                                         <div className="flex-1 min-w-0">
-                                          <span className={`text-sm text-foreground ${isSubtaskCompleted ? 'line-through' : ''}`}>
+                                          <span className={`text-sm text-foreground ${isSubtaskCompleted ? 'line-through text-muted-foreground' : ''}`}>
                                             {subtask.title}
                                           </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
                                           <button
                                             onClick={() => handleEdit(subtask)}
-                                            className="text-muted-foreground hover:text-foreground p-1"
+                                            className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors"
                                             aria-label="Edit subtask"
                                           >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1197,7 +1200,7 @@ function ListView() {
                                           </button>
                                           <button
                                             onClick={() => handleDelete(subtask)}
-                                            className="text-muted-foreground hover:text-destructive p-1"
+                                            className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-accent transition-colors"
                                             aria-label="Delete subtask"
                                           >
                                             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

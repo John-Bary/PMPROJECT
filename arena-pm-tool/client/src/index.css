@@ -16,7 +16,7 @@
     --secondary: 220 14% 96%;
     --secondary-foreground: 222 47% 11%;
     --muted: 220 14% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 16% 37%;
     --accent: 226 100% 97%;
     --accent-foreground: 243 75% 59%;
     --destructive: 0 84% 60%;
@@ -173,5 +173,20 @@
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* Completed task styling */
+  .task-completed {
+    @apply opacity-60;
+  }
+  .task-completed .task-title,
+  .task-completed > span,
+  .task-completed > p {
+    @apply line-through decoration-muted-foreground/50;
+  }
+
+  /* Column header typography */
+  .column-header {
+    @apply text-sm font-semibold uppercase tracking-wide text-foreground;
   }
 }

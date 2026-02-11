@@ -275,7 +275,7 @@ function SubtaskList({ taskId, categoryId }) {
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-foreground">Subtasks</h3>
+        <h3 className="text-sm font-semibold text-foreground">Subtasks</h3>
         {totalCount > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{completedCount}/{totalCount}</span>
@@ -296,7 +296,7 @@ function SubtaskList({ taskId, categoryId }) {
           <span className="ml-2 text-sm text-muted-foreground">Loading subtasks...</span>
         </div>
       ) : (
-        <div className="space-y-1">
+        <div className="border-l-2 border-border pl-3 space-y-1">
           {subtasks.map((subtask) => {
             const dueDateFormatted = formatDueDate(subtask.dueDate);
             const subtaskIsOverdue = checkOverdue(subtask.dueDate, subtask.status);
@@ -307,7 +307,7 @@ function SubtaskList({ taskId, categoryId }) {
               key={subtask.id}
               className={`
                 group flex flex-col gap-1 px-2 py-2 rounded-lg
-                hover:bg-muted transition
+                hover:bg-muted transition-colors
                 ${subtask.status === 'completed' ? 'opacity-60' : ''}
               `}
             >
@@ -345,6 +345,11 @@ function SubtaskList({ taskId, categoryId }) {
                   </span>
                 )}
 
+                {/* Status badge */}
+                <span className={`text-xs px-1.5 py-0.5 rounded ${subtask.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                  {subtask.status === 'completed' ? 'Done' : 'To do'}
+                </span>
+
                 {/* Delete button */}
                 <Button
                   onClick={() => handleDeleteSubtask(subtask.id)}
@@ -352,8 +357,9 @@ function SubtaskList({ taskId, categoryId }) {
                   variant="ghost"
                   size="icon"
                   className={`
-                    flex-shrink-0 h-7 w-7 text-muted-foreground hover:text-red-500
-                    hover:bg-red-50 opacity-0 group-hover:opacity-100 transition
+                    flex-shrink-0 h-7 w-7 text-muted-foreground hover:text-destructive
+                    hover:bg-accent opacity-0 group-hover:opacity-100 transition-colors
+                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring
                     ${deletingIds.has(subtask.id) ? 'opacity-100' : ''}
                   `}
                   title="Delete subtask"
@@ -373,7 +379,7 @@ function SubtaskList({ taskId, categoryId }) {
                 <div className="relative" ref={el => priorityDropdownRefs.current[subtask.id] = el}>
                   <button
                     onClick={() => setActivePriorityDropdown(activePriorityDropdown === subtask.id ? null : subtask.id)}
-                    className={`px-1.5 py-0.5 rounded text-xs font-medium border hover:opacity-80 transition flex items-center gap-0.5 ${getPriorityColor(subtask.priority)}`}
+                    className={`px-1.5 py-0.5 rounded text-xs font-medium border hover:opacity-80 transition-colors flex items-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${getPriorityColor(subtask.priority)}`}
                     title="Change priority"
                   >
                     {subtask.priority}
@@ -388,7 +394,7 @@ function SubtaskList({ taskId, categoryId }) {
                           <button
                             key={priority}
                             onClick={() => handlePrioritySelect(subtask.id, priority)}
-                            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all ${
+                            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                               subtask.priority === priority ? 'bg-accent' : ''
                             }`}
                           >
@@ -409,7 +415,7 @@ function SubtaskList({ taskId, categoryId }) {
                 <div className="relative" ref={el => datePickerRefs.current[subtask.id] = el}>
                   <button
                     onClick={() => setActiveDatePicker(activeDatePicker === subtask.id ? null : subtask.id)}
-                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition text-xs ${
+                    className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                       subtaskIsOverdue
                         ? 'text-red-600 font-medium bg-red-50 border border-red-200'
                         : 'text-muted-foreground hover:bg-accent'
@@ -442,7 +448,7 @@ function SubtaskList({ taskId, categoryId }) {
                 <div className="relative" ref={el => assigneeDropdownRefs.current[subtask.id] = el} data-dropdown>
                   <button
                     onClick={() => setActiveAssigneeDropdown(activeAssigneeDropdown === subtask.id ? null : subtask.id)}
-                    className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition"
+                    className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     title="Manage assignees"
                     aria-label="Manage assignees"
                   >
@@ -500,192 +506,193 @@ function SubtaskList({ taskId, categoryId }) {
 
       {/* Add Subtask */}
       {isAddingSubtask ? (
-        <div className="mt-2 px-2 py-2 bg-muted rounded-lg">
-          {/* Title input row */}
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded border-2 border-border flex-shrink-0" />
-            <Input
-              ref={newSubtaskInputRef}
-              type="text"
-              value={newSubtaskTitle}
-              onChange={(e) => setNewSubtaskTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Subtask title"
-              className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-input rounded-none focus:border-primary focus:ring-0 px-0"
-              disabled={isCreating}
-            />
-          </div>
-
-          {/* Fields row: Priority, Due Date, Assignees */}
-          <div className="flex items-center gap-2 mt-2 ml-7 flex-wrap">
-            {/* Priority selector */}
-            <div className="relative" ref={newPriorityRef}>
-              <button
-                onClick={() => setShowNewPriorityDropdown(!showNewPriorityDropdown)}
-                className={`px-1.5 py-0.5 rounded text-xs font-medium border hover:opacity-80 transition flex items-center gap-0.5 ${getPriorityColor(newSubtaskPriority)}`}
+        <div className="mt-2 border-l-2 border-border pl-3">
+          <div className="px-2 py-2 bg-muted rounded-lg">
+            {/* Title input row */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded border-2 border-border flex-shrink-0" />
+              <Input
+                ref={newSubtaskInputRef}
+                type="text"
+                value={newSubtaskTitle}
+                onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Subtask title"
+                className="flex-1 h-7 text-sm bg-transparent border-0 border-b border-input rounded-none focus:border-primary focus:ring-0 px-0"
                 disabled={isCreating}
-              >
-                {newSubtaskPriority}
-                <ChevronDown size={10} />
-              </button>
+              />
+            </div>
 
-              {showNewPriorityDropdown && (
-                <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
-                  <div className="py-1">
-                    {priorities.map((priority) => (
-                      <button
-                        key={priority}
-                        onClick={() => {
-                          setNewSubtaskPriority(priority);
-                          setShowNewPriorityDropdown(false);
-                        }}
-                        className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all ${
-                          newSubtaskPriority === priority ? 'bg-accent' : ''
-                        }`}
-                      >
-                        <span className={`px-1.5 py-0.5 rounded border ${getPriorityColor(priority)}`}>
-                          {priority}
-                        </span>
-                        {newSubtaskPriority === priority && (
-                          <Check size={12} className="text-primary" />
-                        )}
-                      </button>
-                    ))}
+            {/* Fields row: Priority, Due Date, Assignees */}
+            <div className="flex items-center gap-2 mt-2 ml-7 flex-wrap">
+              {/* Priority selector */}
+              <div className="relative" ref={newPriorityRef}>
+                <button
+                  onClick={() => setShowNewPriorityDropdown(!showNewPriorityDropdown)}
+                  className={`px-1.5 py-0.5 rounded text-xs font-medium border hover:opacity-80 transition-colors flex items-center gap-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${getPriorityColor(newSubtaskPriority)}`}
+                  disabled={isCreating}
+                >
+                  {newSubtaskPriority}
+                  <ChevronDown size={10} />
+                </button>
+
+                {showNewPriorityDropdown && (
+                  <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
+                    <div className="py-1">
+                      {priorities.map((priority) => (
+                        <button
+                          key={priority}
+                          onClick={() => {
+                            setNewSubtaskPriority(priority);
+                            setShowNewPriorityDropdown(false);
+                          }}
+                          className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                            newSubtaskPriority === priority ? 'bg-accent' : ''
+                          }`}
+                        >
+                          <span className={`px-1.5 py-0.5 rounded border ${getPriorityColor(priority)}`}>
+                            {priority}
+                          </span>
+                          {newSubtaskPriority === priority && (
+                            <Check size={12} className="text-primary" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Due date selector */}
-            <div className="relative" ref={newDateRef}>
-              <button
-                onClick={() => setShowNewDatePicker(!showNewDatePicker)}
-                className="flex items-center gap-1 px-1.5 py-0.5 hover:bg-accent rounded transition text-xs text-muted-foreground"
-                disabled={isCreating}
-              >
-                {newSubtaskDueDate ? (
-                  formatDueDate(newSubtaskDueDate)
-                ) : (
-                  <>
-                    <Calendar size={10} />
-                    <span>Date</span>
-                  </>
                 )}
-              </button>
+              </div>
 
-              {showNewDatePicker && (
-                <DatePicker
-                  selected={newSubtaskDueDate ? toLocalDate(newSubtaskDueDate) : null}
-                  onSelect={handleNewDateSelect}
-                  onClose={() => setShowNewDatePicker(false)}
-                  triggerRef={newDateRef}
-                />
-              )}
-            </div>
+              {/* Due date selector */}
+              <div className="relative" ref={newDateRef}>
+                <button
+                  onClick={() => setShowNewDatePicker(!showNewDatePicker)}
+                  className="flex items-center gap-1 px-1.5 py-0.5 hover:bg-accent rounded transition-colors text-xs text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  disabled={isCreating}
+                >
+                  {newSubtaskDueDate ? (
+                    formatDueDate(newSubtaskDueDate)
+                  ) : (
+                    <>
+                      <Calendar size={10} />
+                      <span>Date</span>
+                    </>
+                  )}
+                </button>
 
-            {/* Assignee selector */}
-            <div className="relative" ref={newAssigneeRef} data-dropdown>
-              <button
-                onClick={() => setShowNewAssigneeDropdown(!showNewAssigneeDropdown)}
-                className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition"
-                disabled={isCreating}
-                aria-label="Assign subtask"
-              >
-                {newSubtaskAssigneeIds.length > 0 ? (
-                  <div className="flex items-center">
-                    <div className="flex -space-x-1">
-                      {newSubtaskAssigneeIds.slice(0, 2).map((userId, idx) => {
-                        const user = getUserById(userId);
-                        return user ? (
-                          <div
-                            key={userId}
-                            className="w-4 h-4 rounded-full bg-neutral-600 flex items-center justify-center text-white text-[9px] font-medium border border-white"
-                            style={{ zIndex: 2 - idx }}
-                            title={user.name}
-                          >
-                            {user.name.charAt(0).toUpperCase()}
+                {showNewDatePicker && (
+                  <DatePicker
+                    selected={newSubtaskDueDate ? toLocalDate(newSubtaskDueDate) : null}
+                    onSelect={handleNewDateSelect}
+                    onClose={() => setShowNewDatePicker(false)}
+                    triggerRef={newDateRef}
+                  />
+                )}
+              </div>
+
+              {/* Assignee selector */}
+              <div className="relative" ref={newAssigneeRef} data-dropdown>
+                <button
+                  onClick={() => setShowNewAssigneeDropdown(!showNewAssigneeDropdown)}
+                  className="flex items-center hover:bg-accent rounded px-1 py-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  disabled={isCreating}
+                  aria-label="Assign subtask"
+                >
+                  {newSubtaskAssigneeIds.length > 0 ? (
+                    <div className="flex items-center">
+                      <div className="flex -space-x-1">
+                        {newSubtaskAssigneeIds.slice(0, 2).map((userId, idx) => {
+                          const user = getUserById(userId);
+                          return user ? (
+                            <div
+                              key={userId}
+                              className="w-4 h-4 rounded-full bg-neutral-600 flex items-center justify-center text-white text-[9px] font-medium border border-white"
+                              style={{ zIndex: 2 - idx }}
+                              title={user.name}
+                            >
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                          ) : null;
+                        })}
+                        {newSubtaskAssigneeIds.length > 2 && (
+                          <div className="w-4 h-4 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[9px] font-medium border border-white">
+                            +{newSubtaskAssigneeIds.length - 2}
                           </div>
-                        ) : null;
-                      })}
-                      {newSubtaskAssigneeIds.length > 2 && (
-                        <div className="w-4 h-4 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[9px] font-medium border border-white">
-                          +{newSubtaskAssigneeIds.length - 2}
-                        </div>
-                      )}
+                        )}
+                      </div>
+                      <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                     </div>
-                    <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
-                  </div>
-                ) : (
-                  <div className="flex items-center text-xs text-muted-foreground">
-                    <div className="w-4 h-4 rounded-full bg-input flex items-center justify-center text-[9px]">
-                      ?
+                  ) : (
+                    <div className="flex items-center text-xs text-muted-foreground">
+                      <div className="w-4 h-4 rounded-full bg-input flex items-center justify-center text-[9px]">
+                        ?
+                      </div>
+                      <span className="ml-1">Assign</span>
+                      <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
                     </div>
-                    <span className="ml-1">Assign</span>
-                    <ChevronDown size={8} className="text-muted-foreground ml-0.5" />
-                  </div>
+                  )}
+                </button>
+
+                {showNewAssigneeDropdown && (
+                  <AssigneeDropdown
+                    users={users}
+                    selectedIds={newSubtaskAssigneeIds}
+                    onToggle={handleNewAssigneeToggle}
+                    onClose={() => setShowNewAssigneeDropdown(false)}
+                    triggerRef={newAssigneeRef}
+                    variant="multi"
+                    maxHeight={180}
+                  />
                 )}
-              </button>
-
-              {showNewAssigneeDropdown && (
-                <AssigneeDropdown
-                  users={users}
-                  selectedIds={newSubtaskAssigneeIds}
-                  onToggle={handleNewAssigneeToggle}
-                  onClose={() => setShowNewAssigneeDropdown(false)}
-                  triggerRef={newAssigneeRef}
-                  variant="multi"
-                  maxHeight={180}
-                />
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2 mt-3 ml-7">
-            <Button
-              onClick={handleAddSubtask}
-              disabled={!newSubtaskTitle.trim() || isCreating}
-              size="sm"
-              className="h-7 text-xs"
-            >
-              {isCreating ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                'Add subtask'
-              )}
-            </Button>
-            <Button
-              onClick={() => {
-                setIsAddingSubtask(false);
-                setNewSubtaskTitle('');
-                setNewSubtaskPriority('medium');
-                setNewSubtaskDueDate('');
-                setNewSubtaskAssigneeIds([]);
-                setShowNewPriorityDropdown(false);
-                setShowNewDatePicker(false);
-                setShowNewAssigneeDropdown(false);
-              }}
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              disabled={isCreating}
-            >
-              Cancel
-            </Button>
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 mt-3 ml-7">
+              <Button
+                onClick={handleAddSubtask}
+                disabled={!newSubtaskTitle.trim() || isCreating}
+                size="sm"
+                className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  'Add subtask'
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  setIsAddingSubtask(false);
+                  setNewSubtaskTitle('');
+                  setNewSubtaskPriority('medium');
+                  setNewSubtaskDueDate('');
+                  setNewSubtaskAssigneeIds([]);
+                  setShowNewPriorityDropdown(false);
+                  setShowNewDatePicker(false);
+                  setShowNewAssigneeDropdown(false);
+                }}
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                disabled={isCreating}
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
-        <Button
+        <button
           onClick={() => setIsAddingSubtask(true)}
-          variant="ghost"
-          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-1 w-full justify-start"
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mt-2 w-full justify-start border border-dashed border-border rounded px-3 py-2 hover:bg-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Plus size={16} />
-          <span>Add subtask</span>
-        </Button>
+          <span className="placeholder:text-muted-foreground">Add subtask</span>
+        </button>
       )}
     </div>
   );

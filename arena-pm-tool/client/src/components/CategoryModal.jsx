@@ -95,9 +95,9 @@ function CategoryModal({ isOpen, onClose, category = null }) {
         </DialogHeader>
 
         {/* Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Category Name */}
-          <div className="mb-4 space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="name">
               Category Name
             </Label>
@@ -106,37 +106,45 @@ function CategoryModal({ isOpen, onClose, category = null }) {
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g., Work, Personal, Shopping"
+              placeholder="e.g., Design, Development, Marketing"
               required
               disabled={isSubmitting}
+              autoFocus
             />
+            <p className="text-xs text-muted-foreground">
+              Choose a short, descriptive name to group related tasks.
+            </p>
           </div>
 
           {/* Color Picker */}
-          <div className="mb-6">
-            <Label className="mb-2 block">
-              Color
+          <div className="space-y-2">
+            <Label className="block">
+              Color Label
             </Label>
-            <div className="flex flex-wrap gap-3">
+            <p className="text-xs text-muted-foreground">
+              Pick a color to visually distinguish this category.
+            </p>
+            <div className="flex flex-wrap gap-2.5 pt-1">
               {AVAILABLE_COLORS.map((color) => (
                 <button
                   key={color.value}
                   type="button"
                   onClick={() => setFormData({ ...formData, color: color.value })}
-                  className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 ${
+                  className={`w-6 h-6 rounded-full transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 outline-none ${
                     formData.color === color.value
                       ? 'ring-2 ring-primary ring-offset-2'
-                      : 'hover:ring-2 hover:ring-border hover:ring-offset-1'
+                      : 'hover:ring-2 hover:ring-border hover:ring-offset-1 hover:scale-110'
                   }`}
                   style={{ backgroundColor: color.value }}
                   title={color.name}
+                  aria-label={`Select ${color.name} color`}
                 />
               ))}
             </div>
           </div>
 
           {/* Buttons */}
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -151,8 +159,8 @@ function CategoryModal({ isOpen, onClose, category = null }) {
             >
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isSubmitting
-                ? (isEditMode ? 'Updating...' : 'Creating...')
-                : (isEditMode ? 'Update' : 'Create')
+                ? (isEditMode ? 'Saving changes...' : 'Creating category...')
+                : (isEditMode ? 'Save category' : 'Create category')
               }
             </Button>
           </DialogFooter>
