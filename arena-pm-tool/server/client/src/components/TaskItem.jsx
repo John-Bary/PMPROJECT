@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { Pencil, Trash2, Check, ChevronDown, Calendar } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
@@ -17,6 +18,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const assigneeDropdownRef = useRef(null);
   const datePickerRef = useRef(null);
   const priorityDropdownRef = useRef(null);
+  const priorityPortalRef = useRef(null);
+  const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
   const titleInputRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
@@ -92,7 +95,10 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   // Close priority dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target)) {
+      if (
+        priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target) &&
+        priorityPortalRef.current && !priorityPortalRef.current.contains(event.target)
+      ) {
         setShowPriorityDropdown(false);
       }
     };
@@ -105,6 +111,32 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showPriorityDropdown]);
+
+  // Update priority dropdown position on scroll/resize
+  const updatePriorityPosition = useCallback(() => {
+    if (!priorityDropdownRef.current) return;
+    const rect = priorityDropdownRef.current.getBoundingClientRect();
+    const dropdownHeight = 4 * 40 + 8; // 4 priorities * ~40px + padding
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= dropdownHeight
+      ? rect.bottom + 4
+      : rect.top - dropdownHeight - 4;
+    setPriorityDropdownPos({
+      top: Math.max(8, top),
+      left: rect.left,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showPriorityDropdown) return;
+    updatePriorityPosition();
+    window.addEventListener('resize', updatePriorityPosition);
+    window.addEventListener('scroll', updatePriorityPosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePriorityPosition);
+      window.removeEventListener('scroll', updatePriorityPosition, true);
+    };
+  }, [showPriorityDropdown, updatePriorityPosition]);
 
   // Close all dropdowns when search query changes
   useEffect(() => {
@@ -212,7 +244,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       e.target.closest('button') ||
       e.target.closest('input') ||
       e.target.closest('[data-dropdown]') ||
-      showAssigneeDropdown
+      showAssigneeDropdown ||
+      showPriorityDropdown
     ) {
       return;
     }
@@ -324,29 +357,6 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             <ChevronDown size={10} />
           </button>
 
-          {/* Priority Dropdown */}
-          {showPriorityDropdown && (
-            <div className="absolute left-0 mt-1 w-32 bg-white border border-neutral-150 rounded-xl shadow-lg z-50 animate-fade-in">
-              <div className="py-1">
-                {priorities.map((priority) => (
-                  <button
-                    key={priority}
-                    onClick={() => handlePrioritySelect(priority)}
-                    className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-neutral-100 flex items-center justify-between transition-all duration-150 ${
-                      task.priority === priority ? 'bg-neutral-100' : ''
-                    }`}
-                  >
-                    <span className={`px-2 py-1 rounded border ${getPriorityColor(priority)}`}>
-                      {priority}
-                    </span>
-                    {task.priority === priority && (
-                      <Check size={14} className="text-teal-600" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Due Date - clickable with calendar popup */}
@@ -442,6 +452,33 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         onClose={() => setShowDatePicker(false)}
         triggerRef={datePickerRef}
       />
+    )}
+    {showPriorityDropdown && createPortal(
+      <div
+        ref={priorityPortalRef}
+        className="fixed w-32 bg-white border border-neutral-150 rounded-xl shadow-lg z-[100] animate-fade-in"
+        style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+      >
+        <div className="py-1">
+          {priorities.map((priority) => (
+            <button
+              key={priority}
+              onClick={() => handlePrioritySelect(priority)}
+              className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-neutral-100 flex items-center justify-between transition-all duration-150 ${
+                task.priority === priority ? 'bg-neutral-100' : ''
+              }`}
+            >
+              <span className={`px-2 py-1 rounded border ${getPriorityColor(priority)}`}>
+                {priority}
+              </span>
+              {task.priority === priority && (
+                <Check size={14} className="text-teal-600" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>,
+      document.body
     )}
     </>
   );

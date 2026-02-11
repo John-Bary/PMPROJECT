@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Pencil, Trash2, Check, ChevronDown, Calendar, ArrowRightLeft } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import useUserStore from '../store/userStore';
@@ -21,6 +22,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const assigneeDropdownRef = useRef(null);
   const datePickerRef = useRef(null);
   const priorityDropdownRef = useRef(null);
+  const priorityPortalRef = useRef(null);
+  const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
   const moveDropdownRef = useRef(null);
   const titleInputRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
@@ -70,7 +73,10 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   // Close priority dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target)) {
+      if (
+        priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target) &&
+        priorityPortalRef.current && !priorityPortalRef.current.contains(event.target)
+      ) {
         setShowPriorityDropdown(false);
       }
     };
@@ -83,6 +89,32 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showPriorityDropdown]);
+
+  // Update priority dropdown position on scroll/resize
+  const updatePriorityPosition = useCallback(() => {
+    if (!priorityDropdownRef.current) return;
+    const rect = priorityDropdownRef.current.getBoundingClientRect();
+    const dropdownHeight = 4 * 40 + 8;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= dropdownHeight
+      ? rect.bottom + 4
+      : rect.top - dropdownHeight - 4;
+    setPriorityDropdownPos({
+      top: Math.max(8, top),
+      left: rect.left,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showPriorityDropdown) return;
+    updatePriorityPosition();
+    window.addEventListener('resize', updatePriorityPosition);
+    window.addEventListener('scroll', updatePriorityPosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePriorityPosition);
+      window.removeEventListener('scroll', updatePriorityPosition, true);
+    };
+  }, [showPriorityDropdown, updatePriorityPosition]);
 
   // Close move dropdown on click outside
   useEffect(() => {
@@ -379,27 +411,6 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             <ChevronDown size={10} className="opacity-60" />
           </button>
 
-          {/* Priority Dropdown */}
-          {showPriorityDropdown && (
-            <div className="absolute left-0 mt-1 w-32 bg-card border border-border rounded-lg shadow-sm z-50 p-1">
-              {priorities.map((priority) => (
-                <button
-                  key={priority}
-                  onClick={() => handlePrioritySelect(priority)}
-                  className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent rounded-md flex items-center gap-2 transition-all duration-150 ${
-                    task.priority === priority ? 'bg-accent' : ''
-                  }`}
-                >
-                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
-                    {priority}
-                  </span>
-                  {task.priority === priority && (
-                    <Check size={12} className="ml-auto text-primary" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Due Date */}
@@ -505,6 +516,31 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         onClose={() => setShowDatePicker(false)}
         triggerRef={datePickerRef}
       />
+    )}
+    {showPriorityDropdown && createPortal(
+      <div
+        ref={priorityPortalRef}
+        className="fixed w-32 bg-card border border-border rounded-lg shadow-sm z-[100] p-1"
+        style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+      >
+        {priorities.map((priority) => (
+          <button
+            key={priority}
+            onClick={() => handlePrioritySelect(priority)}
+            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent rounded-md flex items-center gap-2 transition-all duration-150 ${
+              task.priority === priority ? 'bg-accent' : ''
+            }`}
+          >
+            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
+              {priority}
+            </span>
+            {task.priority === priority && (
+              <Check size={12} className="ml-auto text-primary" />
+            )}
+          </button>
+        ))}
+      </div>,
+      document.body
     )}
     </>
   );

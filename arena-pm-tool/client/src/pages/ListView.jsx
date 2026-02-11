@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import {
   Search,
@@ -68,7 +69,9 @@ function ListView() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
+  const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
   const dropdownRefs = useRef({});
+  const priorityPortalRef = useRef(null);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const PRIORITY_ORDER = useMemo(() => ({ urgent: 0, high: 1, medium: 2, low: 3 }), []);
@@ -113,8 +116,9 @@ function ListView() {
       const triggerKey = `${activeDropdown.type}-${activeDropdown.taskId}`;
       const triggerEl = dropdownRefs.current[triggerKey];
       const clickedInsideTrigger = triggerEl?.contains(event.target);
+      const clickedInsidePortal = priorityPortalRef.current?.contains(event.target);
 
-      if (!clickedInsideTrigger) {
+      if (!clickedInsideTrigger && !clickedInsidePortal) {
         setActiveDropdown(null);
       }
     };
@@ -124,6 +128,34 @@ function ListView() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [activeDropdown]);
+
+  // Update priority dropdown position
+  const updatePriorityPosition = useCallback(() => {
+    if (!activeDropdown || activeDropdown.type !== 'priority') return;
+    const triggerEl = dropdownRefs.current[`priority-${activeDropdown.taskId}`];
+    if (!triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    const dropdownHeight = 4 * 36 + 16;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= dropdownHeight
+      ? rect.bottom + 4
+      : rect.top - dropdownHeight - 4;
+    setPriorityDropdownPos({
+      top: Math.max(8, top),
+      left: rect.left,
+    });
+  }, [activeDropdown]);
+
+  useEffect(() => {
+    if (!activeDropdown || activeDropdown.type !== 'priority') return;
+    updatePriorityPosition();
+    window.addEventListener('resize', updatePriorityPosition);
+    window.addEventListener('scroll', updatePriorityPosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePriorityPosition);
+      window.removeEventListener('scroll', updatePriorityPosition, true);
+    };
+  }, [activeDropdown, updatePriorityPosition]);
 
   const handleOpenDetail = (task) => {
     setSelectedTaskId(task.id);
@@ -782,29 +814,6 @@ function ListView() {
                                           <ChevronDown size={10} className="opacity-60" />
                                         </button>
 
-                                        {activeDropdown?.taskId === task.id && activeDropdown?.type === 'priority' && (
-                                          <div className="absolute left-0 top-full mt-1 w-32 bg-card border border-border rounded-lg shadow-sm z-30 animate-fade-in">
-                                            <div className="py-1">
-                                              {priorities.map((priority) => (
-                                                <button
-                                                  key={priority}
-                                                  onClick={() => handlePrioritySelect(task.id, priority)}
-                                                  className={`w-full px-3 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-colors duration-150 ${
-                                                    task.priority === priority ? 'bg-accent' : ''
-                                                  }`}
-                                                >
-                                                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border ${priorityPillStyles[priority]}`}>
-                                                    <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[priority]}`} />
-                                                    {priority}
-                                                  </span>
-                                                  {task.priority === priority && (
-                                                    <Check size={12} className="text-foreground" />
-                                                  )}
-                                                </button>
-                                              ))}
-                                            </div>
-                                          </div>
-                                        )}
                                       </div>
                                     </td>
 
@@ -1291,6 +1300,39 @@ function ListView() {
         onClose={handleCloseDetail}
         onDelete={handleDelete}
       />
+
+      {/* Priority Dropdown Portal */}
+      {activeDropdown?.type === 'priority' && createPortal(
+        <div
+          ref={priorityPortalRef}
+          className="fixed w-32 bg-card border border-border rounded-lg shadow-sm z-[100] animate-fade-in"
+          style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+        >
+          <div className="py-1">
+            {priorities.map((priority) => {
+              const activeTask = tasks.find(t => t.id === activeDropdown.taskId);
+              return (
+                <button
+                  key={priority}
+                  onClick={() => handlePrioritySelect(activeDropdown.taskId, priority)}
+                  className={`w-full px-3 py-1.5 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-colors duration-150 ${
+                    activeTask?.priority === priority ? 'bg-accent' : ''
+                  }`}
+                >
+                  <span className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border ${priorityPillStyles[priority]}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[priority]}`} />
+                    {priority}
+                  </span>
+                  {activeTask?.priority === priority && (
+                    <Check size={12} className="text-foreground" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>,
+        document.body
+      )}
     </>
   );
 }

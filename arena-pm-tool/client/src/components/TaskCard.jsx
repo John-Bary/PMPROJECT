@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Check, Calendar, ListTodo } from 'lucide-react';
 import { Draggable } from '@hello-pangea/dnd';
 import { motion } from 'framer-motion';
@@ -29,6 +30,8 @@ function TaskCard({
   const assigneeDropdownRef = useRef(null);
   const datePickerRef = useRef(null);
   const priorityDropdownRef = useRef(null);
+  const priorityPortalRef = useRef(null);
+  const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
   const { currentWorkspaceId } = useWorkspaceStore();
@@ -52,7 +55,10 @@ function TaskCard({
       if (assigneeDropdownRef.current && !assigneeDropdownRef.current.contains(event.target)) {
         setShowAssigneeDropdown(false);
       }
-      if (priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target)) {
+      if (
+        priorityDropdownRef.current && !priorityDropdownRef.current.contains(event.target) &&
+        priorityPortalRef.current && !priorityPortalRef.current.contains(event.target)
+      ) {
         setShowPriorityDropdown(false);
       }
     };
@@ -65,6 +71,32 @@ function TaskCard({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showAssigneeDropdown, showPriorityDropdown]);
+
+  // Update priority dropdown position on scroll/resize
+  const updatePriorityPosition = useCallback(() => {
+    if (!priorityDropdownRef.current) return;
+    const rect = priorityDropdownRef.current.getBoundingClientRect();
+    const dropdownHeight = 4 * 36 + 8;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const top = spaceBelow >= dropdownHeight
+      ? rect.bottom + 4
+      : rect.top - dropdownHeight - 4;
+    setPriorityDropdownPos({
+      top: Math.max(8, top),
+      left: rect.left,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showPriorityDropdown) return;
+    updatePriorityPosition();
+    window.addEventListener('resize', updatePriorityPosition);
+    window.addEventListener('scroll', updatePriorityPosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePriorityPosition);
+      window.removeEventListener('scroll', updatePriorityPosition, true);
+    };
+  }, [showPriorityDropdown, updatePriorityPosition]);
 
   const handleCardClick = (e) => {
     // Don't open detail if clicking on interactive elements
@@ -231,27 +263,6 @@ function TaskCard({
                   {task.priority}
                 </button>
 
-                {showPriorityDropdown && (
-                  <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 p-1">
-                    {priorities.map((priority) => (
-                      <button
-                        key={priority}
-                        onClick={() => handlePrioritySelect(priority)}
-                        className={`
-                          w-full px-2 py-1.5 text-left text-xs font-medium rounded-md
-                          hover:bg-accent flex items-center gap-2 transition
-                          ${task.priority === priority ? 'bg-accent' : ''}
-                        `}
-                      >
-                        <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
-                        {priority}
-                        {task.priority === priority && (
-                          <Check size={12} className="ml-auto text-primary" />
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Due Date */}
@@ -339,6 +350,32 @@ function TaskCard({
           onClose={() => setShowDatePicker(false)}
           triggerRef={datePickerRef}
         />
+      )}
+      {showPriorityDropdown && createPortal(
+        <div
+          ref={priorityPortalRef}
+          className="fixed w-28 bg-card border border-border rounded-lg shadow-sm z-[100] p-1"
+          style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+        >
+          {priorities.map((priority) => (
+            <button
+              key={priority}
+              onClick={() => handlePrioritySelect(priority)}
+              className={`
+                w-full px-2 py-1.5 text-left text-xs font-medium rounded-md
+                hover:bg-accent flex items-center gap-2 transition
+                ${task.priority === priority ? 'bg-accent' : ''}
+              `}
+            >
+              <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
+              {priority}
+              {task.priority === priority && (
+                <Check size={12} className="ml-auto text-primary" />
+              )}
+            </button>
+          ))}
+        </div>,
+        document.body
       )}
     </>
   );
