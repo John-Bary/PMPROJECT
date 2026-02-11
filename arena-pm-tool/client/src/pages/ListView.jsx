@@ -61,7 +61,6 @@ function ListView() {
   const [editingTask, setEditingTask] = useState(null);
   const [, setDefaultCategoryId] = useState(null);
   const [deletingTask, setDeletingTask] = useState(null);
-  const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [expandedTasks, setExpandedTasks] = useState({});
   const [parentTaskForSubtask, setParentTaskForSubtask] = useState(null);
   const [collapsedCategories, setCollapsedCategories] = useState({});
@@ -180,20 +179,14 @@ function ListView() {
 
   const confirmDelete = async () => {
     if (deletingTask) {
-      setIsDeletingTask(true);
-      try {
-        await deleteTask(deletingTask.id);
-      } finally {
-        setDeletingTask(null);
-        setIsDeletingTask(false);
-      }
+      const id = deletingTask.id;
+      setDeletingTask(null);
+      await deleteTask(id);
     }
   };
 
   const cancelDelete = () => {
-    if (!isDeletingTask) {
-      setDeletingTask(null);
-    }
+    setDeletingTask(null);
   };
 
   const handleCloseModal = () => {
@@ -773,15 +766,11 @@ function ListView() {
                                           disabled={isToggling}
                                           aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                         >
-                                          {isToggling ? (
-                                            <InlineSpinner size="sm" />
-                                          ) : (
-                                            isCompleted && (
+                                          {isCompleted && (
                                               <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                               </svg>
-                                            )
-                                          )}
+                                            )}
                                         </button>
                                         <div className="flex-1 min-w-0">
                                           <button
@@ -1046,15 +1035,11 @@ function ListView() {
                                       disabled={isToggling}
                                       aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
                                     >
-                                      {isToggling ? (
-                                        <InlineSpinner size="sm" />
-                                      ) : (
-                                        isCompleted && (
+                                      {isCompleted && (
                                           <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                           </svg>
-                                        )
-                                      )}
+                                        )}
                                     </button>
                                     <div className="flex-1 min-w-0">
                                       <button
@@ -1182,15 +1167,11 @@ function ListView() {
                                           disabled={isSubtaskToggling}
                                           aria-label={isSubtaskCompleted ? `Mark "${subtask.title}" as incomplete` : `Mark "${subtask.title}" as complete`}
                                         >
-                                          {isSubtaskToggling ? (
-                                            <InlineSpinner size="sm" />
-                                          ) : (
-                                            isSubtaskCompleted && (
+                                          {isSubtaskCompleted && (
                                               <svg className="w-2.5 h-2.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                               </svg>
-                                            )
-                                          )}
+                                            )}
                                         </button>
                                         <div className="flex-1 min-w-0">
                                           <span className={`text-sm text-foreground ${isSubtaskCompleted ? 'line-through text-muted-foreground' : ''}`}>
@@ -1280,14 +1261,12 @@ function ListView() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeletingTask}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={isDeletingTask}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeletingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isDeletingTask ? 'Deleting...' : 'Delete'}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -9,14 +9,12 @@ import { toLocalDate, toUTCISOString, formatDueDate, isOverdue as checkIsOverdue
 import { priorityPillStyles, priorityBorderColors } from '../utils/priorityStyles';
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
-import { InlineSpinner } from './Loader';
 
 function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false, categories = [] }) {
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
   const [showMoveDropdown, setShowMoveDropdown] = useState(false);
-  const [isMoving, setIsMoving] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const assigneeDropdownRef = useRef(null);
@@ -203,14 +201,11 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
   // Move task to a different category (mobile)
   const handleMoveToCategory = async (categoryId) => {
-    setIsMoving(true);
     try {
       await updateTask(task.id, { category_id: categoryId });
       setShowMoveDropdown(false);
     } catch (error) {
       // Error is handled in taskStore
-    } finally {
-      setIsMoving(false);
     }
   };
 
@@ -294,13 +289,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                     className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
                     title="Move to category"
                     aria-label="Move to category"
-                    disabled={isMoving}
                   >
-                    {isMoving ? (
-                      <InlineSpinner size="sm" />
-                    ) : (
-                      <ArrowRightLeft size={14} />
-                    )}
+                    <ArrowRightLeft size={14} />
                   </button>
                   {showMoveDropdown && (
                     <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-elevated z-50 p-1">
@@ -310,7 +300,6 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                           key={cat.id}
                           onClick={(e) => { e.stopPropagation(); handleMoveToCategory(cat.id); }}
                           className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-md flex items-center gap-2 transition-colors duration-150"
-                          disabled={isMoving}
                         >
                           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
                           <span className="truncate">{cat.name}</span>
@@ -347,15 +336,11 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             isCompleted
               ? 'bg-primary border-primary'
               : 'border-input hover:border-neutral-500'
-          } ${isToggling || !canEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
+          } ${isToggling || !canEdit ? 'cursor-not-allowed' : ''}`}
           disabled={isToggling || !canEdit}
           title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
         >
-          {isToggling ? (
-            <InlineSpinner size="sm" />
-          ) : (
-            isCompleted && <Check size={14} className="text-primary-foreground" />
-          )}
+          {isCompleted && <Check size={14} className="text-primary-foreground" />}
         </button>
 
         {/* Editable Title */}
