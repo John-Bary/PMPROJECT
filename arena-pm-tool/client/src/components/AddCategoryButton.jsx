@@ -8,7 +8,7 @@ function AddCategoryButton({ onClick }) {
         onClick={onClick}
         variant="ghost"
         size="sm"
-        className="text-[#94A3B8] hover:text-primary-600 hover:bg-primary-50"
+        className="text-[#94A3B8] hover:text-primary hover:bg-accent"
       >
         <Plus size={16} />
         <span>Add column</span>

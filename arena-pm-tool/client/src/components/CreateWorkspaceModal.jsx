@@ -61,8 +61,8 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-neutral-100 rounded-lg">
-              <Briefcase className="w-5 h-5 text-neutral-600" />
+            <div className="p-2 bg-accent rounded-lg">
+              <Briefcase className="w-5 h-5 text-muted-foreground" />
             </div>
             <div>
               <DialogTitle>Create Workspace</DialogTitle>
@@ -92,7 +92,7 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
 
           {error && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+              <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
 

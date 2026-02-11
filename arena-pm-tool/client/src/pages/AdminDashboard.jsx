@@ -10,13 +10,13 @@ function StatCard({ label, value, sub, icon: Icon, color = 'neutral' }) {
     <Card>
       <CardContent className="p-5">
         <div className="flex items-center gap-3 mb-3">
-          <div className="p-2 rounded-lg bg-neutral-50">
-            <Icon size={18} className="text-neutral-500" />
+          <div className="p-2 rounded-lg bg-muted">
+            <Icon size={18} className="text-muted-foreground" />
           </div>
-          <span className="text-sm font-medium text-neutral-500">{label}</span>
+          <span className="text-sm font-medium text-muted-foreground">{label}</span>
         </div>
-        <p className="text-2xl font-bold text-neutral-900">{value}</p>
-        {sub && <p className="text-sm text-neutral-400 mt-1">{sub}</p>}
+        <p className="text-2xl font-bold text-foreground">{value}</p>
+        {sub && <p className="text-sm text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -43,18 +43,18 @@ function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
-        <Loader2 size={32} className="animate-spin text-neutral-400" />
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <Loader2 size={32} className="animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
-          <p className="text-neutral-500 mb-4">{error}</p>
-          <Link to="/dashboard" className="text-neutral-700 hover:text-neutral-900 font-medium">
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Link to="/dashboard" className="text-foreground hover:text-foreground font-medium">
             Back to Dashboard
           </Link>
         </div>
@@ -63,8 +63,8 @@ function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <header className="bg-white border-b border-neutral-200">
+    <div className="min-h-screen bg-muted">
+      <header className="bg-card border-b border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-3">
             <Button asChild variant="ghost" size="icon" aria-label="Back to dashboard">
@@ -72,7 +72,7 @@ function AdminDashboard() {
                 <ArrowLeft size={20} />
               </Link>
             </Button>
-            <h1 className="text-xl font-bold text-neutral-900">Admin Dashboard</h1>
+            <h1 className="text-xl font-bold text-foreground">Admin Dashboard</h1>
           </div>
         </div>
       </header>
@@ -80,7 +80,7 @@ function AdminDashboard() {
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Users */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Users</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Users</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="Total Users" value={stats.users.total} icon={Users} />
             <StatCard label="Verified" value={stats.users.verified} sub={`${stats.users.total > 0 ? Math.round((stats.users.verified / stats.users.total) * 100) : 0}% verified`} icon={Users} color="green" />
@@ -91,7 +91,7 @@ function AdminDashboard() {
 
         {/* Workspaces & Tasks */}
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Workspaces & Tasks</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Workspaces & Tasks</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard label="Workspaces" value={stats.workspaces.total} icon={FolderOpen} />
             <StatCard label="Total Tasks" value={stats.tasks.total} icon={ClipboardList} />
@@ -102,7 +102,7 @@ function AdminDashboard() {
 
         {/* Subscriptions */}
         <section>
-          <h2 className="text-lg font-semibold text-neutral-900 mb-4">Subscriptions</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">Subscriptions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <StatCard label="Total Subscriptions" value={stats.subscriptions.total} icon={CreditCard} />
             <StatCard label="Active" value={stats.subscriptions.active} icon={CreditCard} color="green" />

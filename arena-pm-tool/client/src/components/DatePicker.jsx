@@ -114,14 +114,14 @@ function DatePicker({ selected, onSelect, onClose, triggerRef }) {
     // Mobile: Full screen modal-style picker
     <>
       <div className="fixed inset-0 bg-black/20 z-[9998]" onClick={onClose} />
-      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-white border border-neutral-200 rounded-lg shadow-sm p-4 z-[9999]">
+      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-sm p-4 z-[9999]">
         <div className="flex items-center justify-between mb-2">
-          <span className="font-medium text-neutral-900">Select Date</span>
+          <span className="font-medium text-foreground">Select Date</span>
           <Button
             onClick={onClose}
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-neutral-400 hover:text-neutral-600"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -141,7 +141,7 @@ function DatePicker({ selected, onSelect, onClose, triggerRef }) {
     </>
   ) : (
     // Desktop: Positioned dropdown
-    <div className="bg-white border border-neutral-200 rounded-lg shadow-sm p-4">
+    <div className="bg-card border border-border rounded-lg shadow-sm p-4">
       <DayPicker
         mode="single"
         selected={internalSelected}

@@ -44,14 +44,14 @@ function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardHeader className="text-center">
             {/* Invite Banner */}
             {inviteToken && (
-              <div className="bg-neutral-100 border border-neutral-200 rounded-lg p-3 mb-4 text-center">
-                <p className="text-sm text-neutral-700">
+              <div className="bg-accent border border-border rounded-lg p-3 mb-4 text-center">
+                <p className="text-sm text-foreground">
                   Sign in to accept your workspace invitation
                 </p>
               </div>
@@ -95,7 +95,7 @@ function Login() {
               <div className="flex justify-end">
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-neutral-900 hover:text-neutral-700 font-medium"
+                  className="text-sm text-foreground hover:text-foreground font-medium"
                 >
                   Forgot password?
                 </Link>
@@ -108,11 +108,11 @@ function Login() {
             </form>
 
             {/* Register Link */}
-            <p className="mt-6 text-center text-sm text-neutral-600">
+            <p className="mt-6 text-center text-sm text-muted-foreground">
               Don't have an account?{' '}
               <Link
                 to={inviteToken ? `/register?invite=${encodeURIComponent(inviteToken)}` : '/register'}
-                className="text-neutral-900 hover:text-neutral-700 font-medium"
+                className="text-foreground hover:text-foreground font-medium"
               >
                 Sign up
               </Link>

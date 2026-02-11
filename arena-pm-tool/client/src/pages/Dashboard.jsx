@@ -56,11 +56,11 @@ function Dashboard() {
       {/* Logo */}
       <div className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center px-0' : 'px-4'} h-14 shrink-0`}>
         {isSidebarCollapsed && !mobile ? (
-          <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
+          <span className="w-2 h-2 rounded-full bg-primary inline-block" />
         ) : (
-          <span className="text-lg font-bold tracking-tight text-[#0F172A] flex items-center gap-1.5">
+          <span className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
             Todoria
-            <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
+            <span className="w-2 h-2 rounded-full bg-primary inline-block" />
           </span>
         )}
       </div>
@@ -90,8 +90,8 @@ function Dashboard() {
                 title={isSidebarCollapsed && !mobile ? item.label : undefined}
                 className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm transition-all duration-150 ${
                   isActive
-                    ? 'bg-primary-50 text-primary-600 font-medium border-l-[3px] border-primary-600'
-                    : 'text-[#64748B] hover:bg-[#F8F9FC] border-l-[3px] border-transparent'
+                    ? 'bg-accent text-primary font-medium border-l-[3px] border-primary'
+                    : 'text-muted-foreground hover:bg-background border-l-[3px] border-transparent'
                 }`}
               >
                 <item.icon size={18} />
@@ -109,7 +109,7 @@ function Dashboard() {
             to="/user"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Settings' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-[#64748B] hover:bg-[#F8F9FC] transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <Settings size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Settings</span>}
@@ -118,7 +118,7 @@ function Dashboard() {
             to="/user/team"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Team' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-[#64748B] hover:bg-[#F8F9FC] transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <Users size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Team</span>}
@@ -127,7 +127,7 @@ function Dashboard() {
             to="/billing"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Billing' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-[#64748B] hover:bg-[#F8F9FC] transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <CreditCard size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Billing</span>}
@@ -137,13 +137,13 @@ function Dashboard() {
         {/* User row */}
         <div className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-10`}>
           <Avatar className="w-8 h-8" title={user?.name || 'User'}>
-            <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </AvatarFallback>
           </Avatar>
           {(!isSidebarCollapsed || mobile) && (
             <>
-              <span className="text-sm text-[#0F172A] font-medium truncate flex-1">
+              <span className="text-sm text-foreground font-medium truncate flex-1">
                 {user?.name}
               </span>
               <Button
@@ -153,7 +153,7 @@ function Dashboard() {
                 disabled={isLoggingOut}
                 aria-label="Logout"
                 title="Logout"
-                className="h-8 w-8 text-[#94A3B8] hover:text-[#0F172A]"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
               >
                 {isLoggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} />}
               </Button>
@@ -165,7 +165,7 @@ function Dashboard() {
         {!mobile && (
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 px-3'} h-9 w-full rounded-lg text-sm text-[#94A3B8] hover:text-[#64748B] hover:bg-[#F8F9FC] transition-all duration-150 mt-1`}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 px-3'} h-9 w-full rounded-lg text-sm text-muted-foreground hover:text-muted-foreground hover:bg-background transition-all duration-150 mt-1`}
             title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isSidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}
@@ -177,10 +177,10 @@ function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen bg-[#F8F9FC]">
+    <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-16 lg:w-[260px]'} bg-white border-r border-[#E8EBF0] transition-all duration-200 shrink-0`}
+        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-16 lg:w-[260px]'} bg-card border-r border-border transition-all duration-200 shrink-0`}
       >
         {sidebarContent(false)}
       </aside>
@@ -198,19 +198,19 @@ function Dashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <header className="md:hidden h-14 bg-white border-b border-[#E8EBF0] flex items-center px-4 shrink-0">
+        <header className="md:hidden h-14 bg-card border-b border-border flex items-center px-4 shrink-0">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="-ml-2 text-[#64748B] hover:text-[#0F172A]"
+            className="-ml-2 text-muted-foreground hover:text-foreground"
             aria-label="Toggle menu"
           >
             <Menu size={24} />
           </Button>
-          <span className="text-lg font-bold tracking-tight text-[#0F172A] ml-2 flex items-center gap-1.5">
+          <span className="text-lg font-bold tracking-tight text-foreground ml-2 flex items-center gap-1.5">
             Todoria
-            <span className="w-2 h-2 rounded-full bg-primary-600 inline-block" />
+            <span className="w-2 h-2 rounded-full bg-primary inline-block" />
           </span>
           <div className="flex-1" />
           <Button
@@ -222,7 +222,7 @@ function Dashboard() {
             <span>Add</span>
           </Button>
           <Avatar className="w-8 h-8" title={user?.name || 'User'}>
-            <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
               {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
             </AvatarFallback>
           </Avatar>

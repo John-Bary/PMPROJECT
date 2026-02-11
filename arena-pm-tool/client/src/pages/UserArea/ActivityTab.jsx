@@ -50,20 +50,20 @@ const ActivityTab = () => {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-neutral-900">Recent Activity</h2>
-        <p className="text-neutral-500 mt-1">Activity feed for your current workspace.</p>
+        <h2 className="text-2xl font-bold text-foreground">Recent Activity</h2>
+        <p className="text-muted-foreground mt-1">Activity feed for your current workspace.</p>
       </div>
 
       <Card>
         <CardContent className="p-6">
           {isLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 size={24} className="animate-spin text-neutral-500" />
+              <Loader2 size={24} className="animate-spin text-muted-foreground" />
             </div>
           ) : !currentWorkspaceId ? (
-            <p className="text-sm text-neutral-400 text-center py-8">No workspace selected.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No workspace selected.</p>
           ) : activities.length === 0 ? (
-            <p className="text-sm text-neutral-400 text-center py-8">No activity yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">No activity yet.</p>
           ) : (
             <ul className="space-y-4">
               {activities.map((activity, index) => {
@@ -75,16 +75,16 @@ const ActivityTab = () => {
                   <li key={activity.id}>
                     <div className="flex items-start gap-3 text-sm">
                       <Avatar className="h-7 w-7 mt-0.5">
-                        <AvatarFallback className="bg-neutral-50 text-neutral-700 text-xs font-medium">
+                        <AvatarFallback className="bg-muted text-foreground text-xs font-medium">
                           {userName.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0">
-                        <p className="text-neutral-600">
-                          <span className="font-medium text-neutral-900">{userName}</span>{' '}
+                        <p className="text-muted-foreground">
+                          <span className="font-medium text-foreground">{userName}</span>{' '}
                           {formatAction(activity)}
                         </p>
-                        <p className="text-xs text-neutral-400 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           {formatDistanceToNow(new Date(activity.createdAt), { addSuffix: true })}
                         </p>
                       </div>

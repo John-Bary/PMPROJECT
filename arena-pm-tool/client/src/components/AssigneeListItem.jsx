@@ -67,10 +67,10 @@ function AssigneeListItem({
       className={`
         flex items-center gap-3 cursor-pointer
         ${sizes.container}
-        hover:bg-neutral-50 active:bg-neutral-100
+        hover:bg-muted active:bg-accent
         transition-colors duration-150
-        ${isSelected ? 'bg-neutral-100 hover:bg-neutral-200/70' : ''}
-        focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:ring-inset
+        ${isSelected ? 'bg-accent hover:bg-accent/70' : ''}
+        focus:outline-none focus:ring-2 focus:ring-ring/20 focus:ring-inset
       `}
     >
       {/* Checkbox/Radio visual indicator */}
@@ -91,8 +91,8 @@ function AssigneeListItem({
             transition-all duration-150
             ${variant === 'single' ? 'rounded-full' : 'rounded'}
             ${isSelected
-              ? 'bg-primary-600 border-2 border-primary-600'
-              : 'border-2 border-neutral-300 bg-white'
+              ? 'bg-primary border-2 border-primary'
+              : 'border-2 border-input bg-background'
             }
           `}
           aria-hidden="true"
@@ -100,7 +100,7 @@ function AssigneeListItem({
           {isSelected && (
             <Check
               size={size === 'compact' ? 8 : 10}
-              className="text-white"
+              className="text-primary-foreground"
               strokeWidth={3}
             />
           )}
@@ -124,7 +124,7 @@ function AssigneeListItem({
       <span
         className={`
           ${sizes.text} flex-1 min-w-0
-          ${isSelected ? 'text-neutral-900 font-medium' : 'text-neutral-700'}
+          ${isSelected ? 'text-foreground font-medium' : 'text-foreground'}
           truncate
         `}
         title={user.name}

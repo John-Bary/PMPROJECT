@@ -379,7 +379,7 @@ const TaskModal = ({
                     return (
                       <span
                         key={userId}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-100 text-neutral-700 rounded-full text-sm border border-neutral-200"
+                        className="inline-flex items-center gap-1 px-2 py-1 bg-accent text-foreground rounded-full text-sm border border-border"
                       >
                         <span className="w-5 h-5 rounded-full bg-neutral-600 text-white text-xs flex items-center justify-center font-medium">
                           {user.name.charAt(0).toUpperCase()}
@@ -388,7 +388,7 @@ const TaskModal = ({
                         <button
                           type="button"
                           onClick={() => handleRemoveAssignee(userId)}
-                          className="ml-0.5 p-0.5 hover:bg-neutral-200 rounded-full transition-colors"
+                          className="ml-0.5 p-0.5 hover:bg-input rounded-full transition-colors"
                           disabled={isSubmitting}
                           aria-label={`Remove ${user.name} from assignees`}
                         >
@@ -405,7 +405,7 @@ const TaskModal = ({
                 <select
                   onChange={handleAddAssignee}
                   value=""
-                  className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300 transition-all duration-150 appearance-none"
+                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all duration-150 appearance-none"
                   disabled={isSubmitting || availableUsers.length === 0}
                 >
                   <option value="">
@@ -420,7 +420,7 @@ const TaskModal = ({
                   ))}
                 </select>
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Plus size={16} className="text-neutral-400" />
+                  <Plus size={16} className="text-muted-foreground" />
                 </div>
               </div>
             </div>
@@ -443,7 +443,7 @@ const TaskModal = ({
             {/* Submit Error */}
             {errors.submit && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{errors.submit}</p>
+                <p className="text-sm text-destructive">{errors.submit}</p>
               </div>
             )}
 
@@ -481,7 +481,7 @@ const TaskModal = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleKeepEditing}>Keep Editing</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDiscardChanges} className="bg-red-600 hover:bg-red-700">Discard</AlertDialogAction>
+            <AlertDialogAction onClick={handleDiscardChanges} className="bg-destructive hover:bg-destructive/90">Discard</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

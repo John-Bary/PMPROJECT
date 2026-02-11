@@ -27,7 +27,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const dueDate = formatDueDate(task.dueDate);
   const isOverdue = checkIsOverdue(task.dueDate, task.status);
 
-  const avatarColors = ['bg-primary-500', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
+  const avatarColors = ['bg-primary', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
   const handleEdit = (e) => {
     e.stopPropagation();
@@ -204,7 +204,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {...(provided?.draggableProps || {})}
           {...(canEdit && provided?.dragHandleProps ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-white border border-[#E8EBF0] rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'active:cursor-grabbing' : ''} group relative ${
+          className={`bg-card border border-border rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-50' : ''
           } ${snapshot?.isDragging ? 'shadow-elevated' : ''}`}
         >
@@ -213,7 +213,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 onClick={handleEdit}
-                className="p-1.5 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-all duration-150"
+                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
                 title="Edit task"
                 aria-label="Edit task"
               >
@@ -221,7 +221,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               </button>
               <button
                 onClick={handleDelete}
-                className="p-1.5 text-neutral-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
                 title="Delete task"
                 aria-label="Delete task"
               >
@@ -236,8 +236,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           onClick={handleToggleComplete}
           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
             isCompleted
-              ? 'bg-primary-600 border-primary-600'
-              : 'border-neutral-300 hover:border-neutral-500'
+              ? 'bg-primary border-primary'
+              : 'border-input hover:border-neutral-500'
           } ${isToggling || !canEdit ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={isToggling || !canEdit}
           title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
@@ -245,7 +245,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {isToggling ? (
             <InlineSpinner size="sm" />
           ) : (
-            isCompleted && <Check size={14} className="text-white" />
+            isCompleted && <Check size={14} className="text-primary-foreground" />
           )}
         </button>
 
@@ -258,14 +258,14 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
-            className="flex-1 pr-16 font-medium text-neutral-900 border-b-2 border-primary-600 focus:outline-none bg-transparent"
+            className="flex-1 pr-16 font-medium text-foreground border-b-2 border-primary focus:outline-none bg-transparent"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <h4
             onClick={handleTitleClick}
-            className={`font-medium text-neutral-900 flex-1 pr-16 ${canEdit ? 'cursor-text hover:bg-neutral-100' : 'cursor-default'} rounded-lg px-1 -mx-1 transition-all duration-150 ${
-              isCompleted ? 'line-through text-neutral-500' : ''
+            className={`font-medium text-foreground flex-1 pr-16 ${canEdit ? 'cursor-text hover:bg-accent' : 'cursor-default'} rounded-lg px-1 -mx-1 transition-all duration-150 ${
+              isCompleted ? 'line-through text-muted-foreground' : ''
             }`}
             title={canEdit ? 'Click to edit' : ''}
           >
@@ -276,12 +276,12 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
       {/* Task Description */}
       {task.description && (
-        <p className="text-sm text-neutral-600 mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
       )}
 
       {/* Subtask Count */}
       {task.subtaskCount > 0 && (
-        <div className="flex items-center gap-1 text-xs text-neutral-500 mb-3">
+        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
@@ -304,21 +304,21 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
           {/* Priority Dropdown */}
           {showPriorityDropdown && (
-            <div className="absolute left-0 mt-1 w-32 bg-white border border-neutral-200 rounded-lg shadow-sm z-50 animate-fade-in">
+            <div className="absolute left-0 mt-1 w-32 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
               <div className="py-1">
                 {priorities.map((priority) => (
                   <button
                     key={priority}
                     onClick={() => handlePrioritySelect(priority)}
-                    className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-neutral-100 flex items-center justify-between transition-all duration-150 ${
-                      task.priority === priority ? 'bg-neutral-100' : ''
+                    className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all duration-150 ${
+                      task.priority === priority ? 'bg-accent' : ''
                     }`}
                   >
                     <span className={`px-2 py-1 rounded-md border ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
                       {priority}
                     </span>
                     {task.priority === priority && (
-                      <Check size={14} className="text-primary-600" />
+                      <Check size={14} className="text-primary" />
                     )}
                   </button>
                 ))}
@@ -334,7 +334,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             className={`flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg transition-all duration-150 text-xs ${
               isOverdue
                 ? 'text-red-600 font-medium bg-red-50 border border-red-200'
-                : 'text-neutral-500 hover:bg-neutral-100'
+                : 'text-muted-foreground hover:bg-accent'
             }`}
             title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
           >
@@ -359,7 +359,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         <div className="relative" ref={assigneeDropdownRef} data-dropdown>
           <button
             onClick={handleAssigneeClick}
-            className="flex items-center hover:bg-neutral-100 rounded-lg px-1.5 py-0.5 sm:py-1 transition-all duration-150"
+            className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 sm:py-1 transition-all duration-150"
             title="Manage assignees"
           >
             {(task.assignees || []).length > 0 ? (
@@ -385,15 +385,15 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                     </div>
                   )}
                 </div>
-                <ChevronDown size={10} className="text-neutral-400 ml-1" />
+                <ChevronDown size={10} className="text-muted-foreground ml-1" />
               </div>
             ) : (
               <>
                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-300 flex items-center justify-center text-white text-xs font-medium">
                   ?
                 </div>
-                <span className="text-xs text-neutral-500 hidden sm:inline ml-1">Assign</span>
-                <ChevronDown size={10} className="text-neutral-400 ml-0.5" />
+                <span className="text-xs text-muted-foreground hidden sm:inline ml-1">Assign</span>
+                <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
               </>
             )}
           </button>

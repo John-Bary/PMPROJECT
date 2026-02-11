@@ -49,24 +49,24 @@ function VerifyEmailPending() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card className="shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mx-auto w-16 h-16 bg-accent rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
 
-              <h1 className="text-2xl font-bold text-neutral-900 mb-2">Check your email</h1>
-              <p className="text-neutral-600 text-sm mb-2">
+              <h1 className="text-2xl font-bold text-foreground mb-2">Check your email</h1>
+              <p className="text-muted-foreground text-sm mb-2">
                 We sent a verification link to:
               </p>
-              <p className="text-neutral-900 font-medium mb-6">{user?.email}</p>
+              <p className="text-foreground font-medium mb-6">{user?.email}</p>
 
-              <p className="text-neutral-500 text-sm mb-6">
+              <p className="text-muted-foreground text-sm mb-6">
                 Click the link in your email to verify your account. If you don't see it, check your spam folder.
               </p>
 
@@ -84,7 +84,7 @@ function VerifyEmailPending() {
 
               <button
                 onClick={handleLogout}
-                className="mt-4 text-sm text-neutral-500 hover:text-neutral-700 transition"
+                className="mt-4 text-sm text-muted-foreground hover:text-foreground transition"
               >
                 Sign out and use a different account
               </button>

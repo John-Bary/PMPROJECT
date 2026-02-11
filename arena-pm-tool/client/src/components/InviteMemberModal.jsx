@@ -159,25 +159,25 @@ function InviteMemberModal({ isOpen, onClose }) {
 
             {/* Success Message */}
             <div className="text-center">
-              <p className="text-neutral-700">
+              <p className="text-foreground">
                 An invitation has been sent to
               </p>
-              <p className="font-semibold text-neutral-900 mt-1">
+              <p className="font-semibold text-foreground mt-1">
                 {successData.email}
               </p>
-              <p className="text-sm text-neutral-500 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 They will be added as a <span className="font-medium capitalize">{successData.role}</span> to{' '}
                 <span className="font-medium">{currentWorkspace?.name || 'this workspace'}</span>
               </p>
             </div>
 
             {/* Invite Link Section */}
-            <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2">
+            <div className="bg-muted border border-border rounded-lg p-4">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
                 <Link className="h-4 w-4" />
                 <span>Invite Link</span>
               </div>
-              <p className="text-xs text-neutral-500 mb-3">
+              <p className="text-xs text-muted-foreground mb-3">
                 Share this link with the invitee if they don't receive the email
               </p>
               <div className="flex gap-2">
@@ -185,7 +185,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                   type="text"
                   value={successData.inviteLink}
                   readOnly
-                  className="flex-1 text-sm text-neutral-600 truncate"
+                  className="flex-1 text-sm text-muted-foreground truncate"
                 />
                 <Button
                   onClick={handleCopyLink}
@@ -209,7 +209,7 @@ function InviteMemberModal({ isOpen, onClose }) {
             </div>
 
             {/* Expiration Notice */}
-            <p className="text-xs text-neutral-500 text-center">
+            <p className="text-xs text-muted-foreground text-center">
               This invitation will expire in 7 days
             </p>
 
@@ -240,7 +240,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-neutral-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="email"
                   id="email"
@@ -272,8 +272,8 @@ function InviteMemberModal({ isOpen, onClose }) {
                     key={role.value}
                     className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-all duration-150 ${
                       formData.role === role.value
-                        ? 'border-primary-600 bg-primary-50'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-primary bg-accent'
+                        : 'border-border hover:border-input'
                     } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <input
@@ -282,12 +282,12 @@ function InviteMemberModal({ isOpen, onClose }) {
                       value={role.value}
                       checked={formData.role === role.value}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      className="mt-0.5 w-4 h-4 text-primary-600 border-neutral-300 focus:ring-primary-600"
+                      className="mt-0.5 w-4 h-4 text-primary border-input focus:ring-primary"
                       disabled={isSubmitting}
                     />
                     <div>
-                      <div className="font-medium text-neutral-900">{role.label}</div>
-                      <div className="text-sm text-neutral-500">{role.description}</div>
+                      <div className="font-medium text-foreground">{role.label}</div>
+                      <div className="text-sm text-muted-foreground">{role.description}</div>
                     </div>
                   </label>
                 ))}
@@ -296,7 +296,7 @@ function InviteMemberModal({ isOpen, onClose }) {
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-destructive">
                 {error}
               </div>
             )}

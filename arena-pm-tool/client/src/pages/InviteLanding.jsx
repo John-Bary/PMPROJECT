@@ -70,22 +70,22 @@ function InviteLanding() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <Card>
           <CardContent className="p-6 sm:p-8">
             {/* Logo */}
             <div className="text-center mb-6">
-              <h1 className="text-xl font-semibold text-neutral-900">Todoria</h1>
+              <h1 className="text-xl font-semibold text-foreground">Todoria</h1>
             </div>
 
             {/* Loading State */}
             {status === 'loading' && (
               <div className="text-center py-8">
                 <div className="flex justify-center mb-4">
-                  <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
+                  <Loader2 className="h-10 w-10 text-muted-foreground animate-spin" />
                 </div>
-                <p className="text-neutral-500">Loading invitation details...</p>
+                <p className="text-muted-foreground">Loading invitation details...</p>
               </div>
             )}
 
@@ -93,19 +93,19 @@ function InviteLanding() {
             {status === 'valid' && inviteData && (
               <div className="text-center">
                 <div className="flex justify-center mb-4">
-                  <div className="w-14 h-14 rounded-full bg-neutral-100 flex items-center justify-center">
-                    <Users className="h-7 w-7 text-neutral-900" />
+                  <div className="w-14 h-14 rounded-full bg-accent flex items-center justify-center">
+                    <Users className="h-7 w-7 text-foreground" />
                   </div>
                 </div>
 
-                <h2 className="text-xl font-semibold text-neutral-900 mb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-2">
                   You've been invited to join
                 </h2>
-                <p className="text-2xl font-bold text-neutral-900 mb-2">
+                <p className="text-2xl font-bold text-foreground mb-2">
                   {inviteData.workspaceName}
                 </p>
                 {inviteData.inviterName && (
-                  <p className="text-sm text-neutral-500 mb-6">
+                  <p className="text-sm text-muted-foreground mb-6">
                     Invited by {inviteData.inviterName}
                   </p>
                 )}
@@ -136,7 +136,7 @@ function InviteLanding() {
                       </Link>
                     </Button>
 
-                    <Button asChild variant="outline" className="w-full border-2 border-primary-600">
+                    <Button asChild variant="outline" className="w-full border-2 border-primary">
                       <Link to={`/register?invite=${encodeURIComponent(token)}${inviteData.invitedEmail ? `&email=${encodeURIComponent(inviteData.invitedEmail)}` : ''}`}>
                         <UserPlus className="h-4 w-4" />
                         <span>I'm new here — Sign Up</span>
@@ -151,12 +151,12 @@ function InviteLanding() {
             {status === 'joining' && (
               <div className="text-center py-8">
                 <div className="flex justify-center mb-4">
-                  <Loader2 className="h-10 w-10 text-neutral-500 animate-spin" />
+                  <Loader2 className="h-10 w-10 text-muted-foreground animate-spin" />
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-1">
+                <h2 className="text-lg font-semibold text-foreground mb-1">
                   Joining workspace...
                 </h2>
-                <p className="text-neutral-500">Please wait while we add you to the team.</p>
+                <p className="text-muted-foreground">Please wait while we add you to the team.</p>
               </div>
             )}
 
@@ -168,10 +168,10 @@ function InviteLanding() {
                     <XCircle className="h-7 w-7 text-red-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                <h2 className="text-lg font-semibold text-foreground mb-2">
                   Could not join workspace
                 </h2>
-                <p className="text-neutral-500 mb-6">{joinError}</p>
+                <p className="text-muted-foreground mb-6">{joinError}</p>
                 <Button asChild variant="secondary">
                   <Link to="/dashboard">
                     Go to Dashboard
@@ -188,13 +188,13 @@ function InviteLanding() {
                     <Clock className="h-7 w-7 text-amber-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                <h2 className="text-lg font-semibold text-foreground mb-2">
                   Invitation Expired
                 </h2>
-                <p className="text-neutral-500 mb-1">
-                  The invitation to join <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span> has expired.
+                <p className="text-muted-foreground mb-1">
+                  The invitation to join <span className="font-medium text-foreground">{inviteData.workspaceName}</span> has expired.
                 </p>
-                <p className="text-sm text-neutral-400 mb-6">
+                <p className="text-sm text-muted-foreground mb-6">
                   Ask {inviteData.inviterName || 'your team admin'} to send a new invitation.
                 </p>
                 <Button asChild variant="secondary">
@@ -213,11 +213,11 @@ function InviteLanding() {
                     <CheckCircle className="h-7 w-7 text-green-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                <h2 className="text-lg font-semibold text-foreground mb-2">
                   Already Joined
                 </h2>
-                <p className="text-neutral-500 mb-6">
-                  You've already joined <span className="font-medium text-neutral-700">{inviteData.workspaceName}</span>.
+                <p className="text-muted-foreground mb-6">
+                  You've already joined <span className="font-medium text-foreground">{inviteData.workspaceName}</span>.
                 </p>
                 <Button asChild>
                   <Link to="/dashboard">
@@ -236,10 +236,10 @@ function InviteLanding() {
                     <XCircle className="h-7 w-7 text-red-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                <h2 className="text-lg font-semibold text-foreground mb-2">
                   Invalid Invitation Link
                 </h2>
-                <p className="text-neutral-500 mb-6">
+                <p className="text-muted-foreground mb-6">
                   This invite link is invalid or has already been used. Please check the link you received or ask your team admin to send a new invitation.
                 </p>
                 <Button asChild variant="secondary">
@@ -258,10 +258,10 @@ function InviteLanding() {
                     <XCircle className="h-7 w-7 text-red-500" />
                   </div>
                 </div>
-                <h2 className="text-lg font-semibold text-neutral-900 mb-2">
+                <h2 className="text-lg font-semibold text-foreground mb-2">
                   Something went wrong
                 </h2>
-                <p className="text-neutral-500 mb-6">
+                <p className="text-muted-foreground mb-6">
                   We couldn't load the invitation details. Please try again or contact support.
                 </p>
                 <Button asChild variant="secondary">

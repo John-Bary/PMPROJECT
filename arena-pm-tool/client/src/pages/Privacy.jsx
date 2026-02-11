@@ -3,18 +3,18 @@ import { ArrowLeft } from 'lucide-react';
 
 function Privacy() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-neutral-100">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-4 flex items-center gap-3">
-          <Link to="/" className="p-2 text-neutral-400 hover:text-neutral-600 rounded-lg transition-all" aria-label="Back to home">
+          <Link to="/" className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg transition-all" aria-label="Back to home">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-lg font-bold text-neutral-900">Privacy Policy</h1>
+          <h1 className="text-lg font-bold text-foreground">Privacy Policy</h1>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-5 sm:px-6 py-10 prose prose-neutral prose-sm max-w-none">
-        <p className="text-sm text-neutral-400">Last updated: February 7, 2026</p>
+        <p className="text-sm text-muted-foreground">Last updated: February 7, 2026</p>
 
         <h2>1. Introduction</h2>
         <p>
@@ -23,7 +23,7 @@ function Privacy() {
 
         <h2>2. Data Controller</h2>
         <p>
-          Todoria is the data controller for your personal data. For any privacy inquiries, contact us at <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>.
+          Todoria is the data controller for your personal data. For any privacy inquiries, contact us at <a href="mailto:privacy@todoria.app" className="text-foreground hover:text-foreground">privacy@todoria.app</a>.
         </p>
 
         <h2>3. Data We Collect</h2>
@@ -78,7 +78,7 @@ function Privacy() {
           <li><strong>Objection:</strong> Object to processing based on legitimate interest</li>
         </ul>
         <p>
-          To exercise any of these rights, contact <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>. We will respond within 30 days.
+          To exercise any of these rights, contact <a href="mailto:privacy@todoria.app" className="text-foreground hover:text-foreground">privacy@todoria.app</a>. We will respond within 30 days.
         </p>
 
         <h2>9. Cookies</h2>
@@ -109,7 +109,7 @@ function Privacy() {
         <h2>14. Contact</h2>
         <p>
           For privacy-related questions or to exercise your rights, contact:<br />
-          <a href="mailto:privacy@todoria.app" className="text-neutral-900 hover:text-neutral-700">privacy@todoria.app</a>
+          <a href="mailto:privacy@todoria.app" className="text-foreground hover:text-foreground">privacy@todoria.app</a>
         </p>
       </main>
     </div>

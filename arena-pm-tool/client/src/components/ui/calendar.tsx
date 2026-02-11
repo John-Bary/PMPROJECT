@@ -32,10 +32,10 @@ function Calendar({
         ),
         [UI.MonthGrid]: "w-full border-collapse space-y-1",
         [UI.Weekdays]: "flex",
-        [UI.Weekday]: "text-neutral-500 rounded-md w-8 font-normal text-[0.8rem]",
+        [UI.Weekday]: "text-muted-foreground rounded-md w-8 font-normal text-[0.8rem]",
         [UI.Week]: "flex w-full mt-2",
         [UI.Day]: cn(
-          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-neutral-100 [&:has([aria-selected].day-outside)]:bg-neutral-100/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
+          "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected].day-range-end)]:rounded-r-md",
           props.mode === "range"
             ? "[&:has(>.day-range-end)]:rounded-r-md [&:has(>.day-range-start)]:rounded-l-md first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md"
             : "[&:has([aria-selected])]:rounded-md"
@@ -47,13 +47,13 @@ function Calendar({
         [SelectionState.range_start]: "day-range-start",
         [SelectionState.range_end]: "day-range-end",
         [SelectionState.selected]:
-          "bg-primary-600 text-white hover:bg-primary-600 hover:text-white focus:bg-primary-600 focus:text-white",
+          "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         [SelectionState.range_middle]:
-          "aria-selected:bg-neutral-100 aria-selected:text-neutral-900",
-        [DayFlag.today]: "bg-neutral-100 text-neutral-900",
+          "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        [DayFlag.today]: "bg-accent text-accent-foreground",
         [DayFlag.outside]:
-          "day-outside text-neutral-400 aria-selected:bg-neutral-100/50 aria-selected:text-neutral-400",
-        [DayFlag.disabled]: "text-neutral-400 opacity-50",
+          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+        [DayFlag.disabled]: "text-muted-foreground opacity-50",
         [DayFlag.hidden]: "invisible",
         ...classNames,
       }}

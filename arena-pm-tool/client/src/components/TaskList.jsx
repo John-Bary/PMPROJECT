@@ -302,7 +302,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     <>
       {/* Viewer Mode Banner */}
       {!userCanEdit && (
-        <div className="mb-4 px-4 py-3 border border-[#E8EBF0] rounded-lg flex items-center gap-3 text-neutral-600">
+        <div className="mb-4 px-4 py-3 border border-border rounded-lg flex items-center gap-3 text-muted-foreground">
           <Eye className="h-4 w-4 flex-shrink-0" />
           <p className="text-sm">View only — contact an admin for edit access.</p>
         </div>
@@ -313,9 +313,9 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
         {/* Title Row */}
         <div className="flex items-center justify-between mb-3 sm:mb-0">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-semibold text-neutral-900">Tasks</h2>
+            <h2 className="text-lg font-semibold text-foreground">Tasks</h2>
             {isLoadingData && (
-              <div className="flex items-center gap-2 text-sm text-neutral-500">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <InlineSpinner />
                 <span className="hidden sm:inline">Loading tasks...</span>
               </div>
@@ -340,7 +340,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 sm:mt-4">
           {/* Search Bar */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
               ref={searchInputRef}
               type="text"
@@ -353,7 +353,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             {searchInput && (
               <button
                 onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-all duration-150"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-all duration-150"
                 title="Clear search"
                 disabled={disableControls}
               >
@@ -457,13 +457,13 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                         onClick={() => setSelectedMobileCategory(category.id)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
                           isSelected
-                            ? 'bg-white border border-[#E8EBF0] shadow-card text-neutral-900'
-                            : 'text-neutral-500 hover:text-neutral-700 hover:bg-white/50'
+                            ? 'bg-card border border-border shadow-card text-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
                         }`}
                       >
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: category.color }} />
                         {category.name}
-                        <span className="text-xs text-neutral-400">({categoryTasks.length})</span>
+                        <span className="text-xs text-muted-foreground">({categoryTasks.length})</span>
                       </button>
                     );
                   })}
@@ -477,7 +477,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                   const mobileTasks = activeCategoryId ? getTasksByCategory(activeCategoryId) : [];
                   if (mobileTasks.length === 0) {
                     return (
-                      <div className="text-center py-8 text-neutral-400 text-sm">
+                      <div className="text-center py-8 text-muted-foreground text-sm">
                         No tasks in this category
                       </div>
                     );
@@ -589,7 +589,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeletingTask}
-              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive"
             >
               {isDeletingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isDeletingTask ? 'Deleting...' : 'Delete'}
@@ -614,7 +614,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             <AlertDialogAction
               onClick={confirmDeleteCategory}
               disabled={isDeletingCategory}
-              className="bg-red-600 text-white hover:bg-red-700 focus:ring-red-600"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:ring-destructive"
             >
               {isDeletingCategory && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isDeletingCategory ? 'Deleting...' : 'Delete'}

@@ -3,18 +3,18 @@ import { ArrowLeft } from 'lucide-react';
 
 function Terms() {
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-neutral-100">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-4 flex items-center gap-3">
-          <Link to="/" className="p-2 text-neutral-400 hover:text-neutral-600 rounded-lg transition-all" aria-label="Back to home">
+          <Link to="/" className="p-2 text-muted-foreground hover:text-muted-foreground rounded-lg transition-all" aria-label="Back to home">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-lg font-bold text-neutral-900">Terms of Service</h1>
+          <h1 className="text-lg font-bold text-foreground">Terms of Service</h1>
         </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-5 sm:px-6 py-10 prose prose-neutral prose-sm max-w-none">
-        <p className="text-sm text-neutral-400">Last updated: February 7, 2026</p>
+        <p className="text-sm text-muted-foreground">Last updated: February 7, 2026</p>
 
         <h2>1. Acceptance of Terms</h2>
         <p>
@@ -48,7 +48,7 @@ function Terms() {
 
         <h2>6. Data and Privacy</h2>
         <p>
-          Your use of the Service is also governed by our <Link to="/privacy" className="text-neutral-900 hover:text-neutral-700">Privacy Policy</Link>. We collect only the data necessary to provide the Service and do not sell personal data to third parties.
+          Your use of the Service is also governed by our <Link to="/privacy" className="text-foreground hover:text-foreground">Privacy Policy</Link>. We collect only the data necessary to provide the Service and do not sell personal data to third parties.
         </p>
 
         <h2>7. Intellectual Property</h2>
@@ -78,7 +78,7 @@ function Terms() {
 
         <h2>12. Contact</h2>
         <p>
-          For questions about these Terms, contact us at <a href="mailto:support@todoria.app" className="text-neutral-900 hover:text-neutral-700">support@todoria.app</a>.
+          For questions about these Terms, contact us at <a href="mailto:support@todoria.app" className="text-foreground hover:text-foreground">support@todoria.app</a>.
         </p>
       </main>
     </div>

@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: [
     "./src/**/*.{js,jsx,ts,tsx}",
   ],
@@ -21,26 +22,9 @@ module.exports = {
           900: '#171717',
         },
         primary: {
-          50:  '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
-          600: '#4F46E5',
-          700: '#4338CA',
-          800: '#3730A3',
-          900: '#312E81',
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
         },
-        // Semantic colors
-        'bg-app':        '#F8F9FC',
-        'surface':       '#FFFFFF',
-        'border-default':'#E8EBF0',
-        'border-subtle': '#F1F3F6',
-        // Text semantic
-        'text-primary':  '#0F172A',
-        'text-secondary':'#64748B',
-        'text-tertiary': '#94A3B8',
         // Status colors
         success: '#10B981',
         warning: '#F59E0B',
@@ -58,10 +42,6 @@ module.exports = {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        "primary-ui": {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

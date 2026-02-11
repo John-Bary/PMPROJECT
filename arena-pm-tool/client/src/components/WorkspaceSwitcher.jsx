@@ -19,9 +19,9 @@ import { Badge } from 'components/ui/badge';
 // Role badge component
 const RoleBadge = ({ role }) => {
   const roleConfig = {
-    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-neutral-700', bg: 'bg-neutral-100' },
-    member: { label: 'Member', icon: Shield, color: 'text-neutral-600', bg: 'bg-neutral-100' },
-    viewer: { label: 'Viewer', icon: Eye, color: 'text-neutral-500', bg: 'bg-neutral-100' },
+    admin: { label: 'Admin', icon: ShieldCheck, color: 'text-foreground', bg: 'bg-accent' },
+    member: { label: 'Member', icon: Shield, color: 'text-muted-foreground', bg: 'bg-accent' },
+    viewer: { label: 'Viewer', icon: Eye, color: 'text-muted-foreground', bg: 'bg-accent' },
   };
 
   const config = roleConfig[role] || roleConfig.member;
@@ -76,29 +76,29 @@ function WorkspaceSwitcher({ className = '' }) {
         <DropdownMenuTrigger asChild>
           <button
             disabled={isLoading || isSwitching}
-            className="flex items-center gap-2 px-3 py-2 bg-white hover:bg-neutral-50
-                       border border-neutral-200 rounded-lg transition-colors min-w-[180px]
+            className="flex items-center gap-2 px-3 py-2 bg-card hover:bg-muted
+                       border border-border rounded-lg transition-colors min-w-[180px]
                        disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label={`Switch workspace, current: ${currentWorkspace?.name || 'none'}`}
           >
             {isSwitching ? (
-              <Loader2 size={16} className="w-6 h-6 animate-spin text-neutral-500" />
+              <Loader2 size={16} className="w-6 h-6 animate-spin text-muted-foreground" />
             ) : (
-              <div className="w-6 h-6 rounded bg-primary-600 flex items-center justify-center text-xs font-medium text-white">
+              <div className="w-6 h-6 rounded bg-primary flex items-center justify-center text-xs font-medium text-primary-foreground">
                 {currentWorkspace?.name?.charAt(0)?.toUpperCase() || 'W'}
               </div>
             )}
-            <span className="flex-1 text-left text-sm text-neutral-800 truncate font-medium">
+            <span className="flex-1 text-left text-sm text-foreground truncate font-medium">
               {isSwitching ? 'Switching...' : (currentWorkspace?.name || 'Select Workspace')}
             </span>
-            <ChevronDown className="w-4 h-4 text-neutral-400" />
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
         </DropdownMenuTrigger>
 
         {/* Dropdown Menu */}
         <DropdownMenuContent align="start" className="w-72">
           {/* Header */}
-          <DropdownMenuLabel className="text-xs font-medium text-neutral-500">
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
             Your Workspaces
           </DropdownMenuLabel>
 
@@ -113,24 +113,24 @@ function WorkspaceSwitcher({ className = '' }) {
                   key={workspace.id}
                   onClick={() => handleSwitch(workspace.id)}
                   className={`flex items-center gap-3 px-3 py-2.5 cursor-pointer ${
-                    workspace.id === currentWorkspace?.id ? 'bg-neutral-100' : ''
+                    workspace.id === currentWorkspace?.id ? 'bg-accent' : ''
                   }`}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-primary-600 flex items-center justify-center
-                                 text-sm font-semibold text-white flex-shrink-0">
+                  <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center
+                                 text-sm font-semibold text-primary-foreground flex-shrink-0">
                     {workspace.name?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-neutral-900 font-medium truncate">{workspace.name}</p>
+                    <p className="text-sm text-foreground font-medium truncate">{workspace.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <RoleBadge role={role} />
-                      <span className="text-xs text-neutral-400">
+                      <span className="text-xs text-muted-foreground">
                         {workspace.memberCount || 1} member{(workspace.memberCount || 1) !== 1 ? 's' : ''}
                       </span>
                     </div>
                   </div>
                   {workspace.id === currentWorkspace?.id && (
-                    <Check className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                    <Check className="w-5 h-5 text-primary flex-shrink-0" />
                   )}
                 </DropdownMenuItem>
               );
@@ -142,33 +142,33 @@ function WorkspaceSwitcher({ className = '' }) {
           {/* Actions */}
           <DropdownMenuItem
             onClick={() => navigate('/workspaces')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
           >
-            <LayoutGrid className="w-4 h-4 text-neutral-500" />
+            <LayoutGrid className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">View All Workspaces</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
           >
-            <Plus className="w-4 h-4 text-neutral-500" />
+            <Plus className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">Create Workspace</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => navigate('/user/preferences')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
           >
-            <Settings className="w-4 h-4 text-neutral-500" />
+            <Settings className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">Workspace Settings</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem
             onClick={() => navigate('/user/team')}
-            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-neutral-700"
+            className="flex items-center gap-3 px-3 py-2 cursor-pointer text-foreground"
           >
-            <Users className="w-4 h-4 text-neutral-500" />
+            <Users className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">Manage Members</span>
           </DropdownMenuItem>
         </DropdownMenuContent>

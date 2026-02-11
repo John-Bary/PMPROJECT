@@ -47,16 +47,16 @@ const UserArea = () => {
   const apiBaseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-[#E8EBF0] bg-white/95 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Back to Dashboard */}
             <Button variant="ghost" asChild>
               <NavLink
                 to="/dashboard"
-                className="flex items-center gap-2 text-neutral-500 hover:text-neutral-900"
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span className="hidden sm:inline">Back to Dashboard</span>
@@ -64,7 +64,7 @@ const UserArea = () => {
             </Button>
 
             {/* Title */}
-            <h1 className="text-lg font-semibold text-neutral-900">Settings</h1>
+            <h1 className="text-lg font-semibold text-foreground">Settings</h1>
 
             {/* Spacer for mobile */}
             <div className="lg:hidden w-9" />
@@ -78,11 +78,11 @@ const UserArea = () => {
                     alt="Avatar"
                   />
                 ) : null}
-                <AvatarFallback className="bg-primary-600 text-white text-sm font-medium">
+                <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                   {getInitials(user?.firstName, user?.lastName, user?.name)}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm text-neutral-700">
+              <span className="text-sm text-foreground">
                 {user?.firstName && user?.lastName
                   ? `${user.firstName} ${user.lastName}`
                   : user?.name}
@@ -93,7 +93,7 @@ const UserArea = () => {
       </header>
 
       {/* Mobile Horizontal Tab Bar */}
-      <div className="lg:hidden sticky top-16 z-30 bg-white border-b border-[#E8EBF0]">
+      <div className="lg:hidden sticky top-16 z-30 bg-card border-b border-border">
         <div className="flex overflow-x-auto scrollbar-hide px-4 gap-1 py-2">
           {navItems.map((item) => (
             <NavLink
@@ -103,8 +103,8 @@ const UserArea = () => {
                 cn(
                   "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex-shrink-0",
                   isActive
-                    ? "bg-white text-neutral-900 shadow-sm"
-                    : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                 )
               }
             >
@@ -128,8 +128,8 @@ const UserArea = () => {
                     cn(
                       "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all",
                       isActive
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-500 hover:text-neutral-700 hover:bg-white/50"
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/50"
                     )
                   }
                 >

@@ -373,7 +373,7 @@ function CalendarView() {
       {/* Calendar Header */}
       <div className="mb-4 sm:mb-6 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2 sm:gap-4">
-          <h2 className="text-lg sm:text-2xl font-semibold text-neutral-900">
+          <h2 className="text-lg sm:text-2xl font-semibold text-foreground">
             <span className="hidden md:inline">{getHeaderTitle()}</span>
             <span className="md:hidden">{getMobileHeaderTitle()}</span>
           </h2>
@@ -382,7 +382,7 @@ function CalendarView() {
               variant="ghost"
               size="icon"
               onClick={goToPrevious}
-              className="h-8 w-8 sm:h-9 sm:w-9 text-neutral-600 hover:text-neutral-900"
+              className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
               title={viewMode === 'month' ? 'Previous month' : 'Previous week'}
               aria-label={viewMode === 'month' ? 'Previous month' : 'Previous week'}
             >
@@ -392,7 +392,7 @@ function CalendarView() {
               variant="ghost"
               size="icon"
               onClick={goToNext}
-              className="h-8 w-8 sm:h-9 sm:w-9 text-neutral-600 hover:text-neutral-900"
+              className="h-8 w-8 sm:h-9 sm:w-9 text-muted-foreground hover:text-foreground"
               title={viewMode === 'month' ? 'Next month' : 'Next week'}
               aria-label={viewMode === 'month' ? 'Next month' : 'Next week'}
             >
@@ -403,13 +403,13 @@ function CalendarView() {
 
         <div className="flex items-center gap-2 sm:gap-3">
           {/* Desktop View Mode Toggle */}
-          <div className="hidden md:flex bg-[#F1F3F6] rounded-full p-1 gap-1">
+          <div className="hidden md:flex bg-muted rounded-full p-1 gap-1">
             <button
               onClick={() => setViewMode('week')}
               className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 viewMode === 'week'
-                  ? 'bg-white text-[#0F172A] font-medium shadow-sm rounded-full'
-                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+                  ? 'bg-card text-foreground font-medium shadow-sm rounded-full'
+                  : 'text-muted-foreground rounded-full hover:text-foreground'
               }`}
             >
               Weeks
@@ -418,8 +418,8 @@ function CalendarView() {
               onClick={() => setViewMode('month')}
               className={`px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 viewMode === 'month'
-                  ? 'bg-white text-[#0F172A] font-medium shadow-sm rounded-full'
-                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+                  ? 'bg-card text-foreground font-medium shadow-sm rounded-full'
+                  : 'text-muted-foreground rounded-full hover:text-foreground'
               }`}
             >
               Month
@@ -427,13 +427,13 @@ function CalendarView() {
           </div>
 
           {/* Mobile View Mode Toggle */}
-          <div className="flex md:hidden bg-[#F1F3F6] rounded-full p-1 gap-1">
+          <div className="flex md:hidden bg-muted rounded-full p-1 gap-1">
             <button
               onClick={() => setMobileViewMode('day')}
               className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
                 mobileViewMode === 'day'
-                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
-                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+                  ? 'bg-card text-foreground shadow-sm rounded-full'
+                  : 'text-muted-foreground rounded-full hover:text-foreground'
               }`}
             >
               Day
@@ -442,8 +442,8 @@ function CalendarView() {
               onClick={() => setMobileViewMode('3day')}
               className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
                 mobileViewMode === '3day'
-                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
-                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+                  ? 'bg-card text-foreground shadow-sm rounded-full'
+                  : 'text-muted-foreground rounded-full hover:text-foreground'
               }`}
             >
               3 Day
@@ -452,8 +452,8 @@ function CalendarView() {
               onClick={() => setMobileViewMode('week')}
               className={`px-2.5 py-1.5 text-xs font-medium transition-all duration-200 ${
                 mobileViewMode === 'week'
-                  ? 'bg-white text-[#0F172A] shadow-sm rounded-full'
-                  : 'text-[#64748B] rounded-full hover:text-[#0F172A]'
+                  ? 'bg-card text-foreground shadow-sm rounded-full'
+                  : 'text-muted-foreground rounded-full hover:text-foreground'
               }`}
             >
               Week
@@ -472,13 +472,13 @@ function CalendarView() {
 
       {/* Desktop Calendar Grid - Month View */}
       {viewMode === 'month' && (
-      <div className="hidden md:flex flex-1 bg-white rounded-2xl border border-[#E8EBF0] shadow-card overflow-hidden flex-col">
+      <div className="hidden md:flex flex-1 bg-card rounded-2xl border border-border shadow-card overflow-hidden flex-col">
         {/* Day names header */}
-        <div className="grid grid-cols-7 border-b border-[#F1F3F6]">
+        <div className="grid grid-cols-7 border-b border-border">
           {dayNames.map((day) => (
             <div
               key={day}
-              className="py-3 text-center text-[13px] uppercase tracking-wide font-medium text-[#94A3B8] border-r border-[#F1F3F6] last:border-r-0"
+              className="py-3 text-center text-[13px] uppercase tracking-wide font-medium text-muted-foreground border-r border-border last:border-r-0"
             >
               {day}
             </div>
@@ -493,10 +493,10 @@ function CalendarView() {
             return (
               <div
                 key={index}
-                className={`border-r border-b border-[#F1F3F6] last:border-r-0 p-2 transition-all duration-150 ${
-                  day ? 'bg-white hover:bg-[#FAFBFE]' : 'bg-neutral-50'
-                } ${holiday ? 'bg-red-50/70' : ''} ${isToday(day) ? 'bg-neutral-100/50' : ''} ${
-                  dragOverDay === day ? 'bg-primary-50 border-2 border-primary-400' : ''
+                className={`border-r border-b border-border last:border-r-0 p-2 transition-all duration-150 ${
+                  day ? 'bg-card hover:bg-muted' : 'bg-muted'
+                } ${holiday ? 'bg-red-50/70' : ''} ${isToday(day) ? 'bg-accent/50' : ''} ${
+                  dragOverDay === day ? 'bg-accent border-2 border-primary' : ''
                 }`}
                 onDragOver={day ? (e) => handleDragOver(e, day) : undefined}
                 onDragLeave={day ? handleDragLeave : undefined}
@@ -514,8 +514,8 @@ function CalendarView() {
                       <div
                         className={`text-sm font-medium ${
                           isToday(day)
-                            ? 'flex items-center justify-center w-7 h-7 bg-primary-600 text-white rounded-full'
-                            : 'text-neutral-900'
+                            ? 'flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground rounded-full'
+                            : 'text-foreground'
                         }`}
                       >
                         {day}
@@ -525,7 +525,7 @@ function CalendarView() {
                           e.stopPropagation();
                           handleDayClick(day);
                         }}
-                        className="text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg p-1 transition-all duration-150"
+                        className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-1 transition-all duration-150"
                         title="Add task"
                         aria-label={`Add task on day ${day}`}
                       >
@@ -569,7 +569,7 @@ function CalendarView() {
                               </div>
                             ))}
                             {remainingCount > 0 && (
-                              <div className="text-xs text-neutral-500 px-2 py-1">
+                              <div className="text-xs text-muted-foreground px-2 py-1">
                                 +{remainingCount} more
                               </div>
                             )}
@@ -588,27 +588,27 @@ function CalendarView() {
 
       {/* Desktop Week View Grid */}
       {viewMode === 'week' && (
-        <div className="hidden md:flex flex-1 bg-white rounded-2xl border border-[#E8EBF0] shadow-card overflow-hidden flex-col">
+        <div className="hidden md:flex flex-1 bg-card rounded-2xl border border-border shadow-card overflow-hidden flex-col">
           {/* Day headers with dates */}
-          <div className="grid grid-cols-7 border-b border-[#F1F3F6]">
+          <div className="grid grid-cols-7 border-b border-border">
             {weekDays.map((day, index) => {
               const holiday = getHolidayByDate(day.dateKey);
 
               return (
                 <div
                   key={index}
-                  className={`py-3 text-center border-r border-[#F1F3F6] last:border-r-0 ${
+                  className={`py-3 text-center border-r border-border last:border-r-0 ${
                     holiday ? 'bg-red-50/50' : ''
-                  } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : ''}`}
+                  } ${isTodayDate(day.date) ? 'bg-accent/50' : ''}`}
                 >
-                  <div className="text-[13px] uppercase tracking-wide font-medium text-[#94A3B8]">
+                  <div className="text-[13px] uppercase tracking-wide font-medium text-muted-foreground">
                     {dayNames[day.dayOfWeek]}
                   </div>
                   <div
                     className={`text-lg font-medium mt-1 ${
                       isTodayDate(day.date)
-                        ? 'flex items-center justify-center w-8 h-8 bg-primary-600 text-white rounded-full mx-auto'
-                        : 'text-neutral-900'
+                        ? 'flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full mx-auto'
+                        : 'text-foreground'
                     }`}
                   >
                     {day.dayNumber}
@@ -631,10 +631,10 @@ function CalendarView() {
               return (
                 <div
                   key={index}
-                  className={`border-r border-[#F1F3F6] last:border-r-0 flex flex-col ${
+                  className={`border-r border-border last:border-r-0 flex flex-col ${
                     holiday ? 'bg-red-50/70' : ''
-                  } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : 'bg-white'} ${
-                    dragOverDay === day.dateKey ? 'bg-primary-50 border-2 border-primary-400' : ''
+                  } ${isTodayDate(day.date) ? 'bg-accent/50' : 'bg-card'} ${
+                    dragOverDay === day.dateKey ? 'bg-accent border-2 border-primary' : ''
                   }`}
                   onDragOver={(e) => {
                     e.preventDefault();
@@ -665,7 +665,7 @@ function CalendarView() {
                       setSelectedTask(null);
                       setIsModalOpen(true);
                     }}
-                    className="w-full p-2 text-sm text-neutral-500 hover:text-neutral-700 hover:bg-[#F8F9FC] transition-all duration-150 border-b border-[#F1F3F6] flex items-center justify-center gap-1"
+                    className="w-full p-2 text-sm text-muted-foreground hover:text-foreground hover:bg-background transition-all duration-150 border-b border-border flex items-center justify-center gap-1"
                   >
                     <Plus size={14} />
                     <span>Add task</span>
@@ -700,17 +700,17 @@ function CalendarView() {
         {mobileViewMode === 'day' && (
           <div className="flex-1 flex flex-col">
             {/* Day header */}
-            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden mb-4">
-              <div className={`px-4 py-4 text-center ${isTodayDate(currentDate) ? 'bg-primary-50' : ''}`}>
-                <div className="text-xs uppercase tracking-wide font-medium text-neutral-500">
+            <div className="bg-card rounded-lg border border-border overflow-hidden mb-4">
+              <div className={`px-4 py-4 text-center ${isTodayDate(currentDate) ? 'bg-accent' : ''}`}>
+                <div className="text-xs uppercase tracking-wide font-medium text-muted-foreground">
                   {dayNames[currentDate.getDay()]}
                 </div>
                 <div className={`text-3xl font-semibold mt-1 ${
-                  isTodayDate(currentDate) ? 'text-primary-600' : 'text-neutral-900'
+                  isTodayDate(currentDate) ? 'text-primary' : 'text-foreground'
                 }`}>
                   {currentDate.getDate()}
                 </div>
-                <div className="text-sm text-neutral-500 mt-0.5">
+                <div className="text-sm text-muted-foreground mt-0.5">
                   {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
                 </div>
                 {(() => {
@@ -728,9 +728,9 @@ function CalendarView() {
             </div>
 
             {/* Tasks for this day */}
-            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden flex-1">
-              <div className="px-4 py-3 border-b border-[#E8EBF0] bg-[#F8F9FC] flex items-center justify-between">
-                <h3 className="font-semibold text-neutral-900 text-sm">Tasks</h3>
+            <div className="bg-card rounded-lg border border-border overflow-hidden flex-1">
+              <div className="px-4 py-3 border-b border-border bg-background flex items-center justify-between">
+                <h3 className="font-semibold text-foreground text-sm">Tasks</h3>
                 <button
                   onClick={() => {
                     const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
@@ -739,13 +739,13 @@ function CalendarView() {
                     setSelectedTask(null);
                     setIsModalOpen(true);
                   }}
-                  className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700"
+                  className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
                 >
                   <Plus size={14} />
                   <span>Add</span>
                 </button>
               </div>
-              <div className="divide-y divide-neutral-100 max-h-[500px] overflow-y-auto">
+              <div className="divide-y divide-border max-h-[500px] overflow-y-auto">
                 {(() => {
                   const mm = String(currentDate.getMonth() + 1).padStart(2, '0');
                   const dd = String(currentDate.getDate()).padStart(2, '0');
@@ -772,8 +772,8 @@ function CalendarView() {
                     ));
                   }
                   return (
-                    <div className="px-4 py-8 text-center text-neutral-500">
-                      <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
+                    <div className="px-4 py-8 text-center text-muted-foreground">
+                      <Calendar size={32} className="mx-auto mb-2 text-muted-foreground/50" />
                       <p className="text-sm">No tasks for this day</p>
                     </div>
                   );
@@ -797,17 +797,17 @@ function CalendarView() {
               const isCurrentDay = isTodayDate(dayDate);
 
               return (
-                <div key={dateKey} className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden">
+                <div key={dateKey} className="bg-card rounded-lg border border-border overflow-hidden">
                   {/* Day header */}
-                  <div className={`px-4 py-2.5 border-b border-[#E8EBF0] flex items-center justify-between ${
-                    isCurrentDay ? 'bg-primary-50' : 'bg-[#F8F9FC]'
+                  <div className={`px-4 py-2.5 border-b border-border flex items-center justify-between ${
+                    isCurrentDay ? 'bg-accent' : 'bg-background'
                   }`}>
                     <div className="flex items-center gap-2">
-                      <span className={`text-sm font-semibold ${isCurrentDay ? 'text-primary-600' : 'text-neutral-900'}`}>
+                      <span className={`text-sm font-semibold ${isCurrentDay ? 'text-primary' : 'text-foreground'}`}>
                         {dayNames[dayDate.getDay()]}, {monthNamesShort[dayDate.getMonth()]} {dayDate.getDate()}
                       </span>
                       {isCurrentDay && (
-                        <span className="text-xs px-1.5 py-0.5 bg-primary-100 text-primary-700 rounded-full">Today</span>
+                        <span className="text-xs px-1.5 py-0.5 bg-accent text-primary rounded-full">Today</span>
                       )}
                       {holiday && (
                         <span className="text-xs text-red-600 font-medium">{holiday.localName || holiday.name}</span>
@@ -819,7 +819,7 @@ function CalendarView() {
                         setSelectedTask(null);
                         setIsModalOpen(true);
                       }}
-                      className="p-1 text-neutral-400 hover:text-primary-600"
+                      className="p-1 text-muted-foreground hover:text-primary"
                     >
                       <Plus size={16} />
                     </button>
@@ -827,7 +827,7 @@ function CalendarView() {
 
                   {/* Tasks */}
                   {dayTasks.length > 0 ? (
-                    <div className="divide-y divide-neutral-100">
+                    <div className="divide-y divide-border">
                       {dayTasks.map((task) => (
                         <button
                           key={task.id}
@@ -844,7 +844,7 @@ function CalendarView() {
                       ))}
                     </div>
                   ) : (
-                    <div className="px-4 py-4 text-center text-neutral-400 text-sm">
+                    <div className="px-4 py-4 text-center text-muted-foreground text-sm">
                       No tasks
                     </div>
                   )}
@@ -858,8 +858,8 @@ function CalendarView() {
         {mobileViewMode === 'week' && (
           <>
             {/* Compact week selector */}
-            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden mb-4">
-              <div className="grid grid-cols-7 border-b border-[#E8EBF0]">
+            <div className="bg-card rounded-lg border border-border overflow-hidden mb-4">
+              <div className="grid grid-cols-7 border-b border-border">
                 {weekDays.map((day, index) => {
                   const dayTasks = getTasksForDateKey(day.dateKey);
                   const hasTask = dayTasks.length > 0;
@@ -875,18 +875,18 @@ function CalendarView() {
                       }}
                       className={`p-2 text-center transition-all duration-150 ${
                         holiday ? 'bg-red-50/70' : ''
-                      } ${isTodayDate(day.date) ? 'bg-neutral-100/50' : ''}`}
+                      } ${isTodayDate(day.date) ? 'bg-accent/50' : ''}`}
                     >
-                      <span className="text-xs text-neutral-500 block">
+                      <span className="text-xs text-muted-foreground block">
                         {dayNamesShort[day.dayOfWeek]}
                       </span>
                       <span
                         className={`text-sm font-medium block ${
                           isTodayDate(day.date)
-                            ? 'flex items-center justify-center w-6 h-6 bg-primary-600 text-white rounded-full mx-auto'
+                            ? 'flex items-center justify-center w-6 h-6 bg-primary text-primary-foreground rounded-full mx-auto'
                             : holiday
                             ? 'text-red-600'
-                            : 'text-neutral-900'
+                            : 'text-foreground'
                         }`}
                       >
                         {day.dayNumber}
@@ -916,11 +916,11 @@ function CalendarView() {
             </div>
 
             {/* Tasks List for Week */}
-            <div className="bg-white rounded-lg border border-[#E8EBF0] overflow-hidden flex-1">
-              <div className="px-4 py-3 border-b border-[#E8EBF0] bg-[#F8F9FC]">
-                <h3 className="font-semibold text-neutral-900 text-sm">Tasks this week</h3>
+            <div className="bg-card rounded-lg border border-border overflow-hidden flex-1">
+              <div className="px-4 py-3 border-b border-border bg-background">
+                <h3 className="font-semibold text-foreground text-sm">Tasks this week</h3>
               </div>
-              <div className="divide-y divide-neutral-100 max-h-[400px] overflow-y-auto">
+              <div className="divide-y divide-border max-h-[400px] overflow-y-auto">
                 {(() => {
                   const tasksInWeek = weekDays
                     .map((day) => ({
@@ -933,10 +933,10 @@ function CalendarView() {
                     return tasksInWeek.map(({ day, tasks: dayTasks }) => (
                       <div key={day.dateKey} className="px-4 py-3">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calendar size={14} className="text-neutral-400" />
+                          <Calendar size={14} className="text-muted-foreground" />
                           <span
                             className={`text-sm font-medium ${
-                              isTodayDate(day.date) ? 'text-neutral-900' : 'text-neutral-700'
+                              isTodayDate(day.date) ? 'text-foreground' : 'text-foreground'
                             }`}
                           >
                             {dayNames[day.dayOfWeek]}, {monthNamesShort[day.month]} {day.dayNumber}
@@ -963,8 +963,8 @@ function CalendarView() {
                     ));
                   } else {
                     return (
-                      <div className="px-4 py-8 text-center text-neutral-500">
-                        <Calendar size={32} className="mx-auto mb-2 text-neutral-300" />
+                      <div className="px-4 py-8 text-center text-muted-foreground">
+                        <Calendar size={32} className="mx-auto mb-2 text-muted-foreground/50" />
                         <p className="text-sm">No tasks scheduled this week</p>
                       </div>
                     );
