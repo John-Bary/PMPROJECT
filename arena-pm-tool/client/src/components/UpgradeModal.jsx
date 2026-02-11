@@ -110,7 +110,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                   <span className="text-muted-foreground text-sm">{plan.period}</span>
                 </div>
 
-                <ul className="space-y-3 mb-6 flex-1">
+                <ul className="space-y-2.5 mb-6 flex-1">
                   {plan.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
                       <Check size={16} className="text-primary flex-shrink-0 mt-0.5" />
@@ -134,7 +134,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                       variant="secondary"
                       onClick={handleManage}
                       disabled={loadingPlan === 'manage'}
-                      className="w-full"
+                      className="w-full transition-colors duration-150"
                     >
                       {loadingPlan === 'manage' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Manage Subscription
@@ -144,10 +144,10 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
                   <Button
                     onClick={() => handleUpgrade(plan.id)}
                     disabled={isLoading}
-                    className="w-full"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 font-semibold shadow-sm"
                   >
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isLoading ? 'Redirecting...' : plan.cta}
+                    {isLoading ? 'Redirecting to checkout...' : plan.cta}
                   </Button>
                 )}
               </div>

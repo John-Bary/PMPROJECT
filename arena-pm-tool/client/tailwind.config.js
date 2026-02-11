@@ -25,16 +25,20 @@ module.exports = {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
         },
-        // Status colors
-        success: '#10B981',
-        warning: '#F59E0B',
-        danger:  '#EF4444',
-        info:    '#0EA5E9',
-        // Priority colors
+        // Status colors — consistent semantic mapping
+        success: '#16A34A',
+        warning: '#D97706',
+        danger:  '#DC2626',
+        info:    '#0284C7',
+        // Priority colors — maximally distinct hues
         'priority-urgent': '#DC2626',
         'priority-high':   '#EA580C',
         'priority-medium': '#CA8A04',
         'priority-low':    '#2563EB',
+        // Status column colors
+        'status-todo':        '#6B7280',
+        'status-in-progress': '#2563EB',
+        'status-completed':   '#16A34A',
 
         // shadcn/ui CSS variable colors
         border: "hsl(var(--border))",

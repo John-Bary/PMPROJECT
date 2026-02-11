@@ -204,7 +204,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {...(provided?.draggableProps || {})}
           {...(canEdit && provided?.dragHandleProps ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-card border border-border rounded-xl p-3 sm:p-4 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'active:cursor-grabbing' : ''} group relative ${
+          className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-50' : ''
           } ${snapshot?.isDragging ? 'shadow-elevated' : ''}`}
         >
@@ -221,7 +221,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               </button>
               <button
                 onClick={handleDelete}
-                className="p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150"
                 title="Delete task"
                 aria-label="Delete task"
               >
@@ -231,7 +231,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           )}
 
       {/* Completion Checkbox and Title */}
-      <div className="flex items-start gap-3 mb-2">
+      <div className="flex items-start gap-2">
         <button
           onClick={handleToggleComplete}
           className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
@@ -264,7 +264,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         ) : (
           <h4
             onClick={handleTitleClick}
-            className={`font-medium text-foreground flex-1 pr-16 ${canEdit ? 'cursor-text hover:bg-accent' : 'cursor-default'} rounded-lg px-1 -mx-1 transition-all duration-150 ${
+            className={`font-medium text-foreground flex-1 pr-16 leading-snug ${canEdit ? 'cursor-text hover:bg-accent/50' : 'cursor-default'} rounded px-1 -mx-1 transition-colors duration-150 ${
               isCompleted ? 'line-through text-muted-foreground' : ''
             }`}
             title={canEdit ? 'Click to edit' : ''}
@@ -276,65 +276,63 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
       {/* Task Description */}
       {task.description && (
-        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{task.description}</p>
+        <p className="text-sm text-muted-foreground line-clamp-2 ml-7">{task.description}</p>
       )}
 
       {/* Subtask Count */}
       {task.subtaskCount > 0 && (
-        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-3">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-7">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          <span>{task.completedSubtaskCount}/{task.subtaskCount} subtasks completed</span>
+          <span>{task.completedSubtaskCount}/{task.subtaskCount} subtasks</span>
         </div>
       )}
 
-      {/* Task Metadata - stacks on mobile */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        {/* Priority Badge - clickable with dropdown */}
+      {/* Task Metadata Row */}
+      <div className="flex flex-wrap items-center gap-2 ml-7">
+        {/* Priority Badge */}
         <div className="relative" ref={priorityDropdownRef}>
           <button
             onClick={handlePriorityClick}
-            className={`px-2 py-0.5 sm:py-1 rounded-md text-xs font-medium border hover:opacity-80 transition flex items-center gap-1 ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}
+            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
             title="Change priority"
           >
             {task.priority}
-            <ChevronDown size={10} />
+            <ChevronDown size={10} className="opacity-60" />
           </button>
 
           {/* Priority Dropdown */}
           {showPriorityDropdown && (
-            <div className="absolute left-0 mt-1 w-32 bg-card border border-border rounded-lg shadow-sm z-50 animate-fade-in">
-              <div className="py-1">
-                {priorities.map((priority) => (
-                  <button
-                    key={priority}
-                    onClick={() => handlePrioritySelect(priority)}
-                    className={`w-full px-3 py-2 text-left text-xs font-medium hover:bg-accent flex items-center justify-between transition-all duration-150 ${
-                      task.priority === priority ? 'bg-accent' : ''
-                    }`}
-                  >
-                    <span className={`px-2 py-1 rounded-md border ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
-                      {priority}
-                    </span>
-                    {task.priority === priority && (
-                      <Check size={14} className="text-primary" />
-                    )}
-                  </button>
-                ))}
-              </div>
+            <div className="absolute left-0 mt-1 w-32 bg-card border border-border rounded-lg shadow-sm z-50 p-1">
+              {priorities.map((priority) => (
+                <button
+                  key={priority}
+                  onClick={() => handlePrioritySelect(priority)}
+                  className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent rounded-md flex items-center gap-2 transition-all duration-150 ${
+                    task.priority === priority ? 'bg-accent' : ''
+                  }`}
+                >
+                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
+                    {priority}
+                  </span>
+                  {task.priority === priority && (
+                    <Check size={12} className="ml-auto text-primary" />
+                  )}
+                </button>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Due Date - clickable with calendar popup */}
+        {/* Due Date */}
         <div className="relative" ref={datePickerRef}>
           <button
             onClick={handleDateClick}
-            className={`flex items-center gap-1 px-2 py-0.5 sm:py-1 rounded-lg transition-all duration-150 text-xs ${
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all duration-150 text-xs ${
               isOverdue
                 ? 'text-red-600 font-medium bg-red-50 border border-red-200'
-                : 'text-muted-foreground hover:bg-accent'
+                : 'text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer'
             }`}
             title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
           >
@@ -359,7 +357,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         <div className="relative" ref={assigneeDropdownRef} data-dropdown>
           <button
             onClick={handleAssigneeClick}
-            className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 sm:py-1 transition-all duration-150"
+            className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 transition-all duration-150 cursor-pointer"
             title="Manage assignees"
           >
             {(task.assignees || []).length > 0 ? (
@@ -369,7 +367,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                   {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
                     <div
                       key={assignee.id}
-                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]} flex items-center justify-center text-white text-xs font-medium border-2 border-white`}
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]} flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card`}
                       style={{ zIndex: 3 - idx }}
                       title={assignee.name}
                     >
@@ -378,7 +376,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                   ))}
                   {(task.assignees || []).length > 3 && (
                     <div
-                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
+                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card"
                       title={`+${(task.assignees || []).length - 3} more`}
                     >
                       +{(task.assignees || []).length - 3}
@@ -389,8 +387,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               </div>
             ) : (
               <>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-300 flex items-center justify-center text-white text-xs font-medium">
-                  ?
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-input flex items-center justify-center">
+                  <span className="text-muted-foreground text-[11px]">?</span>
                 </div>
                 <span className="text-xs text-muted-foreground hidden sm:inline ml-1">Assign</span>
                 <ChevronDown size={10} className="text-muted-foreground ml-0.5" />

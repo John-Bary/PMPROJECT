@@ -75,10 +75,10 @@ function CategorySection({
                 {canEdit ? (
                   <div
                     {...categoryProvided.dragHandleProps}
-                    className="p-1 text-[#D1D5DB] hover:text-[#94A3B8] cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
+                    className="p-1 text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0"
                     title="Drag to reorder category"
                   >
-                    <GripVertical size={14} />
+                    <GripVertical size={16} />
                   </div>
                 ) : (
                   <div className="w-6" /> /* Spacer for alignment */
@@ -87,7 +87,7 @@ function CategorySection({
                 {/* Collapse/Expand Button */}
                 <button
                   onClick={toggleCollapse}
-                  className="text-[#94A3B8] hover:text-[#64748B] transition-all duration-150 p-0.5 flex-shrink-0"
+                  className="text-muted-foreground hover:text-foreground transition-all duration-150 p-0.5 flex-shrink-0"
                   title={isCollapsed ? 'Expand category' : 'Collapse category'}
                   aria-label={isCollapsed ? `Expand ${category.name} category` : `Collapse ${category.name} category`}
                 >
@@ -98,7 +98,7 @@ function CategorySection({
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: category.color }}
                 ></div>
-                <h3 className="text-[13px] uppercase tracking-wide font-medium text-[#64748B] truncate">{category.name}</h3>
+                <h3 className="text-sm font-semibold text-foreground tracking-wide truncate">{category.name}</h3>
                 <span className="font-mono text-xs sm:text-sm text-muted-foreground flex-shrink-0">({tasks.length})</span>
               </div>
 
@@ -107,7 +107,7 @@ function CategorySection({
                 <div className="flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                   <button
                     onClick={() => onEditCategory(category)}
-                    className="p-1.5 sm:p-1 text-[#94A3B8] hover:text-[#64748B] hover:bg-background rounded-lg transition-all duration-150"
+                    className="p-1.5 sm:p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
                     title="Edit category"
                     aria-label={`Edit ${category.name} category`}
                   >
@@ -115,7 +115,7 @@ function CategorySection({
                   </button>
                   <button
                     onClick={() => onDeleteCategory(category)}
-                    className="p-1.5 sm:p-1 text-[#94A3B8] hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                    className="p-1.5 sm:p-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150"
                     title="Delete category"
                     aria-label={`Delete ${category.name} category`}
                   >
@@ -137,7 +137,7 @@ function CategorySection({
                 onKeyDown={handleQuickAdd}
                 placeholder="Add a task..."
                 disabled={isQuickAdding}
-                className="w-full px-3 py-2 text-sm bg-transparent border-b border-transparent focus:border-ring placeholder:text-muted-foreground text-foreground outline-none transition-colors disabled:opacity-50"
+                className="w-full border border-dashed border-border rounded-md px-3 py-2 text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none hover:border-primary/50 hover:text-foreground focus:border-primary focus:ring-1 focus:ring-ring cursor-pointer transition-colors disabled:opacity-50"
               />
             </div>
           )}

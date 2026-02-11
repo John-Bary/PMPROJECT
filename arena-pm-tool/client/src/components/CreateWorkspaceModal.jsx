@@ -84,10 +84,13 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g., Marketing Team"
+              placeholder="e.g., Marketing Team, Product Launch"
               disabled={isLoading}
               autoFocus
             />
+            <p className="text-xs text-muted-foreground">
+              Give your workspace a name that your team will recognize.
+            </p>
           </div>
 
           {error && (
@@ -111,7 +114,7 @@ function CreateWorkspaceModal({ isOpen, onClose, redirectToDashboard = true }) {
               disabled={isLoading || !name.trim()}
             >
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isLoading ? 'Creating...' : 'Create Workspace'}
+              {isLoading ? 'Creating workspace...' : 'Create workspace'}
             </Button>
           </DialogFooter>
         </form>

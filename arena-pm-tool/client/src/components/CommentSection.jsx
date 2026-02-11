@@ -140,7 +140,7 @@ function CommentSection({ taskId }) {
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-foreground mb-4">Comments</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">Comments</h3>
 
       {/* Comment Input */}
       <div className="flex gap-3 mb-6">
@@ -156,7 +156,7 @@ function CommentSection({ taskId }) {
             onChange={(e) => setNewComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Write a comment..."
-            className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm placeholder:text-muted-foreground"
             rows={2}
             disabled={isSubmitting}
           />
@@ -168,6 +168,7 @@ function CommentSection({ taskId }) {
               onClick={handleSubmitComment}
               disabled={!newComment.trim() || isSubmitting}
               size="sm"
+              className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
             >
               {isSubmitting ? (
                 <>
@@ -222,7 +223,7 @@ function CommentSection({ taskId }) {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className="p-1 text-muted-foreground hover:text-muted-foreground hover:bg-accent rounded opacity-0 group-hover:opacity-100 transition"
+                            className="p-1 text-muted-foreground hover:text-foreground hover:bg-accent rounded opacity-0 group-hover:opacity-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
                             <MoreHorizontal size={16} />
                           </button>
@@ -238,7 +239,7 @@ function CommentSection({ taskId }) {
                           <DropdownMenuItem
                             onClick={() => handleDeleteComment(comment.id)}
                             disabled={deletingIds.has(comment.id)}
-                            className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-red-50"
+                            className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-destructive focus:text-destructive focus:bg-destructive/10"
                           >
                             {deletingIds.has(comment.id) ? (
                               <>
@@ -265,7 +266,7 @@ function CommentSection({ taskId }) {
                       ref={editTextareaRef}
                       value={editingContent}
                       onChange={(e) => setEditingContent(e.target.value)}
-                      className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm"
+                      className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring resize-none text-sm placeholder:text-muted-foreground"
                       rows={2}
                     />
                     <div className="flex gap-2 mt-2">
@@ -273,15 +274,15 @@ function CommentSection({ taskId }) {
                         onClick={handleSaveEdit}
                         disabled={!editingContent.trim()}
                         size="sm"
-                        className="h-7 text-xs"
+                        className="h-7 text-xs bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         Save
                       </Button>
                       <Button
                         onClick={handleCancelEdit}
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 text-xs"
+                        className="h-7 text-xs hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         Cancel
                       </Button>

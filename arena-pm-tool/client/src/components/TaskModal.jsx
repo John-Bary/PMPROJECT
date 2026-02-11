@@ -11,6 +11,7 @@ import { Input } from 'components/ui/input';
 import { Textarea } from 'components/ui/textarea';
 import { Label } from 'components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from 'components/ui/select';
+import { Separator } from 'components/ui/separator';
 
 const TaskModal = ({
   isOpen,
@@ -262,213 +263,230 @@ const TaskModal = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditMode ? 'Edit Task' : isSubtask ? 'Add Subtask' : 'Create New Task'}
-            </DialogTitle>
-            <DialogDescription>
-              {isEditMode ? 'Update the task details below.' : isSubtask ? 'Add a subtask to the parent task.' : 'Fill in the details to create a new task.'}
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-lg p-0">
+          <div className="p-6">
+            <DialogHeader className="mb-4">
+              <DialogTitle>
+                {isEditMode ? 'Edit Task' : isSubtask ? 'Add Subtask' : 'Create New Task'}
+              </DialogTitle>
+              <DialogDescription>
+                {isEditMode ? 'Update the task details below.' : isSubtask ? 'Add a subtask to the parent task.' : 'Fill in the details to create a new task.'}
+              </DialogDescription>
+            </DialogHeader>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Title */}
-            <div className="space-y-2">
-              <Label htmlFor="title">
-                Task Title <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                ref={titleInputRef}
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className={errors.title ? 'border-red-500' : ''}
-                placeholder="Enter task title"
-                disabled={isSubmitting}
-              />
-              {errors.title && (
-                <p className="text-sm text-red-500">{errors.title}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                Description
-              </Label>
-              <Textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                rows={3}
-                placeholder="Enter task description (optional)"
-                disabled={isSubmitting}
-              />
-            </div>
-
-            {/* Category - hidden for subtasks */}
-            {!isSubtask && (
-              <div className="space-y-2">
-                <Label htmlFor="categoryId">
-                  Category <span className="text-red-500">*</span>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {/* Title */}
+              <div className="space-y-1.5">
+                <Label htmlFor="title" className="text-sm font-medium text-foreground">
+                  Task Title <span className="text-red-500">*</span>
                 </Label>
-                <Select
-                  value={formData.categoryId ? String(formData.categoryId) : ""}
-                  onValueChange={(val) => {
-                    setFormData(prev => ({ ...prev, categoryId: val }));
-                    if (errors.categoryId) setErrors(prev => ({ ...prev, categoryId: '' }));
-                  }}
+                <Input
+                  ref={titleInputRef}
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  className={`focus-visible:ring-2 focus-visible:ring-ring ${errors.title ? 'border-red-500' : ''}`}
+                  placeholder="Enter task title"
                   disabled={isSubmitting}
-                >
-                  <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={String(category.id)}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.categoryId && (
-                  <p className="text-sm text-red-500">{errors.categoryId}</p>
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-500">{errors.title}</p>
                 )}
               </div>
-            )}
 
-            {/* Priority */}
-            <div className="space-y-2">
-              <Label htmlFor="priority">
-                Priority
-              </Label>
-              <Select
-                value={formData.priority}
-                onValueChange={(val) => setFormData(prev => ({ ...prev, priority: val }))}
-                disabled={isSubmitting}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              {/* Description */}
+              <div className="space-y-1.5">
+                <Label htmlFor="description" className="text-sm font-medium text-foreground">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={3}
+                  placeholder="Enter task description (optional)"
+                  disabled={isSubmitting}
+                  className="focus-visible:ring-2 focus-visible:ring-ring"
+                />
+                <p className="text-sm text-muted-foreground">Optional details about this task.</p>
+              </div>
 
-            {/* Assignees - Multi-select */}
-            <div className="space-y-2">
-              <Label>
-                Assignees
-              </Label>
+              <Separator />
 
-              {/* Selected assignees as chips */}
-              {formData.assigneeIds.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {formData.assigneeIds.map((userId) => {
-                    const user = getUserById(userId);
-                    if (!user) return null;
-                    return (
-                      <span
-                        key={userId}
-                        className="inline-flex items-center gap-1 px-2 py-1 bg-accent text-foreground rounded-full text-sm border border-border"
-                      >
-                        <span className="w-5 h-5 rounded-full bg-neutral-600 text-white text-xs flex items-center justify-center font-medium">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                        <span className="max-w-[100px] truncate">{user.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveAssignee(userId)}
-                          className="ml-0.5 p-0.5 hover:bg-input rounded-full transition-colors"
-                          disabled={isSubmitting}
-                          aria-label={`Remove ${user.name} from assignees`}
-                        >
-                          <X size={12} />
-                        </button>
-                      </span>
-                    );
-                  })}
+              {/* Properties group: Assignee, Due Date, Priority */}
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-2">Properties</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Priority */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="priority" className="text-sm font-medium text-foreground">
+                      Priority
+                    </Label>
+                    <Select
+                      value={formData.priority}
+                      onValueChange={(val) => setFormData(prev => ({ ...prev, priority: val }))}
+                      disabled={isSubmitting}
+                    >
+                      <SelectTrigger className="focus-visible:ring-2 focus-visible:ring-ring">
+                        <SelectValue placeholder="Select priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Due Date */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="dueDate" className="text-sm font-medium text-foreground">
+                      Due Date
+                    </Label>
+                    <Input
+                      type="date"
+                      id="dueDate"
+                      name="dueDate"
+                      value={formData.dueDate}
+                      onChange={handleChange}
+                      disabled={isSubmitting}
+                      className="focus-visible:ring-2 focus-visible:ring-ring"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Category - hidden for subtasks */}
+              {!isSubtask && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="categoryId" className="text-sm font-medium text-foreground">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.categoryId ? String(formData.categoryId) : ""}
+                    onValueChange={(val) => {
+                      setFormData(prev => ({ ...prev, categoryId: val }));
+                      if (errors.categoryId) setErrors(prev => ({ ...prev, categoryId: '' }));
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    <SelectTrigger className={`focus-visible:ring-2 focus-visible:ring-ring ${errors.categoryId ? 'border-red-500' : ''}`}>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={String(category.id)}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.categoryId && (
+                    <p className="text-sm text-red-500">{errors.categoryId}</p>
+                  )}
                 </div>
               )}
 
-              {/* Dropdown to add more assignees */}
-              <div className="relative">
-                <select
-                  onChange={handleAddAssignee}
-                  value=""
-                  className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all duration-150 appearance-none"
-                  disabled={isSubmitting || availableUsers.length === 0}
-                >
-                  <option value="">
-                    {availableUsers.length === 0
-                      ? (formData.assigneeIds.length === 0 ? 'No users available' : 'All users assigned')
-                      : 'Add assignee...'}
-                  </option>
-                  {availableUsers.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
+              {/* Assignees - Multi-select */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-foreground">
+                  Assignees
+                </Label>
+
+                {/* Selected assignees as chips */}
+                {formData.assigneeIds.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-1.5">
+                    {formData.assigneeIds.map((userId) => {
+                      const user = getUserById(userId);
+                      if (!user) return null;
+                      return (
+                        <span
+                          key={userId}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-accent text-foreground rounded-full text-sm border border-border"
+                        >
+                          <span className="w-5 h-5 rounded-full bg-neutral-600 text-white text-xs flex items-center justify-center font-medium">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                          <span className="max-w-[100px] truncate">{user.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveAssignee(userId)}
+                            className="ml-0.5 p-0.5 hover:bg-input rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            disabled={isSubmitting}
+                            aria-label={`Remove ${user.name} from assignees`}
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Dropdown to add more assignees */}
+                <div className="relative">
+                  <select
+                    onChange={handleAddAssignee}
+                    value=""
+                    className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition-all duration-150 appearance-none text-sm"
+                    disabled={isSubmitting || availableUsers.length === 0}
+                  >
+                    <option value="">
+                      {availableUsers.length === 0
+                        ? (formData.assigneeIds.length === 0 ? 'No users available' : 'All users assigned')
+                        : 'Add assignee...'}
                     </option>
-                  ))}
-                </select>
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                  <Plus size={16} className="text-muted-foreground" />
+                    {availableUsers.map((user) => (
+                      <option key={user.id} value={user.id}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Plus size={16} className="text-muted-foreground" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Due Date */}
-            <div className="space-y-2">
-              <Label htmlFor="dueDate">
-                Due Date
-              </Label>
-              <Input
-                type="date"
-                id="dueDate"
-                name="dueDate"
-                value={formData.dueDate}
-                onChange={handleChange}
-                disabled={isSubmitting}
-              />
-            </div>
+              {/* Submit Error */}
+              {errors.submit && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-destructive">{errors.submit}</p>
+                </div>
+              )}
 
-            {/* Submit Error */}
-            {errors.submit && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-destructive">{errors.submit}</p>
-              </div>
-            )}
+              <Separator />
 
-            {/* Action Buttons */}
-            <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSubmitting
-                  ? (isEditMode ? 'Updating...' : 'Creating...')
-                  : (isEditMode ? 'Update Task' : 'Create Task')
-                }
-              </Button>
-            </DialogFooter>
-          </form>
+              {/* Action Buttons */}
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={isSubmitting}
+                  className="hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isSubmitting
+                    ? (isEditMode ? 'Updating...' : 'Creating...')
+                    : (isEditMode ? 'Update Task' : 'Create Task')
+                  }
+                </Button>
+              </DialogFooter>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
 

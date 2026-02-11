@@ -11,6 +11,8 @@ function Spinner({ size = 'md', className = '' }) {
 
   return (
     <div
+      role="status"
+      aria-label="Loading"
       className={`animate-spin rounded-full border-primary border-t-transparent ${sizeClasses[size]} ${className}`}
     ></div>
   );
@@ -19,8 +21,8 @@ function Spinner({ size = 'md', className = '' }) {
 // Full page loader
 export function PageLoader() {
   return (
-    <div className="flex items-center justify-center py-12">
-      <Spinner size="lg" />
+    <div className="flex items-center justify-center py-12 w-full">
+      <Spinner size="lg" className="text-primary" />
     </div>
   );
 }

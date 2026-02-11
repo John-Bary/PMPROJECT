@@ -75,8 +75,8 @@ function ActivityFeed({ workspaceId }) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="text-foreground">
-                      <span className="font-medium">{userName}</span>{' '}
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium text-foreground">{userName}</span>{' '}
                       {formatAction(activity)}
                     </p>
                     <p className="text-xs text-muted-foreground mt-0.5">

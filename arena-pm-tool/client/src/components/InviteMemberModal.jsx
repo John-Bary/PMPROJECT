@@ -227,7 +227,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                 onClick={handleInviteAnother}
               >
                 <UserPlus className="h-4 w-4 mr-2" />
-                <span>Invite Another</span>
+                <span>Invite another member</span>
               </Button>
             </DialogFooter>
           </div>
@@ -256,24 +256,30 @@ function InviteMemberModal({ isOpen, onClose }) {
                   autoFocus
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                They will receive an email with a link to join this workspace.
+              </p>
             </div>
 
             {/* Role Selection */}
-            <div className="mb-6">
+            <div className="mb-4">
               <Label className="mb-2 block">
                 <div className="flex items-center gap-1.5">
                   <Shield className="h-4 w-4" />
                   <span>Role</span>
                 </div>
               </Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Choose what level of access this member will have.
+              </p>
               <div className="space-y-2">
                 {ROLE_OPTIONS.map((role) => (
                   <label
                     key={role.value}
-                    className={`flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-all duration-150 ${
+                    className={`flex items-start gap-3 p-2.5 border rounded-lg cursor-pointer transition-colors duration-150 ${
                       formData.role === role.value
-                        ? 'border-primary bg-accent'
-                        : 'border-border hover:border-input'
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border hover:bg-accent hover:border-input'
                     } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <input
@@ -282,12 +288,12 @@ function InviteMemberModal({ isOpen, onClose }) {
                       value={role.value}
                       checked={formData.role === role.value}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      className="mt-0.5 w-4 h-4 text-primary border-input focus:ring-primary"
+                      className="mt-0.5 w-4 h-4 text-primary border-input focus:ring-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       disabled={isSubmitting}
                     />
                     <div>
-                      <div className="font-medium text-foreground">{role.label}</div>
-                      <div className="text-sm text-muted-foreground">{role.description}</div>
+                      <div className="font-medium text-foreground text-sm">{role.label}</div>
+                      <div className="text-xs text-muted-foreground">{role.description}</div>
                     </div>
                   </label>
                 ))}
@@ -316,7 +322,7 @@ function InviteMemberModal({ isOpen, onClose }) {
                 disabled={isSubmitting}
               >
                 {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isSubmitting ? 'Sending...' : 'Send Invitation'}
+                {isSubmitting ? 'Sending invitation...' : 'Send invitation'}
               </Button>
             </DialogFooter>
           </form>

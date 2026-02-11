@@ -38,12 +38,12 @@ function EmptyState({
     >
       {Icon && (
         <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent text-primary">
-          <Icon size={20} />
+          <Icon size={20} className="h-5 w-5" />
         </div>
       )}
 
       <div className="space-y-1 max-w-2xl">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+        <h3 className={`font-semibold text-foreground ${size === 'sm' ? 'text-sm' : 'text-lg'}`}>{title}</h3>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
         {children}
       </div>

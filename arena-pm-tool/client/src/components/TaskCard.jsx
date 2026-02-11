@@ -154,8 +154,8 @@ function TaskCard({
               bg-card rounded-xl border border-border shadow-card
               hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150
               ${task.priority ? `border-l-[3px] ${priorityBorderColors[task.priority]}` : ''}
-              ${compact ? 'p-2' : 'p-4'}
-              cursor-pointer
+              p-3 space-y-2
+              cursor-grab active:cursor-grabbing
               ${isCompleted ? 'opacity-50' : ''}
               ${snapshot.isDragging ? 'shadow-elevated border-border' : ''}
             `}
@@ -185,7 +185,7 @@ function TaskCard({
 
               <div className="flex-1 min-w-0">
                 <h4 className={`
-                  text-sm font-medium text-foreground line-clamp-2 leading-tight
+                  font-medium text-foreground line-clamp-2 leading-snug
                   ${isCompleted ? 'line-through text-muted-foreground' : ''}
                 `}>
                   {task.title}
@@ -195,15 +195,15 @@ function TaskCard({
 
             {/* Description preview */}
             {!compact && task.description && (
-              <p className="mt-1.5 ml-7 text-xs text-muted-foreground line-clamp-2">
+              <p className="ml-7 text-sm text-muted-foreground line-clamp-2">
                 {task.description}
               </p>
             )}
 
             {/* Subtasks progress */}
             {totalSubtasks > 0 && (
-              <div className="mt-2 ml-7 flex items-center gap-1.5 text-xs text-muted-foreground">
-                <ListTodo size={12} className="text-muted-foreground" />
+              <div className="ml-7 flex items-center gap-1.5 text-xs text-muted-foreground">
+                <ListTodo size={14} className="h-4 w-4 text-muted-foreground" />
                 <span>{completedSubtasks}/{totalSubtasks}</span>
                 <div className="flex-1 h-0.5 bg-accent rounded-full overflow-hidden max-w-[60px]">
                   <div
@@ -214,15 +214,15 @@ function TaskCard({
               </div>
             )}
 
-            {/* Footer: Priority, Due Date, Assignee */}
-            <div className={`${compact ? 'mt-2' : 'mt-3'} ml-7 flex items-center gap-2 flex-wrap`}>
-              {/* Priority Badge */}
+            {/* Metadata Row: Priority, Due Date, Assignee */}
+            <div className="ml-7 flex items-center gap-2 flex-wrap">
+              {/* Priority Badge - looks like a badge, not a button */}
               <div className="relative" ref={priorityDropdownRef} data-dropdown>
                 <button
                   onClick={handlePriorityClick}
                   className={`
-                    px-2 py-0.5 rounded-md text-xs font-medium border
-                    flex items-center gap-1 hover:opacity-80 transition
+                    inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
+                    hover:opacity-80 transition cursor-pointer
                     ${priorityPillStyles[task.priority]}
                   `}
                   title="Change priority"
@@ -232,26 +232,24 @@ function TaskCard({
                 </button>
 
                 {showPriorityDropdown && (
-                  <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50">
-                    <div className="py-1">
-                      {priorities.map((priority) => (
-                        <button
-                          key={priority}
-                          onClick={() => handlePrioritySelect(priority)}
-                          className={`
-                            w-full px-2 py-1.5 text-left text-xs font-medium
-                            hover:bg-muted flex items-center gap-2 transition
-                            ${task.priority === priority ? 'bg-muted' : ''}
-                          `}
-                        >
-                          <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
-                          {priority}
-                          {task.priority === priority && (
-                            <Check size={12} className="ml-auto text-muted-foreground" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
+                  <div className="absolute left-0 mt-1 w-28 bg-card border border-border rounded-lg shadow-sm z-50 p-1">
+                    {priorities.map((priority) => (
+                      <button
+                        key={priority}
+                        onClick={() => handlePrioritySelect(priority)}
+                        className={`
+                          w-full px-2 py-1.5 text-left text-xs font-medium rounded-md
+                          hover:bg-accent flex items-center gap-2 transition
+                          ${task.priority === priority ? 'bg-accent' : ''}
+                        `}
+                      >
+                        <span className={`w-2 h-2 rounded-full ${priorityDotColors[priority]}`} />
+                        {priority}
+                        {task.priority === priority && (
+                          <Check size={12} className="ml-auto text-primary" />
+                        )}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -261,11 +259,11 @@ function TaskCard({
                 <button
                   onClick={handleDateClick}
                   className={`
-                    flex items-center gap-1 px-1.5 py-0.5
-                    rounded transition text-xs
+                    inline-flex items-center gap-1.5 px-2 py-0.5
+                    rounded-md transition text-xs cursor-pointer
                     ${isOverdue
-                      ? 'text-red-500 font-medium'
-                      : 'text-muted-foreground hover:bg-accent'}
+                      ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
                   `}
                   title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
                 >
@@ -283,7 +281,7 @@ function TaskCard({
               <div className="relative" ref={assigneeDropdownRef} data-dropdown>
                 <button
                   onClick={handleAssigneeClick}
-                  className="flex items-center hover:opacity-80 transition"
+                  className="flex items-center hover:opacity-80 transition cursor-pointer"
                   title={(task.assignees || []).length > 0
                     ? (task.assignees || []).map(a => a.name).join(', ')
                     : 'Assign someone'}
@@ -294,7 +292,7 @@ function TaskCard({
                         <div
                           key={assignee.id}
                           className={`w-6 h-6 rounded-full flex items-center justify-center
-                            text-white text-[11px] font-semibold ring-1 ring-white
+                            text-white text-[11px] font-semibold ring-1 ring-card
                             ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]}`}
                           style={{ zIndex: 2 - idx }}
                           title={assignee.name}
@@ -304,7 +302,7 @@ function TaskCard({
                       ))}
                       {(task.assignees || []).length > 2 && (
                         <div
-                          className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
+                          className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card"
                           title={`+${(task.assignees || []).length - 2} more`}
                         >
                           +{(task.assignees || []).length - 2}
