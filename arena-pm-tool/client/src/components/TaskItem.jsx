@@ -311,7 +311,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               )}
               <button
                 onClick={handleEdit}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
+                className="p-2 md:p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
                 title="Edit task"
                 aria-label="Edit task"
               >
@@ -319,7 +319,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               </button>
               <button
                 onClick={handleDelete}
-                className="p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150"
+                className="p-2 md:p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
                 title="Delete task"
                 aria-label="Delete task"
               >
@@ -332,7 +332,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       <div className="flex items-start gap-2">
         <button
           onClick={handleToggleComplete}
-          className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
+          className={`flex-shrink-0 w-6 h-6 md:w-5 md:h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 touch-manipulation ${
             isCompleted
               ? 'bg-primary border-primary'
               : 'border-input hover:border-neutral-500'

@@ -935,7 +935,7 @@ function CalendarView() {
                           {dayTasks.slice(0, 3).map((task, i) => (
                             <div
                               key={i}
-                              className={`w-1.5 h-1.5 rounded-full ${
+                              className={`w-2 h-2 md:w-1.5 md:h-1.5 rounded-full ${
                                 task.priority === 'urgent' ? 'bg-red-600'
                                   : task.priority === 'high' ? 'bg-orange-600'
                                   : task.priority === 'medium' ? 'bg-amber-500'

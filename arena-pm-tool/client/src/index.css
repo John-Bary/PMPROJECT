@@ -5,6 +5,12 @@
 /* ===== BASE LAYER ===== */
 @layer base {
   :root {
+    /* Safe area insets for notch/home indicator */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-inset-left: env(safe-area-inset-left, 0px);
+
     --background: 228 33% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -188,5 +194,20 @@
   /* Column header typography */
   .column-header {
     @apply text-sm font-semibold uppercase tracking-wide text-foreground;
+  }
+
+  /* Touch interaction improvements */
+  .touch-target-44 {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .touch-feedback:active {
+    opacity: 0.7;
   }
 }

@@ -242,7 +242,7 @@ function TaskDetailModal({ task, isOpen, onClose, onDelete }) {
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="sm:max-w-2xl sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 [&>button]:hidden">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] sm:max-h-[85vh] overflow-hidden flex flex-col p-0 gap-0 [&>button]:hidden items-end sm:items-center rounded-t-2xl sm:rounded-xl fixed bottom-0 sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2 left-0 right-0 sm:left-1/2 sm:-translate-x-1/2 sm:mx-auto w-full">
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">

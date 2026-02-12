@@ -5,22 +5,22 @@ import { Toaster } from 'sonner';
 import ErrorBoundary from './components/ErrorBoundary';
 import { WorkspaceProvider } from './contexts/WorkspaceContext';
 import { TooltipProvider } from 'components/ui/tooltip';
-import Login from './pages/Login';
-import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import VerifyEmailPending from './pages/VerifyEmailPending';
-import Dashboard from './pages/Dashboard';
 import AcceptInvite from './pages/AcceptInvite';
 import InviteLanding from './pages/InviteLanding';
 import ErrorPage from './pages/ErrorPage';
-import LandingPage from './pages/LandingPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
 import { PageLoader } from './components/Loader';
 
-// Lazy load less-frequently visited pages
+// Lazy load pages for better initial bundle size
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/Register'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
 const WorkspaceSelectionPage = lazy(() => import('./pages/WorkspaceSelectionPage'));
 const UserArea = lazy(() => import('./pages/UserArea/UserArea'));
 const WorkspaceOnboarding = lazy(() => import('./pages/WorkspaceOnboarding'));
