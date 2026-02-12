@@ -1,16 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { LayoutGrid, Calendar, List, Menu, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus, Loader2 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
-import TaskList from '../components/TaskList';
-import CalendarView from './CalendarView';
-import ListView from './ListView';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
 import { Button } from 'components/ui/button';
 import { Sheet, SheetContent, SheetTitle } from 'components/ui/sheet';
 import { Avatar, AvatarFallback } from 'components/ui/avatar';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
+
+// Lazy load view components for better performance
+const TaskList = lazy(() => import('../components/TaskList'));
+const CalendarView = lazy(() => import('./CalendarView'));
+const ListView = lazy(() => import('./ListView'));
+
+// Lightweight loader for view transitions
+const ViewLoader = () => (
+  <div className="flex items-center justify-center py-12">
+    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+  </div>
+);
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -198,7 +207,7 @@ function Dashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <header className="md:hidden h-14 bg-card border-b border-border flex items-center px-4 shrink-0">
+        <header className="md:hidden h-14 pt-safe-top bg-card border-b border-border flex items-center px-4 pl-safe-left pr-safe-right shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -229,7 +238,7 @@ function Dashboard() {
         </header>
 
         <main className="flex-1 overflow-auto">
-          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-safe-bottom pl-safe-left pr-safe-right">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeView}
@@ -238,13 +247,15 @@ function Dashboard() {
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
               >
-                {activeView === 'board' ? (
-                  <TaskList mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
-                ) : activeView === 'list' ? (
-                  <ListView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
-                ) : (
-                  <CalendarView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
-                )}
+                <Suspense fallback={<ViewLoader />}>
+                  {activeView === 'board' ? (
+                    <TaskList mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
+                  ) : activeView === 'list' ? (
+                    <ListView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
+                  ) : (
+                    <CalendarView mobileAddTask={showMobileAddTask} onMobileAddTaskClose={() => setShowMobileAddTask(false)} />
+                  )}
+                </Suspense>
               </motion.div>
             </AnimatePresence>
           </div>

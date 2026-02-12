@@ -734,7 +734,7 @@ function ListView() {
                                       <div className="flex items-center gap-1">
                                         <span
                                           {...dragProvided.dragHandleProps}
-                                          className="text-muted-foreground cursor-grab active:cursor-grabbing"
+                                          className="text-muted-foreground cursor-grab active:cursor-grabbing p-3 -m-3 md:p-0 md:m-0 touch-manipulation"
                                           title="Drag to reorder"
                                         >
                                           <GripVertical size={14} />

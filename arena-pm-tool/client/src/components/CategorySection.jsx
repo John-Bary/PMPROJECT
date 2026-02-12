@@ -63,9 +63,10 @@ function CategorySection({
         <div
           ref={categoryProvided.innerRef}
           {...categoryProvided.draggableProps}
-          className={`flex-shrink-0 min-w-[300px] w-80 lg:w-auto lg:flex-1 snap-start transition-shadow duration-200 ${
+          className={`flex-shrink-0 w-[85vw] max-w-72 md:w-80 lg:w-auto lg:flex-1 snap-start transition-shadow duration-200 ${
             categorySnapshot.isDragging ? 'shadow-sm bg-background rounded-lg' : ''
           }`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           {/* Category Header */}
           <div className="mb-3 sm:mb-4 group">
@@ -87,7 +88,7 @@ function CategorySection({
                 {/* Collapse/Expand Button */}
                 <button
                   onClick={toggleCollapse}
-                  className="text-muted-foreground hover:text-foreground transition-all duration-150 p-0.5 flex-shrink-0"
+                  className="text-muted-foreground hover:text-foreground transition-all duration-150 p-2 md:p-0.5 flex-shrink-0 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
                   title={isCollapsed ? 'Expand category' : 'Collapse category'}
                   aria-label={isCollapsed ? `Expand ${category.name} category` : `Collapse ${category.name} category`}
                 >
