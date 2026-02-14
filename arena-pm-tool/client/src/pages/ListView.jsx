@@ -874,7 +874,7 @@ function ListView() {
                                                 ))}
                                                 {(task.assignees || []).length > 3 && (
                                                   <div
-                                                    className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
+                                                    className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-white"
                                                     title={`+${(task.assignees || []).length - 3} more`}
                                                   >
                                                     +{(task.assignees || []).length - 3}
@@ -1088,7 +1088,7 @@ function ListView() {
                                           {(task.assignees || []).slice(0, 2).map((assignee, idx) => (
                                             <div
                                               key={assignee.id}
-                                              className="w-5 h-5 rounded-full bg-neutral-500 flex items-center justify-center text-white text-[10px] font-semibold ring-1 ring-white"
+                                              className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-white"
                                               style={{ zIndex: 2 - idx }}
                                               title={assignee.name}
                                             >
@@ -1096,7 +1096,7 @@ function ListView() {
                                             </div>
                                           ))}
                                           {(task.assignees || []).length > 2 && (
-                                            <div className="w-5 h-5 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[10px] font-semibold ring-1 ring-white">
+                                            <div className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-white">
                                               +{(task.assignees || []).length - 2}
                                             </div>
                                           )}

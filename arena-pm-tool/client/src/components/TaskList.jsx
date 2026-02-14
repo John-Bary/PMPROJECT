@@ -447,7 +447,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                       <button
                         key={category.id}
                         onClick={() => setSelectedMobileCategory(category.id)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                        className={`flex items-center gap-2 px-3 py-3 sm:py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
                           isSelected
                             ? 'bg-card border border-border shadow-card text-foreground'
                             : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
