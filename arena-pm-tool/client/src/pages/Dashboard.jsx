@@ -189,7 +189,7 @@ function Dashboard() {
     <div className="flex h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside
-        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-16 lg:w-[260px]'} bg-card border-r border-border transition-all duration-200 shrink-0`}
+        className={`hidden md:flex flex-col ${isSidebarCollapsed ? 'w-16' : 'w-[260px]'} bg-card border-r border-border transition-all duration-200 shrink-0`}
       >
         {sidebarContent(false)}
       </aside>
@@ -224,11 +224,11 @@ function Dashboard() {
           <div className="flex-1" />
           <Button
             onClick={() => setShowMobileAddTask(true)}
-            size="default"
-            className="mr-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+            size="icon"
+            className="mr-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm h-9 w-9"
+            aria-label="Add task"
           >
-            <Plus size={16} className="h-4 w-4" />
-            <span>Add task</span>
+            <Plus size={18} />
           </Button>
           <Avatar className="w-8 h-8" title={user?.name || 'User'}>
             <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
@@ -238,7 +238,7 @@ function Dashboard() {
         </header>
 
         <main className="flex-1 overflow-auto">
-          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-safe-bottom pl-safe-left pr-safe-right">
+          <div className="px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-6 lg:py-8 pb-safe-bottom pl-safe-left pr-safe-right">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeView}
