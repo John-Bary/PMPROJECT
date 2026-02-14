@@ -361,7 +361,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
       </div>
 
       {isLoadingData ? (
-        <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
           {[1, 2, 3].map((i) => (
             <TaskColumnSkeleton key={i} />
           ))}
@@ -439,7 +439,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             <div className="md:hidden">
               {/* Category tab bar */}
               {visibleCategories.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 px-3 scrollbar-hide mb-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-2">
                   {visibleCategories.map((category) => {
                     const isSelected = selectedMobileCategory === category.id || (!selectedMobileCategory && visibleCategories[0]?.id === category.id);
                     const categoryTasks = getTasksByCategory(category.id);
