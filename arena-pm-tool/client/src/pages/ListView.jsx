@@ -12,6 +12,8 @@ import {
   GripVertical,
   AlertCircle,
   Loader2,
+  SearchX,
+  ListTodo,
 } from 'lucide-react';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
@@ -23,6 +25,7 @@ import TaskDetailModal from '../components/TaskDetailModal';
 import DatePicker from '../components/DatePicker';
 import AssigneeDropdown from '../components/AssigneeDropdown';
 import { InlineSpinner, TaskRowSkeleton } from '../components/Loader';
+import EmptyState from '../components/EmptyState';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
 import { priorityPillStyles, priorityDotColors } from '../utils/priorityStyles';
 import { useTaskActions } from '../hooks/useTaskActions';
@@ -961,10 +964,13 @@ function ListView() {
               ) : (
                 <tbody>
                   <tr>
-                    <td colSpan="6" className="px-4 py-12 text-center text-muted-foreground">
-                      {searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0
-                        ? 'No tasks match your filters'
-                        : 'No tasks yet. Create your first task!'}
+                    <td colSpan="6" className="px-4 py-12">
+                      <EmptyState
+                        icon={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? SearchX : ListTodo}
+                        title={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'No tasks match your filters' : 'No tasks yet'}
+                        description={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'Try adjusting your search or filters.' : 'Create your first task to get started!'}
+                        size="sm"
+                      />
                     </td>
                   </tr>
                 </tbody>
@@ -1284,7 +1290,7 @@ function ListView() {
       {activeDropdown?.type === 'priority' && createPortal(
         <div
           ref={priorityPortalRef}
-          className="fixed w-32 bg-card border border-border rounded-lg shadow-sm z-[100] animate-fade-in"
+          className="fixed w-32 bg-card border border-border rounded-lg shadow-elevated z-[100] animate-fade-in"
           style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
         >
           <div className="py-1">
