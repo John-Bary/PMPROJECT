@@ -97,7 +97,7 @@ function Dashboard() {
                 key={item.id}
                 onClick={() => handleViewChange(item.id)}
                 title={isSidebarCollapsed && !mobile ? item.label : undefined}
-                className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm transition-all duration-150 ${
+                className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 rounded-lg text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-accent text-primary font-medium border-l-[3px] border-primary'
                     : 'text-muted-foreground hover:bg-background border-l-[3px] border-transparent'
@@ -118,7 +118,7 @@ function Dashboard() {
             to="/user"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Settings' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <Settings size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Settings</span>}
@@ -127,7 +127,7 @@ function Dashboard() {
             to="/user/team"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Team' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <Users size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Team</span>}
@@ -136,7 +136,7 @@ function Dashboard() {
             to="/billing"
             onClick={mobile ? () => setIsMobileMenuOpen(false) : undefined}
             title={isSidebarCollapsed && !mobile ? 'Billing' : undefined}
-            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
+            className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
           >
             <CreditCard size={18} />
             {(!isSidebarCollapsed || mobile) && <span>Billing</span>}
@@ -174,7 +174,7 @@ function Dashboard() {
         {!mobile && (
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 px-3'} h-9 w-full rounded-lg text-sm text-muted-foreground hover:text-muted-foreground hover:bg-background transition-all duration-150 mt-1`}
+            className={`flex items-center ${isSidebarCollapsed ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 w-full rounded-lg text-sm text-muted-foreground hover:text-muted-foreground hover:bg-background transition-all duration-150 mt-1`}
             title={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isSidebarCollapsed ? <PanelLeft size={18} /> : <PanelLeftClose size={18} />}

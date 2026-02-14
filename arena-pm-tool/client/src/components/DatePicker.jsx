@@ -114,7 +114,7 @@ function DatePicker({ selected, onSelect, onClose, triggerRef }) {
     // Mobile: Full screen modal-style picker
     <>
       <div className="fixed inset-0 bg-black/20 z-[9998]" onClick={onClose} />
-      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-sm p-4 z-[9999]">
+      <div className="fixed inset-x-4 top-1/2 -translate-y-1/2 bg-card border border-border rounded-lg shadow-sm p-4 z-[9999] ml-safe-left mr-safe-right">
         <div className="flex items-center justify-between mb-2">
           <span className="font-medium text-foreground">Select Date</span>
           <Button

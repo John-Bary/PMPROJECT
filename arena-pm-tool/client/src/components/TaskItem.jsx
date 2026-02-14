@@ -389,7 +389,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         <div className="relative" ref={priorityDropdownRef}>
           <button
             onClick={handlePriorityClick}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
+            className={`inline-flex items-center gap-1 px-2 py-1 sm:py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
             title="Change priority"
           >
             {task.priority}
