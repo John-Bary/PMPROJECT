@@ -93,13 +93,15 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
     if (!priorityDropdownRef.current) return;
     const rect = priorityDropdownRef.current.getBoundingClientRect();
     const dropdownHeight = 4 * 40 + 8;
+    const dropdownWidth = 128; // w-32 = 8rem = 128px
     const spaceBelow = window.innerHeight - rect.bottom;
     const top = spaceBelow >= dropdownHeight
       ? rect.bottom + 4
       : rect.top - dropdownHeight - 4;
+    const left = Math.min(rect.left, window.innerWidth - dropdownWidth - 8);
     setPriorityDropdownPos({
       top: Math.max(8, top),
-      left: rect.left,
+      left: Math.max(8, left),
     });
   }, []);
 
@@ -280,7 +282,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         >
           {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
           {canEdit && (
-            <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
               {/* Move to category - mobile only */}
               {noDrag && otherCategories.length > 0 && (
                 <div className="relative" ref={moveDropdownRef}>
@@ -352,13 +354,13 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             onChange={handleTitleChange}
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
-            className="flex-1 pr-16 font-medium text-foreground border-b-2 border-primary focus:outline-none bg-transparent"
+            className="flex-1 pr-8 sm:pr-16 font-medium text-foreground border-b-2 border-primary focus:outline-none bg-transparent"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
           <h4
             onClick={handleTitleClick}
-            className={`font-medium text-foreground flex-1 pr-16 leading-snug ${canEdit ? 'cursor-text hover:bg-accent/50' : 'cursor-default'} rounded px-1 -mx-1 transition-colors duration-150 ${
+            className={`font-medium text-foreground flex-1 pr-8 sm:pr-16 leading-snug ${canEdit ? 'cursor-text hover:bg-accent/50' : 'cursor-default'} rounded px-1 -mx-1 transition-colors duration-150 ${
               isCompleted ? 'line-through text-muted-foreground' : ''
             }`}
             title={canEdit ? 'Click to edit' : ''}

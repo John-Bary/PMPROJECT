@@ -302,9 +302,9 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
       )}
 
       {/* Header with Search, Filter and Add Task button */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-3 sm:mb-6">
         {/* Title Row */}
-        <div className="flex items-center justify-between mb-3 sm:mb-0">
+        <div className="flex items-center justify-between mb-2 sm:mb-0">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-semibold text-foreground">Tasks</h2>
             {isLoadingData && (
@@ -361,7 +361,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
       </div>
 
       {isLoadingData ? (
-        <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-3 px-3 sm:mx-0 sm:px-0">
+        <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
           {[1, 2, 3].map((i) => (
             <TaskColumnSkeleton key={i} />
           ))}
@@ -439,7 +439,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
             <div className="md:hidden">
               {/* Category tab bar */}
               {visibleCategories.length > 0 && (
-                <div className="flex gap-2 overflow-x-auto pb-3 -mx-3 px-3 scrollbar-hide mb-3">
+                <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide mb-2">
                   {visibleCategories.map((category) => {
                     const isSelected = selectedMobileCategory === category.id || (!selectedMobileCategory && visibleCategories[0]?.id === category.id);
                     const categoryTasks = getTasksByCategory(category.id);
@@ -447,7 +447,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                       <button
                         key={category.id}
                         onClick={() => setSelectedMobileCategory(category.id)}
-                        className={`flex items-center gap-2 px-3 py-3 sm:py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-150 ${
                           isSelected
                             ? 'bg-card border border-border shadow-card text-foreground'
                             : 'text-muted-foreground hover:text-foreground hover:bg-card/50'
