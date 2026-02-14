@@ -5,6 +5,7 @@ import useCategoryStore from '../store/categoryStore';
 import useWorkspaceStore from '../store/workspaceStore';
 import AssigneeListItem from './AssigneeListItem';
 import { Button } from 'components/ui/button';
+import { Checkbox } from 'components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from 'components/ui/popover';
 
 const PRIORITY_OPTIONS = ['Low', 'Medium', 'High', 'Urgent'];
@@ -146,11 +147,10 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
                       : 'hover:bg-accent text-foreground'
                   }`}
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={isActive}
-                    onChange={() => handleTogglePriority(priority)}
-                    className="w-4 h-4 text-primary border-input rounded focus:ring-2 focus:ring-ring/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    onCheckedChange={() => handleTogglePriority(priority)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   <span className="text-sm">{priority}</span>
                 </label>
@@ -174,11 +174,10 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
                       : 'hover:bg-accent text-foreground'
                   }`}
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={isActive}
-                    onChange={() => handleToggleCategory(category.id)}
-                    className="w-4 h-4 text-primary border-input rounded focus:ring-2 focus:ring-ring/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    onCheckedChange={() => handleToggleCategory(category.id)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                   />
                   <div className="flex items-center gap-2">
                     <div
@@ -200,11 +199,10 @@ function FilterDropdown({ filters, onFiltersChange, disabled = false }) {
               ? 'bg-primary/10 text-primary'
               : 'hover:bg-accent text-foreground'
           }`}>
-            <input
-              type="checkbox"
+            <Checkbox
               checked={filters.hideCompleted}
-              onChange={handleToggleCompleted}
-              className="w-4 h-4 text-primary border-input rounded focus:ring-2 focus:ring-ring/20 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              onCheckedChange={handleToggleCompleted}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
             />
             <span className="text-sm">Hide completed tasks</span>
           </label>

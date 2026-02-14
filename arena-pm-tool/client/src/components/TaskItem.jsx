@@ -274,7 +274,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           {...(provided?.draggableProps || {})}
           {...(canEdit && provided?.dragHandleProps ? provided.dragHandleProps : {})}
           onClick={handleCardClick}
-          className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
+          className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-0.5 hover:shadow-elevated hover:border-border/80 transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
             isCompleted ? 'opacity-50' : ''
           } ${snapshot?.isDragging ? 'shadow-elevated' : ''}`}
         >
@@ -505,7 +505,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
     {showPriorityDropdown && createPortal(
       <div
         ref={priorityPortalRef}
-        className="fixed w-32 bg-card border border-border rounded-lg shadow-sm z-[100] p-1"
+        className="fixed w-32 bg-card border border-border rounded-lg shadow-elevated z-[100] p-1"
         style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
       >
         {priorities.map((priority) => (

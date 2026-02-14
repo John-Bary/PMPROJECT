@@ -100,7 +100,7 @@ function Dashboard() {
                 className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 rounded-lg text-sm transition-all duration-150 ${
                   isActive
                     ? 'bg-accent text-primary font-medium border-l-[3px] border-primary'
-                    : 'text-muted-foreground hover:bg-background border-l-[3px] border-transparent'
+                    : 'text-muted-foreground hover:bg-accent/50 hover:text-foreground border-l-[3px] border-transparent'
                 }`}
               >
                 <item.icon size={18} />

@@ -349,7 +349,7 @@ function TaskCard({
       {showPriorityDropdown && createPortal(
         <div
           ref={priorityPortalRef}
-          className="fixed w-28 bg-card border border-border rounded-lg shadow-sm z-[100] p-1"
+          className="fixed w-28 bg-card border border-border rounded-lg shadow-elevated z-[100] p-1"
           style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
         >
           {priorities.map((priority) => (
