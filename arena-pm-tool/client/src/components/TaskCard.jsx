@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, Calendar, ListTodo } from 'lucide-react';
-import { Draggable } from '@hello-pangea/dnd';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { motion } from 'framer-motion';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
@@ -172,25 +173,42 @@ function TaskCard({
 
   const priorities = ['low', 'medium', 'high', 'urgent'];
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: `taskcard-${task.id}`,
+    data: { type: 'task', task },
+  });
+
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isSortableDragging ? 0.5 : 1,
+  };
+
   return (
     <>
-      <Draggable draggableId={task.id.toString()} index={index}>
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            onClick={handleCardClick}
-            className={`
-              bg-card rounded-xl border border-border shadow-card
-              hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150
-              ${task.priority ? `border-l-[3px] ${priorityBorderColors[task.priority]}` : ''}
-              p-3 space-y-2
-              cursor-grab active:cursor-grabbing
-              ${isCompleted ? 'opacity-50' : ''}
-              ${snapshot.isDragging ? 'shadow-elevated border-border' : ''}
-            `}
-          >
+      <div
+        ref={setNodeRef}
+        style={sortableStyle}
+        {...attributes}
+        {...listeners}
+        onClick={handleCardClick}
+        className={`
+          bg-card rounded-xl border border-border shadow-card
+          hover:-translate-y-[1px] hover:shadow-elevated transition-all duration-150
+          ${task.priority ? `border-l-[3px] ${priorityBorderColors[task.priority]}` : ''}
+          p-3 space-y-2
+          cursor-grab active:cursor-grabbing
+          ${isCompleted ? 'opacity-50' : ''}
+          ${isSortableDragging ? 'shadow-elevated border-border' : ''}
+        `}
+      >
             {/* Header: Checkbox + Title */}
             <div className="flex items-start gap-2">
               <button
@@ -334,9 +352,7 @@ function TaskCard({
                 )}
               </div>
             </div>
-          </div>
-        )}
-      </Draggable>
+      </div>
 
       {showDatePicker && (
         <DatePicker

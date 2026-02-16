@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye, Loader2 } from 'lucide-react';
-import { DragDropContext, Droppable } from '@hello-pangea/dnd';
+import { DndContext, DragOverlay, closestCorners } from '@dnd-kit/core';
+import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { useDndSensors } from '../hooks/useDndSensors';
 import useTaskStore from '../store/taskStore';
 import useCategoryStore from '../store/categoryStore';
 import { useWorkspace } from '../contexts/WorkspaceContext';
@@ -65,7 +67,9 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
   const [isDeletingCategory, setIsDeletingCategory] = useState(false);
   const searchInputRef = useRef(null);
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
+  const [activeId, setActiveId] = useState(null);
   const [selectedMobileCategory, setSelectedMobileCategory] = useState(null);
+  const sensors = useDndSensors();
 
   // Handle mobile add task trigger from Dashboard top bar
   useEffect(() => {
@@ -200,56 +204,63 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     setIsModalOpen(true);
   };
 
-  // Handle drag start to detect category dragging
-  const handleDragStart = (start) => {
-    if (start.draggableId.startsWith('category-')) {
+  // Handle drag start — track active item for DragOverlay
+  const handleDragStart = (event) => {
+    const { active } = event;
+    setActiveId(active.id);
+    if (active.data.current?.type === 'category') {
       setIsDraggingCategory(true);
     }
   };
 
-  // Handle drag and drop
-  const handleDragEnd = async (result) => {
-    const { destination, source, draggableId } = result;
+  // Handle drag end — reorder categories or reposition tasks
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
 
-    // Reset category dragging state
+    // Reset drag state
+    setActiveId(null);
     setIsDraggingCategory(false);
 
-    // Dropped outside valid droppable area
-    if (!destination) {
+    if (!over || active.id === over.id) return;
+
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    // Category reorder
+    if (activeData?.type === 'category' && overData?.type === 'category') {
+      const oldIndex = visibleCategories.findIndex(c => `category-${c.id}` === active.id);
+      const newIndex = visibleCategories.findIndex(c => `category-${c.id}` === over.id);
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+      const newOrder = arrayMove(visibleCategories, oldIndex, newIndex);
+      await reorderCategories(newOrder.map(c => c.id));
       return;
     }
 
-    // Dropped in same position
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) {
-      return;
+    // Task reposition
+    if (activeData?.type === 'task') {
+      const taskId = activeData.task.id;
+      let destCategoryId;
+      let destPosition;
+
+      if (overData?.type === 'task') {
+        // Dropped on another task — insert at that task's position
+        destCategoryId = overData.task.categoryId;
+        const destTasks = getTasksByCategory(destCategoryId);
+        destPosition = destTasks.findIndex(t => t.id === overData.task.id);
+        if (destPosition === -1) destPosition = destTasks.length;
+      } else if (overData?.type === 'column') {
+        // Dropped on an empty column area
+        destCategoryId = overData.categoryId;
+        destPosition = getTasksByCategory(destCategoryId).length;
+      } else {
+        return;
+      }
+
+      await updateTaskPosition(taskId, {
+        category_id: destCategoryId,
+        position: destPosition,
+      });
     }
-
-    // Handle category reorder
-    if (draggableId.startsWith('category-')) {
-      const newOrder = [...visibleCategories];
-      const [movedCategory] = newOrder.splice(source.index, 1);
-      newOrder.splice(destination.index, 0, movedCategory);
-
-      // Get new order of all category IDs
-      const categoryIds = newOrder.map(cat => cat.id);
-      await reorderCategories(categoryIds);
-      return;
-    }
-
-    // Handle task reorder
-    const taskId = parseInt(draggableId);
-    const destCategoryId = parseInt(destination.droppableId);
-
-    // Update task position and category
-    const positionData = {
-      category_id: destCategoryId,
-      position: destination.index,
-    };
-
-    await updateTaskPosition(taskId, positionData);
   };
 
   // Memoize filtered tasks grouped by category
@@ -279,6 +290,14 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     ),
     [categories, filters.categories]
   );
+
+  // Get the active dragged item for DragOverlay preview
+  const activeTask = activeId && String(activeId).startsWith('task-')
+    ? tasks.find(t => `task-${t.id}` === activeId)
+    : null;
+  const activeCategory = activeId && String(activeId).startsWith('category-')
+    ? visibleCategories.find(c => `category-${c.id}` === activeId)
+    : null;
 
   const visibleTaskCount = useMemo(() =>
     visibleCategories.reduce(
@@ -496,41 +515,58 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
 
             {/* Desktop/Tablet: Board columns */}
             <div className="hidden md:block">
-            <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-              <Droppable droppableId="categories" direction="horizontal" type="CATEGORY">
-                {(provided) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.droppableProps}
-                    className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-hover"
-                  >
-                    {visibleCategories.map((category, index) => (
-                      <CategorySection
-                        key={category.id}
-                        category={category}
-                        index={index}
-                        tasks={getTasksByCategory(category.id)}
-                        onOpenDetail={handleOpenDetail}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        onToggleComplete={handleToggleComplete}
-                        onEditCategory={handleEditCategory}
-                        onDeleteCategory={handleDeleteCategory}
-                        togglingTaskIds={togglingTaskIds}
-                        onAddTask={(cat) => openCreateTask(cat?.id || category.id)}
-                        searchQuery={searchQuery}
-                        isDraggingCategory={isDraggingCategory}
-                        canEdit={userCanEdit}
-                      />
-                    ))}
-                    {provided.placeholder}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={visibleCategories.map(c => `category-${c.id}`)}
+                strategy={horizontalListSortingStrategy}
+              >
+                <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-hover">
+                  {visibleCategories.map((category, index) => (
+                    <CategorySection
+                      key={category.id}
+                      category={category}
+                      index={index}
+                      tasks={getTasksByCategory(category.id)}
+                      onOpenDetail={handleOpenDetail}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                      onToggleComplete={handleToggleComplete}
+                      onEditCategory={handleEditCategory}
+                      onDeleteCategory={handleDeleteCategory}
+                      togglingTaskIds={togglingTaskIds}
+                      onAddTask={(cat) => openCreateTask(cat?.id || category.id)}
+                      searchQuery={searchQuery}
+                      isDraggingCategory={isDraggingCategory}
+                      canEdit={userCanEdit}
+                    />
+                  ))}
 
-                    {/* Add Category Button - only show for users who can edit */}
-                    {userCanEdit && <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />}
+                  {/* Add Category Button - only show for users who can edit */}
+                  {userCanEdit && <AddCategoryButton onClick={() => setIsCategoryModalOpen(true)} />}
+                </div>
+              </SortableContext>
+
+              {/* Drag overlay — floating preview of the dragged item */}
+              <DragOverlay dropAnimation={null}>
+                {activeTask ? (
+                  <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 max-w-72 opacity-90">
+                    <p className="text-sm font-medium text-foreground truncate">{activeTask.title}</p>
                   </div>
-                )}
-              </Droppable>
-            </DragDropContext>
+                ) : activeCategory ? (
+                  <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 opacity-90">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: activeCategory.color }} />
+                      <p className="text-sm font-semibold text-foreground">{activeCategory.name}</p>
+                    </div>
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
             </div>
 
             {/* Load More Button */}

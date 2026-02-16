@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Pencil, Trash2, Check, ChevronDown, Calendar, ArrowRightLeft } from 'lucide-react';
-import { Draggable } from '@hello-pangea/dnd';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import useUserStore from '../store/userStore';
 import useTaskStore from '../store/taskStore';
 import useWorkspaceStore from '../store/workspaceStore';
@@ -30,6 +31,26 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const dueDateObj = toLocalDate(task.dueDate);
   const dueDate = formatDueDate(task.dueDate);
   const isOverdue = checkIsOverdue(task.dueDate, task.status);
+
+  // @dnd-kit sortable hook — disabled when noDrag or viewer mode
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: `task-${task.id}`,
+    data: { type: 'task', task },
+    disabled: !canEdit || noDrag,
+  });
+
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
 
   const avatarColors = ['bg-primary', 'bg-emerald-500', 'bg-amber-500', 'bg-rose-500', 'bg-cyan-500', 'bg-violet-500'];
 
@@ -65,8 +86,6 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       titleInputRef.current.select();
     }
   }, [isEditingTitle]);
-
-  // Note: Click-outside for assignee dropdown is handled by AssigneeDropdown component
 
   // Close priority dropdown on click outside
   useEffect(() => {
@@ -153,10 +172,8 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
 
       let newAssigneeIds;
       if (currentIds.includes(userId)) {
-        // Remove assignee
         newAssigneeIds = currentIds.filter(id => id !== userId);
       } else {
-        // Add assignee
         newAssigneeIds = [...currentIds, userId];
       }
 
@@ -233,8 +250,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
       try {
         await updateTask(task.id, { title: editedTitle.trim() });
       } catch (error) {
-        // Error is handled in taskStore
-        setEditedTitle(task.title); // Revert on error
+        setEditedTitle(task.title);
       }
     }
     setIsEditingTitle(false);
@@ -255,8 +271,6 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   };
 
   const handleCardClick = (e) => {
-    // Don't open detail if clicking on interactive elements
-    // Also check if assignee dropdown is open (it's rendered in a portal, so closest won't find it)
     if (
       e.target.closest('button') ||
       e.target.closest('input') ||
@@ -268,265 +282,257 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
     onOpenDetail?.(task);
   };
 
-  const cardBody = (provided, snapshot) => (
-        <div
-          ref={provided?.innerRef}
-          {...(provided?.draggableProps || {})}
-          {...(canEdit && provided?.dragHandleProps ? provided.dragHandleProps : {})}
-          onClick={handleCardClick}
-          className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-0.5 hover:shadow-elevated hover:border-border/80 transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
-            isCompleted ? 'opacity-50' : ''
-          } ${snapshot?.isDragging ? 'shadow-elevated' : ''}`}
-        >
-          {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
-          {canEdit && (
-            <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
-              {/* Move to category - mobile only */}
-              {noDrag && otherCategories.length > 0 && (
-                <div className="relative" ref={moveDropdownRef}>
-                  <button
-                    onClick={handleMoveClick}
-                    className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
-                    title="Move to category"
-                    aria-label="Move to category"
-                  >
-                    <ArrowRightLeft size={14} />
-                  </button>
-                  {showMoveDropdown && (
-                    <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-elevated z-50 p-1">
-                      <p className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to</p>
-                      {otherCategories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          onClick={(e) => { e.stopPropagation(); handleMoveToCategory(cat.id); }}
-                          className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-md flex items-center gap-2 transition-colors duration-150"
-                        >
-                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
-                          <span className="truncate">{cat.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              <button
-                onClick={handleEdit}
-                className="p-2 md:p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
-                title="Edit task"
-                aria-label="Edit task"
-              >
-                <Pencil size={14} className="sm:w-4 sm:h-4" />
-              </button>
-              <button
-                onClick={handleDelete}
-                className="p-2 md:p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
-                title="Delete task"
-                aria-label="Delete task"
-              >
-                <Trash2 size={14} className="sm:w-4 sm:h-4" />
-              </button>
-            </div>
-          )}
-
-      {/* Completion Checkbox and Title */}
-      <div className="flex items-start gap-2">
-        <button
-          onClick={handleToggleComplete}
-          className={`flex-shrink-0 w-6 h-6 md:w-5 md:h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 touch-manipulation ${
-            isCompleted
-              ? 'bg-primary border-primary'
-              : 'border-input hover:border-neutral-500'
-          } ${isToggling || !canEdit ? 'cursor-not-allowed' : ''}`}
-          disabled={isToggling || !canEdit}
-          title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
-        >
-          {isCompleted && <Check size={14} className="text-primary-foreground" />}
-        </button>
-
-        {/* Editable Title */}
-        {isEditingTitle ? (
-          <input
-            ref={titleInputRef}
-            type="text"
-            value={editedTitle}
-            onChange={handleTitleChange}
-            onBlur={handleTitleBlur}
-            onKeyDown={handleTitleKeyDown}
-            className="flex-1 pr-16 font-medium text-foreground border-b-2 border-primary focus:outline-none bg-transparent"
-            onClick={(e) => e.stopPropagation()}
-          />
-        ) : (
-          <h4
-            onClick={handleTitleClick}
-            className={`font-medium text-foreground flex-1 pr-16 leading-snug ${canEdit ? 'cursor-text hover:bg-accent/50' : 'cursor-default'} rounded px-1 -mx-1 transition-colors duration-150 ${
-              isCompleted ? 'line-through text-muted-foreground' : ''
-            }`}
-            title={canEdit ? 'Click to edit' : ''}
-          >
-            {task.title}
-          </h4>
-        )}
-      </div>
-
-      {/* Task Description */}
-      {task.description && (
-        <p className="text-sm text-muted-foreground line-clamp-2 ml-7">{task.description}</p>
-      )}
-
-      {/* Subtask Count */}
-      {task.subtaskCount > 0 && (
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-7">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          </svg>
-          <span>{task.completedSubtaskCount}/{task.subtaskCount} subtasks</span>
-        </div>
-      )}
-
-      {/* Task Metadata Row */}
-      <div className="flex flex-wrap items-center gap-2 ml-7">
-        {/* Priority Badge */}
-        <div className="relative" ref={priorityDropdownRef}>
-          <button
-            onClick={handlePriorityClick}
-            className={`inline-flex items-center gap-1 px-2 py-1 sm:py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
-            title="Change priority"
-          >
-            {task.priority}
-            <ChevronDown size={10} className="opacity-60" />
-          </button>
-
-        </div>
-
-        {/* Due Date */}
-        <div className="relative" ref={datePickerRef}>
-          <button
-            onClick={handleDateClick}
-            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all duration-150 text-xs ${
-              isOverdue
-                ? 'text-red-600 font-medium bg-red-50 border border-red-200'
-                : 'text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer'
-            }`}
-            title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
-          >
-            <Calendar size={12} />
-            {dueDate ? (
-              <>
-                {isOverdue && <span className="font-semibold">Overdue</span>}
-                {isOverdue && <span className="mx-0.5">·</span>}
-                {dueDate}
-              </>
-            ) : (
-              <span className="hidden sm:inline">Set date</span>
-            )}
-          </button>
-
-        </div>
-
-        {/* Spacer for desktop alignment */}
-        <div className="flex-1 hidden sm:block"></div>
-
-        {/* Assignees - Avatar stack with multi-select dropdown */}
-        <div className="relative" ref={assigneeDropdownRef} data-dropdown>
-          <button
-            onClick={handleAssigneeClick}
-            className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 transition-all duration-150 cursor-pointer"
-            title="Manage assignees"
-          >
-            {(task.assignees || []).length > 0 ? (
-              <div className="flex items-center">
-                {/* Avatar Stack */}
-                <div className="flex -space-x-1.5">
-                  {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
-                    <div
-                      key={assignee.id}
-                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]} flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card`}
-                      style={{ zIndex: 3 - idx }}
-                      title={assignee.name}
-                    >
-                      {assignee.name.charAt(0).toUpperCase()}
-                    </div>
-                  ))}
-                  {(task.assignees || []).length > 3 && (
-                    <div
-                      className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card"
-                      title={`+${(task.assignees || []).length - 3} more`}
-                    >
-                      +{(task.assignees || []).length - 3}
-                    </div>
-                  )}
-                </div>
-                <ChevronDown size={10} className="text-muted-foreground ml-1" />
-              </div>
-            ) : (
-              <>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-input flex items-center justify-center">
-                  <span className="text-muted-foreground text-[11px]">?</span>
-                </div>
-                <span className="text-xs text-muted-foreground hidden sm:inline ml-1">Assign</span>
-                <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
-              </>
-            )}
-          </button>
-
-          {/* Assignee Multi-Select Dropdown */}
-          {showAssigneeDropdown && (
-            <AssigneeDropdown
-              users={users}
-              selectedIds={(task.assignees || []).map(a => a.id)}
-              onToggle={handleAssigneeToggle}
-              onClose={() => setShowAssigneeDropdown(false)}
-              triggerRef={assigneeDropdownRef}
-              variant="multi"
-            />
-          )}
-        </div>
-      </div>
-      </div>
-  );
-
   return (
     <>
-    {noDrag ? (
-      cardBody(null, null)
-    ) : (
-      <Draggable draggableId={task.id.toString()} index={index} isDragDisabled={!canEdit}>
-        {(provided, snapshot) => cardBody(provided, snapshot)}
-      </Draggable>
-    )}
-    {showDatePicker && (
-      <DatePicker
-        selected={dueDateObj}
-        onSelect={handleDateSelect}
-        onClose={() => setShowDatePicker(false)}
-        triggerRef={datePickerRef}
-      />
-    )}
-    {showPriorityDropdown && createPortal(
       <div
-        ref={priorityPortalRef}
-        className="fixed w-32 bg-card border border-border rounded-lg shadow-elevated z-[100] p-1"
-        style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+        ref={setNodeRef}
+        style={sortableStyle}
+        {...attributes}
+        {...(canEdit && !noDrag ? listeners : {})}
+        onClick={handleCardClick}
+        className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-0.5 hover:shadow-elevated hover:border-border/80 transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
+          isCompleted ? 'opacity-50' : ''
+        } ${isDragging ? 'shadow-elevated' : ''}`}
       >
-        {priorities.map((priority) => (
-          <button
-            key={priority}
-            onClick={() => handlePrioritySelect(priority)}
-            className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent rounded-md flex items-center gap-2 transition-all duration-150 ${
-              task.priority === priority ? 'bg-accent' : ''
-            }`}
-          >
-            <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
-              {priority}
-            </span>
-            {task.priority === priority && (
-              <Check size={12} className="ml-auto text-primary" />
+        {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
+        {canEdit && (
+          <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Move to category - mobile only */}
+            {noDrag && otherCategories.length > 0 && (
+              <div className="relative" ref={moveDropdownRef}>
+                <button
+                  onClick={handleMoveClick}
+                  className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150"
+                  title="Move to category"
+                  aria-label="Move to category"
+                >
+                  <ArrowRightLeft size={14} />
+                </button>
+                {showMoveDropdown && (
+                  <div className="absolute right-0 mt-1 w-48 bg-card border border-border rounded-lg shadow-elevated z-50 p-1">
+                    <p className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to</p>
+                    {otherCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={(e) => { e.stopPropagation(); handleMoveToCategory(cat.id); }}
+                        className="w-full px-2 py-1.5 text-left text-sm hover:bg-accent rounded-md flex items-center gap-2 transition-colors duration-150"
+                      >
+                        <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} />
+                        <span className="truncate">{cat.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
+            <button
+              onClick={handleEdit}
+              className="p-2 md:p-1.5 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
+              title="Edit task"
+              aria-label="Edit task"
+            >
+              <Pencil size={14} className="sm:w-4 sm:h-4" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-2 md:p-1.5 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-150 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
+              title="Delete task"
+              aria-label="Delete task"
+            >
+              <Trash2 size={14} className="sm:w-4 sm:h-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Completion Checkbox and Title */}
+        <div className="flex items-start gap-2">
+          <button
+            onClick={handleToggleComplete}
+            className={`flex-shrink-0 w-6 h-6 md:w-5 md:h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 touch-manipulation ${
+              isCompleted
+                ? 'bg-primary border-primary'
+                : 'border-input hover:border-neutral-500'
+            } ${isToggling || !canEdit ? 'cursor-not-allowed' : ''}`}
+            disabled={isToggling || !canEdit}
+            title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+          >
+            {isCompleted && <Check size={14} className="text-primary-foreground" />}
           </button>
-        ))}
-      </div>,
-      document.body
-    )}
+
+          {/* Editable Title */}
+          {isEditingTitle ? (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={editedTitle}
+              onChange={handleTitleChange}
+              onBlur={handleTitleBlur}
+              onKeyDown={handleTitleKeyDown}
+              className="flex-1 pr-16 font-medium text-foreground border-b-2 border-primary focus:outline-none bg-transparent"
+              onClick={(e) => e.stopPropagation()}
+            />
+          ) : (
+            <h4
+              onClick={handleTitleClick}
+              className={`font-medium text-foreground flex-1 pr-16 leading-snug ${canEdit ? 'cursor-text hover:bg-accent/50' : 'cursor-default'} rounded px-1 -mx-1 transition-colors duration-150 ${
+                isCompleted ? 'line-through text-muted-foreground' : ''
+              }`}
+              title={canEdit ? 'Click to edit' : ''}
+            >
+              {task.title}
+            </h4>
+          )}
+        </div>
+
+        {/* Task Description */}
+        {task.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2 ml-7">{task.description}</p>
+        )}
+
+        {/* Subtask Count */}
+        {task.subtaskCount > 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-7">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            <span>{task.completedSubtaskCount}/{task.subtaskCount} subtasks</span>
+          </div>
+        )}
+
+        {/* Task Metadata Row */}
+        <div className="flex flex-wrap items-center gap-2 ml-7">
+          {/* Priority Badge */}
+          <div className="relative" ref={priorityDropdownRef}>
+            <button
+              onClick={handlePriorityClick}
+              className={`inline-flex items-center gap-1 px-2 py-1 sm:py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
+              title="Change priority"
+            >
+              {task.priority}
+              <ChevronDown size={10} className="opacity-60" />
+            </button>
+
+          </div>
+
+          {/* Due Date */}
+          <div className="relative" ref={datePickerRef}>
+            <button
+              onClick={handleDateClick}
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all duration-150 text-xs ${
+                isOverdue
+                  ? 'text-red-600 font-medium bg-red-50 border border-red-200'
+                  : 'text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer'
+              }`}
+              title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
+            >
+              <Calendar size={12} />
+              {dueDate ? (
+                <>
+                  {isOverdue && <span className="font-semibold">Overdue</span>}
+                  {isOverdue && <span className="mx-0.5">·</span>}
+                  {dueDate}
+                </>
+              ) : (
+                <span className="hidden sm:inline">Set date</span>
+              )}
+            </button>
+
+          </div>
+
+          {/* Spacer for desktop alignment */}
+          <div className="flex-1 hidden sm:block"></div>
+
+          {/* Assignees - Avatar stack with multi-select dropdown */}
+          <div className="relative" ref={assigneeDropdownRef} data-dropdown>
+            <button
+              onClick={handleAssigneeClick}
+              className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 transition-all duration-150 cursor-pointer"
+              title="Manage assignees"
+            >
+              {(task.assignees || []).length > 0 ? (
+                <div className="flex items-center">
+                  {/* Avatar Stack */}
+                  <div className="flex -space-x-1.5">
+                    {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
+                      <div
+                        key={assignee.id}
+                        className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full ${avatarColors[assignee.name.charCodeAt(0) % avatarColors.length]} flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card`}
+                        style={{ zIndex: 3 - idx }}
+                        title={assignee.name}
+                      >
+                        {assignee.name.charAt(0).toUpperCase()}
+                      </div>
+                    ))}
+                    {(task.assignees || []).length > 3 && (
+                      <div
+                        className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-card"
+                        title={`+${(task.assignees || []).length - 3} more`}
+                      >
+                        +{(task.assignees || []).length - 3}
+                      </div>
+                    )}
+                  </div>
+                  <ChevronDown size={10} className="text-muted-foreground ml-1" />
+                </div>
+              ) : (
+                <>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-input flex items-center justify-center">
+                    <span className="text-muted-foreground text-[11px]">?</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground hidden sm:inline ml-1">Assign</span>
+                  <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
+                </>
+              )}
+            </button>
+
+            {/* Assignee Multi-Select Dropdown */}
+            {showAssigneeDropdown && (
+              <AssigneeDropdown
+                users={users}
+                selectedIds={(task.assignees || []).map(a => a.id)}
+                onToggle={handleAssigneeToggle}
+                onClose={() => setShowAssigneeDropdown(false)}
+                triggerRef={assigneeDropdownRef}
+                variant="multi"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showDatePicker && (
+        <DatePicker
+          selected={dueDateObj}
+          onSelect={handleDateSelect}
+          onClose={() => setShowDatePicker(false)}
+          triggerRef={datePickerRef}
+        />
+      )}
+      {showPriorityDropdown && createPortal(
+        <div
+          ref={priorityPortalRef}
+          className="fixed w-32 bg-card border border-border rounded-lg shadow-elevated z-[100] p-1"
+          style={{ top: `${priorityDropdownPos.top}px`, left: `${priorityDropdownPos.left}px` }}
+        >
+          {priorities.map((priority) => (
+            <button
+              key={priority}
+              onClick={() => handlePrioritySelect(priority)}
+              className={`w-full px-2 py-1.5 text-left text-xs font-medium hover:bg-accent rounded-md flex items-center gap-2 transition-all duration-150 ${
+                task.priority === priority ? 'bg-accent' : ''
+              }`}
+            >
+              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[priority] || priorityPillStyles.medium}`}>
+                {priority}
+              </span>
+              {task.priority === priority && (
+                <Check size={12} className="ml-auto text-primary" />
+              )}
+            </button>
+          ))}
+        </div>,
+        document.body
+      )}
     </>
   );
 }
