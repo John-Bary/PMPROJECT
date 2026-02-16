@@ -237,7 +237,7 @@ function Dashboard() {
           </Avatar>
         </header>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="px-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-safe-bottom pl-safe-left pr-safe-right">
             <AnimatePresence mode="wait">
               <motion.div
