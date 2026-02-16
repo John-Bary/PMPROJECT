@@ -207,7 +207,7 @@ function Dashboard() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile top bar */}
-        <header className="md:hidden min-h-14 pt-safe-top bg-card border-b border-border flex items-center px-4 pl-safe-left pr-safe-right shrink-0">
+        <header className="md:hidden min-h-14 pt-safe-top bg-card border-b border-border flex items-center px-safe-4 shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -238,7 +238,7 @@ function Dashboard() {
         </header>
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="px-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-safe-bottom pl-safe-left pr-safe-right">
+          <div className="px-safe-4 sm:px-5 md:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 pb-safe-bottom">
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeView}
