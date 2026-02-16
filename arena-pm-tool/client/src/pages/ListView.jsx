@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DndContext, DragOverlay, closestCorners, useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { useDndSensors } from '../hooks/useDndSensors';
 import {
   Search,
   X,
@@ -43,6 +45,25 @@ import {
   AlertDialogAction,
 } from 'components/ui/alert-dialog';
 
+// Lightweight render-prop wrapper for sortable table rows
+function SortableRow({ id, data, children }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useSortable({ id, data });
+  return children({ ref: setNodeRef, attributes, listeners, isDragging });
+}
+
+// Droppable wrapper for category tbody (enables cross-category drops and empty-category drops)
+function DroppableCategoryBody({ categoryId, children }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `list-category-${categoryId}`,
+    data: { type: 'category-droppable', categoryId },
+  });
+  return (
+    <tbody ref={setNodeRef} className={isOver ? 'bg-accent' : undefined}>
+      {children}
+    </tbody>
+  );
+}
+
 function ListView() {
   const {
     tasks,
@@ -72,8 +93,10 @@ function ListView() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState({ key: 'dueDate', direction: 'asc' });
   const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
+  const [activeId, setActiveId] = useState(null);
   const dropdownRefs = useRef({});
   const priorityPortalRef = useRef(null);
+  const sensors = useDndSensors();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const PRIORITY_ORDER = useMemo(() => ({ urgent: 0, high: 1, medium: 2, low: 3 }), []);
@@ -208,57 +231,44 @@ function ListView() {
   };
 
 
+  // Track active drag item for DragOverlay
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+
   /**
    * Handle drag-and-drop reordering of tasks and subtasks.
-   * Supports:
-   * - Moving parent tasks within a category (reorder)
-   * - Moving parent tasks between categories
-   * - Reordering subtasks within the same parent
+   * Uses @dnd-kit data-driven approach — active/over items carry their type, task, and category.
    */
-  const handleDragEnd = async (result) => {
-    const { destination, source, draggableId } = result;
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveId(null);
 
-    // Early exit: no drop target or same exact position
-    if (!destination) return;
-    if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
-    ) return;
+    if (!over || active.id === over.id) return;
 
-    const sourceCategoryId = parseInt(source.droppableId, 10);
-    const destCategoryId = parseInt(destination.droppableId, 10);
-    const isSubtask = draggableId.startsWith('subtask-');
-    const taskId = parseInt(draggableId.replace('subtask-', '').replace('task-', ''), 10);
+    const activeData = active.data.current;
+    const overData = over.data.current;
+    const taskId = activeData.task.id;
+    const sourceCategoryId = activeData.categoryId;
+    const isSubtask = activeData.type === 'subtask';
 
-    // --- Cross-category move (parent tasks only) ---
+    // Determine destination category
+    const destCategoryId = overData.categoryId;
+
+    // Cross-category move (parent tasks only)
     if (sourceCategoryId !== destCategoryId) {
-      if (isSubtask) return; // Subtasks cannot move across categories
+      if (isSubtask) return;
 
-      // Build the destination category's flat rows to find the correct parent-task position
       const destSortedParents = tasksByCategory[destCategoryId] || [];
-      const destRows = [];
-      destSortedParents.forEach((parent) => {
-        destRows.push({ task: parent, isSubtask: false });
-        if (expandedTasks[parent.id]) {
-          const subs = getSubtasks(parent.id);
-          subs.forEach((sub) => destRows.push({ task: sub, isSubtask: true }));
-        }
-      });
-
-      // Map the visual drop index to a parent-task position
-      const destRow = destRows[destination.index];
       let position;
-      if (!destRow) {
-        // Dropped past the last item — append to end
+
+      if (overData.type === 'category-droppable') {
         position = destSortedParents.length;
-      } else if (destRow.isSubtask) {
-        // Dropped onto a subtask row — place after its parent in parent order
-        const parentOfSub = destSortedParents.find(p => p.id === destRow.task.parentTaskId);
-        position = parentOfSub
-          ? destSortedParents.indexOf(parentOfSub) + 1
-          : destSortedParents.length;
+      } else if (overData.type === 'subtask') {
+        const parentOfSub = destSortedParents.find(p => p.id === overData.task.parentTaskId);
+        position = parentOfSub ? destSortedParents.indexOf(parentOfSub) + 1 : destSortedParents.length;
       } else {
-        position = destSortedParents.indexOf(destRow.task);
+        position = destSortedParents.findIndex(t => t.id === overData.task.id);
         if (position === -1) position = destSortedParents.length;
       }
 
@@ -266,64 +276,33 @@ function ListView() {
       return;
     }
 
-    // --- Same-category operations ---
-    // Use the sorted parent list that matches the rendered order
+    // Same-category parent task reorder
     const sortedParents = tasksByCategory[destCategoryId] || [];
 
-    // Build flat list of visible rows matching what is rendered
-    const buildCategoryRows = (parents) => {
-      const rows = [];
-      parents.forEach((parent) => {
-        rows.push({ task: parent, isSubtask: false });
-        if (expandedTasks[parent.id]) {
-          const subs = getSubtasks(parent.id);
-          subs.forEach((sub) => rows.push({ task: sub, isSubtask: true, parentId: parent.id }));
-        }
-      });
-      return rows;
-    };
-
-    const categoryRows = buildCategoryRows(sortedParents);
-    const sourceRow = categoryRows[source.index];
-    const destRow = categoryRows[destination.index];
-    if (!sourceRow || !destRow) return;
-
-    // --- Parent task reorder within same category ---
     if (!isSubtask) {
-      // Don't allow dropping a parent task onto a subtask row
-      if (sourceRow.isSubtask || destRow.isSubtask) return;
+      if (overData.type === 'subtask' || overData.type === 'category-droppable') return;
 
-      const newParentOrder = [...sortedParents];
-      const fromIdx = newParentOrder.findIndex(t => t.id === taskId);
-      const toIdx = newParentOrder.findIndex(t => t.id === destRow.task.id);
-      if (fromIdx === -1 || toIdx === -1) return;
-
-      const [moved] = newParentOrder.splice(fromIdx, 1);
-      newParentOrder.splice(toIdx, 0, moved);
+      const toIdx = sortedParents.findIndex(t => t.id === overData.task.id);
+      if (toIdx === -1) return;
 
       await updateTaskPosition(taskId, { category_id: destCategoryId, position: toIdx });
       return;
     }
 
-    // --- Subtask reorder within the same parent ---
-    if (!sourceRow.isSubtask || !destRow.isSubtask) return;
-    if (sourceRow.parentId !== destRow.parentId) return;
+    // Subtask reorder within same parent
+    if (overData.type !== 'subtask') return;
+    if (activeData.task.parentTaskId !== overData.task.parentTaskId) return;
 
-    const parentId = sourceRow.parentId;
+    const parentId = activeData.task.parentTaskId;
     const siblings = getSubtasks(parentId);
-    const draggedTask = tasks.find(t => t.id === taskId);
-    if (!draggedTask) return;
-
-    // Build reordered siblings list
     const fromSubIdx = siblings.findIndex(t => t.id === taskId);
-    const toSubIdx = siblings.findIndex(t => t.id === destRow.task.id);
+    const toSubIdx = siblings.findIndex(t => t.id === overData.task.id);
     if (fromSubIdx === -1 || toSubIdx === -1) return;
 
     const reorderedSiblings = [...siblings];
     const [movedSub] = reorderedSiblings.splice(fromSubIdx, 1);
     reorderedSiblings.splice(toSubIdx, 0, movedSub);
 
-    // Find position within all category tasks
     const categoryTasksOrdered = tasks
       .filter(t => t.categoryId === destCategoryId)
       .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
@@ -331,9 +310,7 @@ function ListView() {
     let siblingCursor = 0;
     const newCategoryOrder = categoryTasksOrdered.map((task) => {
       if (task.parentTaskId === parentId) {
-        const next = reorderedSiblings[siblingCursor];
-        siblingCursor += 1;
-        return next;
+        return reorderedSiblings[siblingCursor++];
       }
       return task;
     });
@@ -601,7 +578,7 @@ function ListView() {
         </div>
       ) : (
         <>
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="bg-card rounded-lg border border-border overflow-x-auto">
             {/* Desktop Table View */}
             <table className="w-full hidden md:table">
@@ -672,7 +649,7 @@ function ListView() {
                   const categoryTasks = tasksByCategory[category.id] || [];
                   const isCategoryCollapsed = collapsedCategories[category.id];
 
-                  // Build a flat list of rows (parents + visible subtasks) to keep indices aligned with DragDropContext
+                  // Build a flat list of rows (parents + visible subtasks) for sortable context
                   const categoryRows = [];
                   categoryTasks.forEach((task) => {
                     categoryRows.push({ task, isSubtask: false });
@@ -684,14 +661,12 @@ function ListView() {
                     }
                   });
 
+                  const sortableItems = categoryRows.map(row =>
+                    `${row.isSubtask ? 'subtask' : 'task'}-${row.task.id}`
+                  );
+
                   return (
-                    <Droppable droppableId={category.id.toString()} key={category.id}>
-                      {(provided, snapshot) => (
-                        <tbody
-                          ref={provided.innerRef}
-                          {...provided.droppableProps}
-                          className={snapshot.isDraggingOver ? 'bg-accent' : undefined}
-                        >
+                    <DroppableCategoryBody categoryId={category.id} key={category.id}>
                           {/* Category Header Row */}
                           <tr className="bg-accent border-b border-border">
                             <td colSpan="6" className="px-3 py-2">
@@ -713,6 +688,7 @@ function ListView() {
                           </tr>
 
                           {/* Category Tasks + Subtasks */}
+                          <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
                           {!isCategoryCollapsed && categoryRows.map((row, rowIndex) => {
                             const task = row.task;
                             const isSubtask = row.isSubtask;
@@ -725,18 +701,18 @@ function ListView() {
                             const draggableId = `${isSubtask ? 'subtask' : 'task'}-${task.id}`;
 
                             return (
-                              <Draggable draggableId={draggableId} index={rowIndex} key={draggableId}>
-                                {(dragProvided, dragSnapshot) => (
+                              <SortableRow id={draggableId} data={{ type: isSubtask ? 'subtask' : 'task', task, categoryId: category.id }} key={draggableId}>
+                                {({ ref, attributes, listeners, isDragging: isRowDragging }) => (
                                   <tr
-                                    ref={dragProvided.innerRef}
-                                    {...dragProvided.draggableProps}
-                                    className={`border-b border-border hover:bg-muted/50 transition-colors duration-150 ${isCompleted ? 'opacity-50' : ''} ${dragSnapshot.isDragging ? 'bg-muted shadow-sm' : ''}`}
+                                    ref={ref}
+                                    {...attributes}
+                                    className={`border-b border-border hover:bg-muted/50 transition-colors duration-150 ${isCompleted ? 'opacity-50' : ''} ${isRowDragging ? 'bg-muted shadow-sm opacity-50' : ''}`}
                                   >
                                     {/* Drag handle + expand/collapse (parents) */}
                                     <td className="px-3 py-2">
                                       <div className="flex items-center gap-1">
                                         <span
-                                          {...dragProvided.dragHandleProps}
+                                          {...listeners}
                                           className="text-muted-foreground cursor-grab active:cursor-grabbing p-3 -m-3 md:p-0 md:m-0 touch-manipulation"
                                           title="Drag to reorder"
                                         >
@@ -947,18 +923,11 @@ function ListView() {
                                     </td>
                                   </tr>
                                 )}
-                              </Draggable>
+                              </SortableRow>
                             );
                           })}
-
-                          {provided.placeholder && (
-                            <tr>
-                              <td colSpan="6">{provided.placeholder}</td>
-                            </tr>
-                          )}
-                        </tbody>
-                      )}
-                    </Droppable>
+                          </SortableContext>
+                    </DroppableCategoryBody>
                   );
                 })
               ) : (
@@ -1230,7 +1199,22 @@ function ListView() {
               )}
             </div>
           </div>
-        </DragDropContext>
+
+          {/* Drag overlay — floating preview of the dragged item */}
+          <DragOverlay dropAnimation={null}>
+            {activeId && (() => {
+              const idStr = String(activeId);
+              const dragTaskId = parseInt(idStr.replace('subtask-', '').replace('task-', ''), 10);
+              const dragTask = tasks.find(t => t.id === dragTaskId);
+              if (!dragTask) return null;
+              return (
+                <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 max-w-sm opacity-90">
+                  <p className="text-sm font-medium text-foreground truncate">{dragTask.title}</p>
+                </div>
+              );
+            })()}
+          </DragOverlay>
+        </DndContext>
 
         {/* Load More Button */}
         {hasMore && (

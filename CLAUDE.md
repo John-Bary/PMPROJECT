@@ -11,11 +11,12 @@ Todoria is a multi-workspace project management SaaS application. It provides ta
 
 ### Frontend (React)
 - **Framework**: React 19 with Create React App
-- **Styling**: Tailwind CSS 3.4 (indigo primary palette, Inter font)
+- **Styling**: Tailwind CSS 3.4 + shadcn/ui (CSS variable theming, Inter font)
+- **UI Components**: shadcn/ui (23 primitives in `components/ui/`): button, input, textarea, select, dropdown-menu, card, badge, checkbox, switch, dialog, alert-dialog, sheet, popover, command, tabs, table, calendar, avatar, separator, skeleton, scroll-area, tooltip, label
 - **State Management**: Zustand 5
 - **Routing**: React Router DOM 7
 - **HTTP Client**: Axios (with CSRF + cookie auth)
-- **Drag & Drop**: @hello-pangea/dnd
+- **Drag & Drop**: @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities (touch + pointer + keyboard)
 - **Animations**: framer-motion (modal/page transitions)
 - **Date Handling**: date-fns, react-day-picker
 - **Icons**: lucide-react
@@ -45,8 +46,10 @@ arena-pm-tool/
 │   └── index.js
 ├── client/                      # React frontend
 │   ├── src/
-│   │   ├── components/          # Reusable UI components (28 files)
+│   │   ├── components/          # Reusable UI components (~28 files)
+│   │   │   └── ui/              # shadcn/ui primitives (23 .tsx files)
 │   │   ├── contexts/            # React contexts (WorkspaceContext)
+│   │   ├── lib/                 # Utility functions (cn() from clsx + tailwind-merge)
 │   │   ├── hooks/               # Custom hooks (focus trap, keyboard shortcuts, task actions/filters)
 │   │   ├── pages/               # Page components (22 files)
 │   │   │   └── UserArea/        # User settings sub-pages (Profile, Preferences, Notifications, My Tasks, Team, Activity, Account)
@@ -300,14 +303,42 @@ REACT_APP_API_URL=http://localhost:5001/api
 
 ## UI Design System
 
-- **Primary color**: Indigo scale (`primary-50` #EEF2FF through `primary-900`, main: `primary-600` #4F46E5)
+### Theming (CSS Variables)
+All colors are defined as CSS variables in `client/src/index.css` `:root` and consumed via `hsl(var(--variable))` in `tailwind.config.js`. To change the brand color or theme, edit the variables in `:root` — no need to touch component files.
+
+**Key variables:** `--primary`, `--background`, `--foreground`, `--card`, `--popover`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, plus sidebar and chart variants.
+
+**Dark mode:** `darkMode: "class"` in Tailwind config. A `.dark` CSS variable block is defined in `index.css`. Add `class="dark"` to `<html>` to activate.
+
+### Color usage conventions
+| Tailwind class | Use for |
+|---|---|
+| `bg-background` / `text-foreground` | Page backgrounds, body text |
+| `bg-card` / `text-card-foreground` | Card surfaces |
+| `bg-popover` / `text-popover-foreground` | Dropdowns, popovers, modals |
+| `bg-primary` / `text-primary-foreground` | Buttons, active states, brand accents |
+| `bg-muted` / `text-muted-foreground` | Subtle backgrounds, secondary text |
+| `bg-accent` / `text-accent-foreground` | Hover states, highlighted rows |
+| `bg-destructive` / `text-destructive` | Delete buttons, error states |
+| `border-border` / `border-input` | Default borders, form input borders |
+| `ring-ring` | Focus rings |
+
+### Hardcoded colors (intentional, not themed)
+- **Priority colors**: `priority-urgent` (red), `priority-high` (orange), `priority-medium` (amber), `priority-low` (blue) — in `priorityStyles.js`
+- **Status colors**: `success`, `warning`, `danger`, `info`
+- **Neutral scale**: `neutral-50` through `neutral-900` — for tooltips, dark-themed pages, fine-tuned grays
+- **Dark-theme pages**: WorkspaceOnboarding, AcceptInvite use `bg-neutral-900` / `text-white` intentionally
+- **Tooltip component**: `bg-neutral-900 text-white` (always dark)
+- **CookieConsent**: Dark toast, hardcoded
+- **PlanBadge**: Plan-specific colors, hardcoded
+
+### Other design tokens
 - **Typography**: Inter font (400/500/600/700), loaded via Google Fonts with system stack fallback
 - **Layout**: Collapsible sidebar navigation (260px expanded / 64px collapsed) with mobile overlay
-- **Surfaces**: White cards with `border-[#E8EBF0]`, `rounded-xl`, layered shadows (`shadow-card`, `shadow-elevated`, `shadow-modal`)
-- **Priority colors**: Urgent (red), High (orange), Medium (amber), Low (blue) — used in pill badges and card left borders
-- **Animations**: framer-motion for modal open/close (`scale: 0.98→1`), page view crossfades via `AnimatePresence`
+- **Surfaces**: Cards with `border-border`, `rounded-xl`, layered shadows (`shadow-card`, `shadow-elevated`, `shadow-modal`)
+- **Border radius**: CSS variable-based via `--radius` (0.5rem default)
+- **Animations**: framer-motion for modal open/close (`scale: 0.98→1`), page view crossfades via `AnimatePresence`; `tailwindcss-animate` plugin for accordion and utility animations
 - **Navigation**: `/` renders public LandingPage; `/login` for auth; `/dashboard` for main app (sidebar with Board/List/Calendar views)
-- **Dark-theme pages**: AcceptInvite, WorkspaceOnboarding, UserArea/* use `bg-neutral-900` containers intentionally
 
 ## Code Style
 
@@ -316,7 +347,8 @@ REACT_APP_API_URL=http://localhost:5001/api
 - HttpOnly cookie auth — no tokens in localStorage; user data sanitized via `sanitizeUserForStorage()` before localStorage (strips email, keeps id/name/role/avatarUrl/emailVerified)
 - CSRF token auto-fetched and attached to mutations via Axios interceptor
 - `sonner` for all user notifications (`import { toast } from 'sonner'`; use `toast.success()`, `toast.error()`)
-- Tailwind CSS utility classes with custom design tokens defined in `tailwind.config.js` (colors, shadows, fonts)
+- Tailwind CSS utility classes with CSS variable-based theming (see "UI Design System" section); all colors reference `hsl(var(--variable))` — do NOT use hardcoded color values like `bg-primary-600` or `border-[#E8EBF0]` for themeable surfaces
+- shadcn/ui components (`client/src/components/ui/*.tsx`) for all UI primitives — use `cva` variants, not inline conditional classes
 - `withErrorHandling` wrapper for controller error handling on the server
 - `AppError` class for operational errors with status codes
 - Pino logger (not console.log/console.error) on the server

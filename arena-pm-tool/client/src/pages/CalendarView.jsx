@@ -1,10 +1,30 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
+import { DndContext, DragOverlay, useDraggable, useDroppable } from '@dnd-kit/core';
 import useTaskStore from '../store/taskStore';
 import useHolidayStore from '../store/holidayStore';
 import TaskModal from '../components/TaskModal';
 import { PageLoader } from '../components/Loader';
 import { Button } from 'components/ui/button';
+import { useDndSensors } from '../hooks/useDndSensors';
+
+// Render-prop wrapper for draggable calendar task cards
+function DraggableCalendarTask({ task, children }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `cal-task-${task.id}`,
+    data: { type: 'calendar-task', task },
+  });
+  return children({ ref: setNodeRef, attributes, listeners, isDragging });
+}
+
+// Render-prop wrapper for droppable calendar day cells
+function DroppableCalendarDay({ dateKey, children }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `cal-day-${dateKey}`,
+    data: { type: 'calendar-day', dateKey },
+  });
+  return children({ ref: setNodeRef, isOver });
+}
 
 function CalendarView() {
   const { tasks, isLoading: loading, fetchTasks, updateTask } = useTaskStore();
@@ -15,10 +35,10 @@ function CalendarView() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [draggedTask, setDraggedTask] = useState(null);
-  const [dragOverDay, setDragOverDay] = useState(null);
+  const [activeId, setActiveId] = useState(null);
   const [mobileViewMode, setMobileViewMode] = useState('day'); // 'day', '3day', 'week'
   const [isDragging, setIsDragging] = useState(false);
+  const sensors = useDndSensors();
 
   // Get calendar data
   const year = currentDate.getFullYear();
@@ -320,54 +340,31 @@ function CalendarView() {
     return getHolidayByDate(dateKey);
   };
 
-  // Drag and drop handlers with optimistic UI and error recovery
-  const handleDragStart = useCallback((e, task) => {
+  // @dnd-kit drag handlers for calendar task rescheduling
+  const handleCalendarDragStart = useCallback((event) => {
+    setActiveId(event.active.id);
     setIsDragging(true);
-    setDraggedTask(task);
-    e.dataTransfer.effectAllowed = 'move';
-    e.stopPropagation(); // Prevent click event
   }, []);
 
-  const handleDragOver = useCallback((e, day) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    setDragOverDay(day);
-  }, []);
+  const handleCalendarDragEnd = useCallback(async (event) => {
+    const { active, over } = event;
+    setActiveId(null);
 
-  const handleDragLeave = useCallback(() => {
-    setDragOverDay(null);
-  }, []);
+    if (over && over.data.current?.type === 'calendar-day') {
+      const task = active.data.current?.task;
+      const dateKey = over.data.current?.dateKey;
 
-  const handleDrop = useCallback(async (e, day) => {
-    e.preventDefault();
-    setDragOverDay(null);
-
-    if (!draggedTask) return;
-
-    // Create simple YYYY-MM-DD date string
-    const mm = String(month + 1).padStart(2, '0');
-    const dd = String(day).padStart(2, '0');
-    const dateString = `${year}-${mm}-${dd}`;
-
-    try {
-      // Update task with new due date using Zustand store
-      await updateTask(draggedTask.id, { due_date: dateString });
-    } catch (error) {
-      // Revert on failure - refetch to restore previous state
-      await fetchTasks();
+      if (task && dateKey) {
+        try {
+          await updateTask(task.id, { due_date: dateKey });
+        } catch (error) {
+          await fetchTasks();
+        }
+      }
     }
 
-    setDraggedTask(null);
-    // Small delay before allowing clicks again
     setTimeout(() => setIsDragging(false), 100);
-  }, [draggedTask, month, year, updateTask, fetchTasks]);
-
-  const handleDragEnd = useCallback(() => {
-    setDraggedTask(null);
-    setDragOverDay(null);
-    // Small delay before allowing clicks again
-    setTimeout(() => setIsDragging(false), 100);
-  }, []);
+  }, [updateTask, fetchTasks]);
 
   // Generate calendar days
   const calendarDays = [];
@@ -501,6 +498,7 @@ function CalendarView() {
         </div>
       </div>
 
+      <DndContext sensors={sensors} onDragStart={handleCalendarDragStart} onDragEnd={handleCalendarDragEnd}>
       {/* Desktop Calendar Grid - Month View */}
       {viewMode === 'month' && (
       <div className="hidden md:flex flex-1 bg-card rounded-2xl border border-border shadow-card overflow-hidden flex-col">
@@ -521,100 +519,99 @@ function CalendarView() {
           {calendarDays.map((day, index) => {
             const holiday = day ? getHolidayForDay(day) : null;
 
+            if (!day) {
+              return <div key={index} className="border-r border-b border-border last:border-r-0 p-2.5 bg-muted/40" />;
+            }
+
+            const mm = String(month + 1).padStart(2, '0');
+            const dd = String(day).padStart(2, '0');
+            const dateKey = `${year}-${mm}-${dd}`;
+
             return (
-              <div
-                key={index}
-                className={`border-r border-b border-border last:border-r-0 p-2.5 transition-all duration-150 ${
-                  day ? 'bg-card hover:bg-muted/50' : 'bg-muted/40'
-                } ${holiday ? 'bg-red-50/50' : ''} ${isToday(day) ? 'ring-1 ring-inset ring-primary/20 bg-accent/30' : ''} ${
-                  dragOverDay === day ? 'bg-accent/60 ring-2 ring-inset ring-primary/40' : ''
-                }`}
-                onDragOver={day ? (e) => handleDragOver(e, day) : undefined}
-                onDragLeave={day ? handleDragLeave : undefined}
-                onDrop={day ? (e) => handleDrop(e, day) : undefined}
-              >
-                {day && (
+              <DroppableCalendarDay key={index} dateKey={dateKey}>
+                {({ ref, isOver }) => (
                   <div
-                    className="h-full flex flex-col"
-                    style={{ pointerEvents: 'none' }}
+                    ref={ref}
+                    className={`border-r border-b border-border last:border-r-0 p-2.5 transition-all duration-150 bg-card hover:bg-muted/50 ${holiday ? 'bg-red-50/50' : ''} ${isToday(day) ? 'ring-1 ring-inset ring-primary/20 bg-accent/30' : ''} ${
+                      isOver ? 'bg-accent/60 ring-2 ring-inset ring-primary/40' : ''
+                    }`}
                   >
-                    <div
-                      className="flex items-center justify-between mb-2"
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      <div
-                        className={`text-sm font-medium ${
-                          isToday(day)
-                            ? 'flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground rounded-full'
-                            : 'text-foreground'
-                        }`}
-                      >
-                        {day}
+                    <div className="h-full flex flex-col">
+                      <div className="flex items-center justify-between mb-2">
+                        <div
+                          className={`text-sm font-medium ${
+                            isToday(day)
+                              ? 'flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground rounded-full'
+                              : 'text-foreground'
+                          }`}
+                        >
+                          {day}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDayClick(day);
+                          }}
+                          className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-1 transition-all duration-150"
+                          title="Add task"
+                          aria-label={`Add task on day ${day}`}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        </button>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDayClick(day);
-                        }}
-                        className="text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg p-1 transition-all duration-150"
-                        title="Add task"
-                        aria-label={`Add task on day ${day}`}
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                      </button>
-                    </div>
 
-                    {/* Holiday label */}
-                    {holiday && (
-                      <div className="text-xs text-red-600 font-medium truncate mb-1.5" title={holiday.localName || holiday.name}>
-                        {holiday.localName || holiday.name}
-                      </div>
-                    )}
+                      {/* Holiday label */}
+                      {holiday && (
+                        <div className="text-xs text-red-600 font-medium truncate mb-1.5" title={holiday.localName || holiday.name}>
+                          {holiday.localName || holiday.name}
+                        </div>
+                      )}
 
-                    {/* Task cards */}
-                    <div
-                      className="space-y-1.5 overflow-hidden flex-1"
-                      style={{ pointerEvents: 'auto' }}
-                    >
-                      {(() => {
-                        const dayTasks = getTasksForDay(day);
-                        const maxVisible = holiday ? 2 : 3;
-                        const visibleTasks = dayTasks.slice(0, maxVisible);
-                        const remainingCount = dayTasks.length - maxVisible;
+                      {/* Task cards */}
+                      <div className="space-y-1.5 overflow-hidden flex-1">
+                        {(() => {
+                          const dayTasks = getTasksForDay(day);
+                          const maxVisible = holiday ? 2 : 3;
+                          const visibleTasks = dayTasks.slice(0, maxVisible);
+                          const remainingCount = dayTasks.length - maxVisible;
 
-                        return (
-                          <>
-                            {visibleTasks.map((task) => (
-                              <div
-                                key={task.id}
-                                draggable={true}
-                                onDragStart={(e) => handleDragStart(e, task)}
-                                onDragEnd={handleDragEnd}
-                                onClick={() => handleTaskClick(task)}
-                                className={`text-xs font-medium py-1.5 px-2 rounded-md border border-l-[3px] ${getPriorityBorderColor(task.priority)} cursor-move hover:shadow-sm hover:opacity-90 transition-all duration-150 ${getPriorityColor(task.priority)}`}
-                                title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
-                              >
-                                <div className="line-clamp-2 leading-snug">{task.title}</div>
-                                <div className="flex items-center gap-1 mt-0.5">
-                                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusDotColor(task.status)}`} />
-                                  <span className="text-[10px] text-muted-foreground truncate">{getStatusLabel(task.status)}</span>
+                          return (
+                            <>
+                              {visibleTasks.map((task) => (
+                                <DraggableCalendarTask key={task.id} task={task}>
+                                  {({ ref: taskRef, attributes, listeners, isDragging: isTaskDragging }) => (
+                                    <div
+                                      ref={taskRef}
+                                      {...attributes}
+                                      {...listeners}
+                                      onClick={() => handleTaskClick(task)}
+                                      className={`text-xs font-medium py-1.5 px-2 rounded-md border border-l-[3px] ${getPriorityBorderColor(task.priority)} cursor-move hover:shadow-sm hover:opacity-90 transition-all duration-150 ${getPriorityColor(task.priority)} ${isTaskDragging ? 'opacity-50' : ''}`}
+                                      title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
+                                    >
+                                      <div className="line-clamp-2 leading-snug">{task.title}</div>
+                                      <div className="flex items-center gap-1 mt-0.5">
+                                        <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusDotColor(task.status)}`} />
+                                        <span className="text-[10px] text-muted-foreground truncate">{getStatusLabel(task.status)}</span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </DraggableCalendarTask>
+                              ))}
+                              {remainingCount > 0 && (
+                                <div className="text-xs text-muted-foreground hover:text-foreground cursor-pointer px-2 py-0.5 transition-colors">
+                                  +{remainingCount} more
                                 </div>
-                              </div>
-                            ))}
-                            {remainingCount > 0 && (
-                              <div className="text-xs text-muted-foreground hover:text-foreground cursor-pointer px-2 py-0.5 transition-colors">
-                                +{remainingCount} more
-                              </div>
-                            )}
-                          </>
-                        );
-                      })()}
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 )}
-              </div>
+              </DroppableCalendarDay>
             );
           })}
         </div>
@@ -664,74 +661,82 @@ function CalendarView() {
               const holiday = getHolidayByDate(day.dateKey);
 
               return (
-                <div
-                  key={index}
-                  className={`border-r border-border last:border-r-0 flex flex-col transition-all duration-150 ${
-                    holiday ? 'bg-red-50/50' : ''
-                  } ${isTodayDate(day.date) ? 'bg-accent/30' : 'bg-card'} ${
-                    dragOverDay === day.dateKey ? 'bg-accent/60 ring-2 ring-inset ring-primary/40' : ''
-                  }`}
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    setDragOverDay(day.dateKey);
-                  }}
-                  onDragLeave={() => setDragOverDay(null)}
-                  onDrop={async (e) => {
-                    e.preventDefault();
-                    setDragOverDay(null);
-                    if (!draggedTask) return;
-                    await updateTask(draggedTask.id, { due_date: day.dateKey });
-                    setDraggedTask(null);
-                    setTimeout(() => setIsDragging(false), 100);
-                  }}
-                >
-                  {/* Holiday label at top of column */}
-                  {holiday && (
-                    <div className="px-2 py-1 text-xs text-red-600 font-medium bg-red-50 border-b border-red-100 truncate" title={holiday.localName || holiday.name}>
-                      {holiday.localName || holiday.name}
+                <DroppableCalendarDay key={index} dateKey={day.dateKey}>
+                  {({ ref, isOver }) => (
+                    <div
+                      ref={ref}
+                      className={`border-r border-border last:border-r-0 flex flex-col transition-all duration-150 ${
+                        holiday ? 'bg-red-50/50' : ''
+                      } ${isTodayDate(day.date) ? 'bg-accent/30' : 'bg-card'} ${
+                        isOver ? 'bg-accent/60 ring-2 ring-inset ring-primary/40' : ''
+                      }`}
+                    >
+                      {/* Holiday label at top of column */}
+                      {holiday && (
+                        <div className="px-2 py-1 text-xs text-red-600 font-medium bg-red-50 border-b border-red-100 truncate" title={holiday.localName || holiday.name}>
+                          {holiday.localName || holiday.name}
+                        </div>
+                      )}
+
+                      {/* + Add task button at top of each column */}
+                      <button
+                        onClick={() => {
+                          setSelectedDate(day.dateKey);
+                          setSelectedTask(null);
+                          setIsModalOpen(true);
+                        }}
+                        className="w-full p-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150 border-b border-border flex items-center justify-center gap-1"
+                      >
+                        <Plus size={14} />
+                        <span>Add task</span>
+                      </button>
+
+                      {/* Tasks for this day */}
+                      <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
+                        {dayTasks.map((task) => (
+                          <DraggableCalendarTask key={task.id} task={task}>
+                            {({ ref: taskRef, attributes, listeners, isDragging: isTaskDragging }) => (
+                              <div
+                                ref={taskRef}
+                                {...attributes}
+                                {...listeners}
+                                onClick={() => handleTaskClick(task)}
+                                className={`text-xs font-medium py-1.5 px-2 rounded-md border border-l-[3px] ${getPriorityBorderColor(task.priority)} cursor-move hover:shadow-sm hover:opacity-90 transition-all duration-150 ${getPriorityColor(task.priority)} ${isTaskDragging ? 'opacity-50' : ''}`}
+                                title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
+                              >
+                                <div className="line-clamp-2 leading-snug">{task.title}</div>
+                                <div className="flex items-center gap-1 mt-0.5">
+                                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusDotColor(task.status)}`} />
+                                  <span className="text-[10px] text-muted-foreground truncate">{getStatusLabel(task.status)}</span>
+                                </div>
+                              </div>
+                            )}
+                          </DraggableCalendarTask>
+                        ))}
+                      </div>
                     </div>
                   )}
-
-                  {/* + Add task button at top of each column */}
-                  <button
-                    onClick={() => {
-                      setSelectedDate(day.dateKey);
-                      setSelectedTask(null);
-                      setIsModalOpen(true);
-                    }}
-                    className="w-full p-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-150 border-b border-border flex items-center justify-center gap-1"
-                  >
-                    <Plus size={14} />
-                    <span>Add task</span>
-                  </button>
-
-                  {/* Tasks for this day */}
-                  <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
-                    {dayTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        draggable={true}
-                        onDragStart={(e) => handleDragStart(e, task)}
-                        onDragEnd={handleDragEnd}
-                        onClick={() => handleTaskClick(task)}
-                        className={`text-xs font-medium py-1.5 px-2 rounded-md border border-l-[3px] ${getPriorityBorderColor(task.priority)} cursor-move hover:shadow-sm hover:opacity-90 transition-all duration-150 ${getPriorityColor(task.priority)}`}
-                        title={`${task.title}\n${task.description || ''}\nPriority: ${task.priority || 'none'}\nStatus: ${task.status}`}
-                      >
-                        <div className="line-clamp-2 leading-snug">{task.title}</div>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${getStatusDotColor(task.status)}`} />
-                          <span className="text-[10px] text-muted-foreground truncate">{getStatusLabel(task.status)}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                </DroppableCalendarDay>
               );
             })}
           </div>
         </div>
       )}
+
+      {/* Drag overlay — floating preview of the dragged task */}
+      <DragOverlay dropAnimation={null}>
+        {activeId && (() => {
+          const taskId = parseInt(String(activeId).replace('cal-task-', ''), 10);
+          const dragTask = tasks.find(t => t.id === taskId);
+          if (!dragTask) return null;
+          return (
+            <div className="bg-card border border-border rounded-lg shadow-elevated px-3 py-2 max-w-48 opacity-90">
+              <p className="text-xs font-medium text-foreground truncate">{dragTask.title}</p>
+            </div>
+          );
+        })()}
+      </DragOverlay>
+      </DndContext>
 
       {/* Mobile Calendar Views */}
       <div className="md:hidden flex-1 flex flex-col">
