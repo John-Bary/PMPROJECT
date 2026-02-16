@@ -72,6 +72,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
   body {
@@ -194,6 +195,12 @@
   /* Column header typography */
   .column-header {
     @apply text-sm font-semibold uppercase tracking-wide text-foreground;
+  }
+
+  /* Safe-area-aware padding: at least 1rem, or the device safe-area inset if larger */
+  .px-safe-4 {
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 
   /* Touch interaction improvements */
