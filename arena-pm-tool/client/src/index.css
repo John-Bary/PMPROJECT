@@ -218,3 +218,19 @@
     opacity: 0.7;
   }
 }
+
+/* ===== REDUCED MOTION ===== */
+/* Disable decorative animations for users who prefer reduced motion.
+   Keeps functional transitions (accordion, fade-in on scroll) but
+   freezes all looping decorative animations added by landing SVGs. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-orbit-slow,
+  .animate-orbit-mid,
+  .animate-orbit-fast,
+  .animate-float-slow,
+  .animate-float-mid,
+  .animate-float-fast,
+  .animate-shimmer-sweep {
+    animation: none !important;
+  }
+}

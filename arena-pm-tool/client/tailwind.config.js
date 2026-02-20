@@ -158,6 +158,14 @@ module.exports = {
         'sidebar-collapse': 'sidebarCollapse 200ms ease-out',
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // Landing page decorative animations
+        'orbit-slow': 'orbitSpin 18s linear infinite',
+        'orbit-mid': 'orbitSpin 12s linear infinite reverse',
+        'orbit-fast': 'orbitSpin 8s linear infinite',
+        'float-slow': 'floatY 10s ease-in-out infinite',
+        'float-mid': 'floatY 8s ease-in-out infinite reverse',
+        'float-fast': 'floatY 6s ease-in-out infinite',
+        'shimmer-sweep': 'shimmerSweep 6s ease-in-out infinite',
       },
 
       keyframes: {
@@ -188,6 +196,19 @@ module.exports = {
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
+        },
+        // Landing page decorative keyframes (GPU-friendly: transform/opacity only)
+        orbitSpin: {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        floatY: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-12px)' },
+        },
+        shimmerSweep: {
+          '0%': { transform: 'translateX(-200px)' },
+          '100%': { transform: 'translateX(1000px)' },
         },
       },
 

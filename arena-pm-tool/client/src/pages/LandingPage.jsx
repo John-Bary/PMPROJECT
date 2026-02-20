@@ -7,6 +7,9 @@ import {
 } from 'lucide-react';
 import useInView from '../hooks/useInView';
 import { Button } from 'components/ui/button';
+import HeroOrbits from '../components/landing/HeroOrbits';
+import FloatingShapes from '../components/landing/FloatingShapes';
+import ShimmerDivider from '../components/landing/ShimmerDivider';
 
 function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -319,7 +322,8 @@ function LandingPage() {
       </nav>
 
       {/* ─── Hero ─── */}
-      <section className="max-w-6xl mx-auto px-5 sm:px-6 pt-14 pb-16 sm:pt-24 sm:pb-24">
+      <section className="relative max-w-6xl mx-auto px-5 sm:px-6 pt-14 pb-16 sm:pt-24 sm:pb-24">
+        <HeroOrbits />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Copy + Form */}
           <div className="animate-slide-up">
@@ -413,8 +417,9 @@ function LandingPage() {
       <section
         id="features"
         ref={featuresRef}
-        className={`scroll-mt-20 ${sectionAnim(featuresInView)}`}
+        className={`relative scroll-mt-20 ${sectionAnim(featuresInView)}`}
       >
+        <FloatingShapes />
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             How We Solve This
@@ -764,6 +769,9 @@ function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ─── CTA Divider ─── */}
+      <ShimmerDivider />
 
       {/* ─── Final CTA ─── */}
       <section
