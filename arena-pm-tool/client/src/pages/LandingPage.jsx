@@ -4,6 +4,8 @@ import {
   Menu, X, Check, Plus, Minus, ArrowRight,
   Shield, Kanban, List, CalendarDays,
   Sparkles, ChevronLeft, ChevronRight,
+  Users, Zap, Clock, Heart,
+  Lock, Globe,
 } from 'lucide-react';
 import useInView from '../hooks/useInView';
 import { Button } from 'components/ui/button';
@@ -15,15 +17,16 @@ function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState(null);
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [activeShowcase, setActiveShowcase] = useState('list');
   const navigate = useNavigate();
 
   // Scroll animation refs
+  const [socialRef, socialInView] = useInView();
   const [problemRef, problemInView] = useInView();
   const [featuresRef, featuresInView] = useInView();
   const [stepsRef, stepsInView] = useInView();
   const [showcaseRef, showcaseInView] = useInView();
+  const [compareRef, compareInView] = useInView();
   const [pricingRef, pricingInView] = useInView();
   const [faqRef, faqInView] = useInView();
   const [ctaRef, ctaInView] = useInView();
@@ -42,14 +45,17 @@ function LandingPage() {
 
   const painPoints = [
     {
+      icon: Zap,
       title: 'Too many features, too little focus',
       description: 'Most PM tools pack in hundreds of features. Your team ends up using 10% and configuring the rest.',
     },
     {
+      icon: Globe,
       title: 'Scattered across apps',
       description: 'Tasks in one tool, calendar in another, notes somewhere else. Context-switching kills productivity.',
     },
     {
+      icon: Clock,
       title: 'Setup takes forever',
       description: "Permissions, integrations, workflows — by the time you're configured, you've lost all momentum.",
     },
@@ -64,12 +70,27 @@ function LandingPage() {
     {
       icon: List,
       title: 'One place for everything',
-      description: 'Tasks, deadlines, and team collaboration in a single clean interface. No tab-switching.',
+      description: 'Tasks, deadlines, and team collaboration in a single clean interface. No tab-switching required.',
     },
     {
       icon: CalendarDays,
       title: 'Ready in 60 seconds',
       description: 'Create a workspace, invite your team, and start working. No setup wizards or onboarding calls.',
+    },
+    {
+      icon: Users,
+      title: 'Built for small teams',
+      description: 'Designed for teams of 2–20. Every feature is optimized for speed and simplicity, not enterprise bureaucracy.',
+    },
+    {
+      icon: Lock,
+      title: 'Secure by default',
+      description: 'SSL encryption, daily backups, GDPR compliance, and httpOnly auth. Your data is safe without extra config.',
+    },
+    {
+      icon: Heart,
+      title: 'Delightfully simple',
+      description: 'Drag-and-drop tasks, keyboard shortcuts, and a clean UI that your team will actually enjoy using.',
     },
   ];
 
@@ -124,6 +145,18 @@ function LandingPage() {
     { day: 22, title: 'Launch prep', color: 'bg-neutral-400' },
   ];
 
+  const comparisonRows = [
+    { feature: 'Price per seat', todoria: '€5/month', asana: '€11/month', monday: '€9/month' },
+    { feature: 'Free plan', todoria: '50 tasks, 3 members', asana: '10 users, limited', monday: '2 seats only' },
+    { feature: 'Setup time', todoria: '60 seconds', asana: '~30 minutes', monday: '~20 minutes' },
+    { feature: 'Board view', todoria: true, asana: true, monday: true },
+    { feature: 'List view', todoria: true, asana: true, monday: true },
+    { feature: 'Calendar view', todoria: true, asana: 'Premium only', monday: 'Pro only' },
+    { feature: 'Drag & drop', todoria: true, asana: true, monday: true },
+    { feature: 'Learning curve', todoria: 'None', asana: 'Moderate', monday: 'Moderate' },
+    { feature: 'Features you\'ll never use', todoria: 'Zero', asana: 'Hundreds', monday: 'Hundreds' },
+  ];
+
   const plans = [
     {
       id: 'free',
@@ -166,27 +199,35 @@ function LandingPage() {
   const faqs = [
     {
       q: 'Is there really a free plan?',
-      a: 'Yes! Our free plan includes up to 50 tasks, 1 workspace, and 3 team members. No credit card required, no time limits.',
+      a: 'Yes! Our free plan includes up to 50 tasks, 1 workspace, and 3 team members. No credit card required, no time limits. Use it forever.',
     },
     {
       q: 'How is Todoria different from Trello or Asana?',
-      a: "We intentionally do less. No integrations, no plugins, no bloat. Just boards, lists, and calendars — done right. That focus means everything works faster and simpler.",
+      a: "We intentionally do less. No integrations, no plugins, no bloat. Just boards, lists, and calendars — done right. That focus means everything works faster and simpler. And at €5/seat/month, it's significantly cheaper too.",
     },
     {
       q: 'Can I upgrade or cancel anytime?',
-      a: 'Absolutely. Upgrade to Pro when your team grows, and cancel anytime — no questions asked, no hidden fees.',
+      a: 'Absolutely. Upgrade to Pro when your team grows, and cancel anytime — no questions asked, no hidden fees. Your data stays accessible even after downgrading.',
     },
     {
       q: 'Is my data secure?',
-      a: 'Yes. All data is encrypted with SSL in transit and at rest. We run daily backups and never share your data with third parties.',
+      a: 'Yes. All data is encrypted with SSL in transit and at rest. We use httpOnly authentication cookies, CSRF protection, rate limiting, and run daily backups. We\'re also GDPR compliant.',
     },
     {
       q: 'Do you offer a trial for the Pro plan?',
-      a: "Yes — when you upgrade, you get a full-featured trial period. If it's not for you, cancel before the trial ends and you won't be charged.",
+      a: "Yes — when you upgrade, you get a full-featured trial period. If it's not for you, cancel before the trial ends and you won't be charged a cent.",
     },
     {
       q: 'Can I import tasks from another tool?',
       a: "Not yet, but it's on our roadmap. For now, getting started is so fast that most teams are up and running within minutes.",
+    },
+    {
+      q: 'What happens to my data if I cancel?',
+      a: 'Your data remains accessible. You can export everything (GDPR data export) before canceling, and we keep your data for 30 days after account deletion in case you change your mind.',
+    },
+    {
+      q: 'Do you have a mobile app?',
+      a: 'Todoria is fully responsive and works beautifully on any device — phone, tablet, or desktop. A dedicated mobile app is on our roadmap.',
     },
   ];
 
@@ -247,7 +288,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-background scroll-smooth">
       {/* ─── Navbar ─── */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-border">
+      <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-5 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="text-xl font-bold text-foreground tracking-tight">
             Todoria
@@ -297,7 +338,7 @@ function LandingPage() {
 
         {/* Mobile dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-white/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3">
+          <div className="md:hidden border-t border-border bg-background/95 backdrop-blur-md px-5 py-4 flex flex-col gap-3">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -327,30 +368,30 @@ function LandingPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left: Copy + Form */}
           <div className="animate-slide-up">
+            <div className="inline-flex items-center gap-2 text-xs font-medium text-primary bg-primary/10 px-3 py-1.5 rounded-full mb-6">
+              <Sparkles size={13} />
+              The simple Asana &amp; Monday alternative
+            </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight tracking-tight">
-              Manage projects without the chaos.
+              Project management,<br />
+              <span className="text-primary">minus the bloat.</span>
             </h1>
             <p className="mt-4 sm:mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-lg">
-              The simple, focused project management tool for teams that want to get work done — not configure tools.
+              Three views. Real-time collaboration. 60-second setup.
+              Everything your team needs, nothing it doesn't — starting at <strong className="text-foreground">€0/month</strong>.
             </p>
 
-            <form onSubmit={handleHeroSubmit} className="mt-8 space-y-3 max-w-sm">
-              <input
-                type="text"
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition"
-              />
+            <form onSubmit={handleHeroSubmit} className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md">
               <input
                 type="email"
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition"
+                className="flex-1 px-4 py-3 rounded-lg border border-border bg-card text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/20 focus:border-ring transition"
               />
-              <Button type="submit" className="w-full">
-                Start for Free
+              <Button type="submit" className="whitespace-nowrap px-6">
+                Get Started Free
+                <ArrowRight size={16} className="ml-1.5" />
               </Button>
             </form>
             <p className="mt-3 text-xs text-muted-foreground">
@@ -377,7 +418,31 @@ function LandingPage() {
               {renderBoardMockup()}
             </div>
             {/* Decorative blur */}
-            <div className="absolute -z-10 -top-8 -right-8 w-40 h-40 bg-input rounded-full blur-3xl opacity-40" />
+            <div className="absolute -z-10 -top-8 -right-8 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+            <div className="absolute -z-10 -bottom-6 -left-6 w-32 h-32 bg-primary/5 rounded-full blur-2xl" />
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Social Proof Bar ─── */}
+      <section
+        ref={socialRef}
+        className={`border-y border-border bg-muted/50 ${sectionAnim(socialInView)}`}
+      >
+        <div className="max-w-6xl mx-auto px-5 sm:px-6 py-8 sm:py-10">
+          <p className="text-center text-sm font-medium text-muted-foreground mb-6">
+            Trusted by growing teams who value simplicity
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            {/* Placeholder logos — replace with real customer logos */}
+            {['TechStart', 'Velo Studio', 'BrightPath', 'Koda Labs', 'Nimbus'].map((name) => (
+              <span
+                key={name}
+                className="text-base font-bold tracking-tight text-muted-foreground/40 select-none"
+              >
+                {name}
+              </span>
+            ))}
           </div>
         </div>
       </section>
@@ -385,30 +450,33 @@ function LandingPage() {
       {/* ─── The Problem ─── */}
       <section
         ref={problemRef}
-        className={`bg-muted border-y border-border ${sectionAnim(problemInView)}`}
+        className={`${sectionAnim(problemInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
-            The Problem
+            Sound familiar?
           </h2>
           <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
             Project management tools promise simplicity, then deliver the opposite.
           </p>
 
           <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {painPoints.map((point, i) => (
-              <div
-                key={i}
-                {...cardAnim(problemInView, i)}
-                className={`rounded-xl border border-border bg-card p-6 sm:p-8 ${cardAnim(problemInView, i).className}`}
-              >
-                <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center text-red-500 font-bold text-lg">
-                  {i + 1}
+            {painPoints.map((point, i) => {
+              const Icon = point.icon;
+              return (
+                <div
+                  key={i}
+                  {...cardAnim(problemInView, i)}
+                  className={`rounded-xl border border-border bg-card p-6 sm:p-8 hover:shadow-md transition-shadow ${cardAnim(problemInView, i).className}`}
+                >
+                  <div className="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                    <Icon size={20} className="text-red-500" />
+                  </div>
+                  <h3 className="mt-4 text-lg font-semibold text-foreground">{point.title}</h3>
+                  <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{point.description}</p>
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-foreground">{point.title}</h3>
-                <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{point.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -417,28 +485,28 @@ function LandingPage() {
       <section
         id="features"
         ref={featuresRef}
-        className={`relative scroll-mt-20 ${sectionAnim(featuresInView)}`}
+        className={`relative scroll-mt-20 bg-muted border-y border-border ${sectionAnim(featuresInView)}`}
       >
         <FloatingShapes />
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
-            How We Solve This
+            Everything you need. Nothing you don't.
           </h2>
           <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
-            Todoria does three things perfectly — boards, lists, and calendars. Nothing more.
+            Todoria does six things perfectly — and that's it. No feature creep, no bloat.
           </p>
 
-          <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, i) => {
               const Icon = feature.icon;
               return (
                 <div
                   key={i}
-                  className={`rounded-xl border border-border p-6 sm:p-8 hover:shadow-md hover:border-border ${cardAnim(featuresInView, i).className}`}
+                  className={`group rounded-xl border border-border bg-card p-6 sm:p-8 hover:shadow-md hover:border-primary/20 transition-all duration-200 ${cardAnim(featuresInView, i).className}`}
                   style={cardAnim(featuresInView, i).style}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-muted-foreground" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="mt-4 text-lg font-semibold text-foreground">{feature.title}</h3>
                   <p className="mt-2 text-muted-foreground leading-relaxed text-sm">{feature.description}</p>
@@ -453,12 +521,15 @@ function LandingPage() {
       <section
         id="how-it-works"
         ref={stepsRef}
-        className={`scroll-mt-20 bg-muted border-y border-border ${sectionAnim(stepsInView)}`}
+        className={`scroll-mt-20 ${sectionAnim(stepsInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
-            How It Works
+            Up and running in 3 steps
           </h2>
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
+            No onboarding calls. No setup wizards. Just start working.
+          </p>
 
           <div className="mt-10 sm:mt-14 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-0 items-start">
             {steps.map((step, i) => (
@@ -473,11 +544,22 @@ function LandingPage() {
                     <ArrowRight size={24} />
                   </div>
                 )}
-                <span className="text-4xl sm:text-5xl font-bold text-foreground">{step.number}</span>
-                <h3 className="mt-4 text-lg font-semibold text-foreground">{step.title}</h3>
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-primary">{step.number}</span>
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
                 <p className="mt-2 text-muted-foreground leading-relaxed text-sm max-w-xs">{step.description}</p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-12 text-center">
+            <Button asChild size="lg">
+              <Link to="/register">
+                Try It Free
+                <ArrowRight size={16} className="ml-1.5" />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -486,14 +568,14 @@ function LandingPage() {
       <section
         id="showcase"
         ref={showcaseRef}
-        className={`${sectionAnim(showcaseInView)}`}
+        className={`bg-muted border-y border-border ${sectionAnim(showcaseInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left: Tabbed mockups */}
-            <div className="rounded-2xl bg-gradient-to-br from-muted to-accent border border-border p-6 sm:p-8">
+            <div className="rounded-2xl bg-gradient-to-br from-background to-accent border border-border p-6 sm:p-8">
               {/* Tab bar */}
-              <div className="flex gap-1 mb-5 bg-accent rounded-lg p-1 w-fit">
+              <div className="flex gap-1 mb-5 bg-muted rounded-lg p-1 w-fit">
                 {[
                   { id: 'board', label: 'Board', icon: Kanban },
                   { id: 'list', label: 'List', icon: List },
@@ -569,10 +651,10 @@ function LandingPage() {
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-semibold text-foreground">January 2026</span>
                     <div className="flex gap-1">
-                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-muted-foreground">
+                      <div className="w-6 h-6 rounded bg-card/60 flex items-center justify-center text-muted-foreground">
                         <ChevronLeft size={14} />
                       </div>
-                      <div className="w-6 h-6 rounded bg-white/60 flex items-center justify-center text-muted-foreground">
+                      <div className="w-6 h-6 rounded bg-card/60 flex items-center justify-center text-muted-foreground">
                         <ChevronRight size={14} />
                       </div>
                     </div>
@@ -593,11 +675,11 @@ function LandingPage() {
                           key={i}
                           className={`aspect-square rounded-md text-[9px] p-0.5 flex flex-col ${
                             dayNum ? 'bg-card border border-border' : ''
-                          } ${isToday ? 'ring-1 ring-neutral-400' : ''}`}
+                          } ${isToday ? 'ring-1 ring-primary/40' : ''}`}
                         >
                           {dayNum && (
                             <>
-                              <span className={`font-medium ${isToday ? 'text-muted-foreground' : 'text-muted-foreground'}`}>{dayNum}</span>
+                              <span className="font-medium text-muted-foreground">{dayNum}</span>
                               {task && (
                                 <div className={`mt-auto h-1 rounded-full ${task.color}`} title={task.title} />
                               )}
@@ -614,8 +696,11 @@ function LandingPage() {
             {/* Right: Key benefits */}
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-                Built for focus, not feature-creep.
+                Built for focus,<br />not feature-creep.
               </h2>
+              <p className="mt-3 text-muted-foreground max-w-md">
+                Every feature in Todoria earns its place. If it doesn't help your team ship faster, it doesn't exist.
+              </p>
               <div className="mt-8 space-y-5">
                 {[
                   {
@@ -630,10 +715,14 @@ function LandingPage() {
                     title: 'Works on every device',
                     description: 'Fully responsive design means you can manage projects from your phone, tablet, or desktop.',
                   },
+                  {
+                    title: 'Keyboard shortcuts',
+                    description: 'Power users love our keyboard shortcuts. Navigate, create, and manage tasks without touching your mouse.',
+                  },
                 ].map((benefit, i) => (
                   <div key={i} className="flex items-start gap-3">
-                    <div className="mt-0.5 w-6 h-6 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                      <Check size={14} className="text-muted-foreground" />
+                    <div className="mt-0.5 w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Check size={14} className="text-primary" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-foreground">{benefit.title}</h3>
@@ -647,6 +736,56 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* ─── Comparison Table ─── */}
+      <section
+        ref={compareRef}
+        className={`scroll-mt-20 ${sectionAnim(compareInView)}`}
+      >
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
+            How Todoria compares
+          </h2>
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
+            We're not trying to replace enterprise tools. We're the better choice for small teams who want simplicity.
+          </p>
+
+          <div className="mt-10 sm:mt-14 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4 font-medium text-muted-foreground">Feature</th>
+                  <th className="text-center py-3 px-4 font-semibold text-primary">Todoria</th>
+                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">Asana</th>
+                  <th className="text-center py-3 px-4 font-medium text-muted-foreground">Monday</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row, i) => (
+                  <tr key={i} className="border-b border-border last:border-0">
+                    <td className="py-3 px-4 text-foreground font-medium">{row.feature}</td>
+                    {['todoria', 'asana', 'monday'].map((tool) => (
+                      <td key={tool} className={`py-3 px-4 text-center ${tool === 'todoria' ? 'font-medium' : 'text-muted-foreground'}`}>
+                        {row[tool] === true ? (
+                          <Check size={18} className={`inline-block ${tool === 'todoria' ? 'text-primary' : 'text-muted-foreground'}`} />
+                        ) : row[tool] === false ? (
+                          <X size={18} className="inline-block text-muted-foreground/40" />
+                        ) : (
+                          <span className={tool === 'todoria' ? 'text-primary' : ''}>{row[tool]}</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-muted-foreground">
+            Pricing based on publicly available information as of 2026. Competitor prices may vary by region.
+          </p>
+        </div>
+      </section>
+
       {/* ─── Pricing ─── */}
       <section
         id="pricing"
@@ -655,7 +794,7 @@ function LandingPage() {
       >
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-16 sm:py-20">
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
-            Simple, Transparent Pricing
+            Simple, transparent pricing
           </h2>
           <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
             Start free. Upgrade when your team grows. No hidden fees, no surprises.
@@ -669,7 +808,7 @@ function LandingPage() {
                   key={plan.id}
                   className={`relative flex flex-col rounded-xl border-2 p-6 sm:p-8 bg-card ${
                     cardAnim(pricingInView, i).className
-                  } ${plan.highlighted ? 'border-primary ring-2 ring-accent' : 'border-border'}`}
+                  } ${plan.highlighted ? 'border-primary ring-2 ring-primary/10' : 'border-border'}`}
                   style={cardAnim(pricingInView, i).style}
                 >
                   {plan.badge && (
@@ -718,7 +857,7 @@ function LandingPage() {
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-8">
-            All plans include SSL encryption and daily backups. Cancel anytime.
+            All plans include SSL encryption, daily backups, and GDPR compliance. Cancel anytime.
           </p>
         </div>
       </section>
@@ -733,6 +872,9 @@ function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-foreground text-center tracking-tight">
             Frequently Asked Questions
           </h2>
+          <p className="mt-3 text-muted-foreground text-center max-w-xl mx-auto">
+            Got questions? We've got answers.
+          </p>
 
           <div className="mt-10 space-y-3">
             {faqs.map((faq, i) => {
@@ -744,7 +886,7 @@ function LandingPage() {
                 >
                   <button
                     onClick={() => setOpenFaq(isOpen ? null : i)}
-                    className="w-full flex items-center justify-between px-6 py-4 text-left"
+                    className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-muted/50 transition-colors"
                     aria-expanded={isOpen}
                   >
                     <span className="font-medium text-foreground pr-4">{faq.q}</span>
@@ -779,16 +921,17 @@ function LandingPage() {
         className={`bg-muted border-y border-border ${sectionAnim(ctaInView)}`}
       >
         <div className="max-w-6xl mx-auto px-5 sm:px-6 py-16 sm:py-24 text-center">
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-            Ready to Get Started?
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground tracking-tight">
+            Your team deserves a simpler tool.
           </h2>
-          <p className="mt-3 text-muted-foreground max-w-md mx-auto">
-            Join teams who manage projects without the chaos. Free forever for small teams.
+          <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-base sm:text-lg">
+            Stop paying for features you'll never use. Start managing projects the way you actually work.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <Button asChild size="lg">
               <Link to="/register">
-                Start Managing Projects for Free
+                Get Started for Free
+                <ArrowRight size={16} className="ml-1.5" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
@@ -798,7 +941,7 @@ function LandingPage() {
             </Button>
           </div>
           <p className="mt-4 text-sm text-muted-foreground">
-            No credit card required. Cancel anytime.
+            Free plan available. No credit card required. Set up in 60 seconds.
           </p>
         </div>
       </section>
@@ -813,7 +956,7 @@ function LandingPage() {
                 Todoria
               </Link>
               <p className="mt-3 text-sm text-muted-foreground leading-relaxed max-w-xs">
-                Simple project management for focused teams. Boards, lists, and calendars — nothing more.
+                Simple project management for focused teams. Boards, lists, and calendars — nothing more, nothing less.
               </p>
             </div>
 
@@ -832,7 +975,9 @@ function LandingPage() {
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-4">Company</h4>
               <ul className="space-y-2.5">
-                <li><a href="mailto:support@todoria.app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact</a></li>
+                <li><a href="mailto:support@todoria.app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contact Us</a></li>
+                <li><Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link></li>
+                <li><Link to="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Get Started</Link></li>
               </ul>
             </div>
 
@@ -848,8 +993,14 @@ function LandingPage() {
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-12 pt-6 border-t border-border text-sm text-muted-foreground text-center sm:text-left">
-            &copy; {new Date().getFullYear()} Todoria. All rights reserved.
+          <div className="mt-12 pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} Todoria. All rights reserved.
+            </p>
+            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+              <Lock size={13} />
+              <span>SSL encrypted &middot; GDPR compliant &middot; Daily backups</span>
+            </div>
           </div>
         </div>
       </footer>
