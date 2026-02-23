@@ -11,6 +11,17 @@
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
     --safe-area-inset-left: env(safe-area-inset-left, 0px);
 
+    /* Landing page premium design system */
+    --bg-primary: #0a0a0f;
+    --bg-secondary: #12121a;
+    --bg-card: rgba(255, 255, 255, 0.04);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --text-primary: #f5f5f7;
+    --text-secondary: rgba(255, 255, 255, 0.6);
+    --text-muted: rgba(255, 255, 255, 0.4);
+    --accent: #3b82f6;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+
     --background: 228 33% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -73,6 +84,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -216,6 +228,23 @@
 
   .touch-feedback:active {
     opacity: 0.7;
+  }
+
+  /* Landing page premium styles */
+  .landing-page {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Satoshi', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  .landing-page ::selection {
+    background: var(--accent);
+    color: white;
+  }
+
+  .landing-page a,
+  .landing-page button {
+    transition: color 0.3s ease, background 0.3s ease, filter 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
   }
 }
 

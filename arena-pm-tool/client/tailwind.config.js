@@ -129,6 +129,13 @@ module.exports = {
           'Arial',
           'sans-serif',
         ],
+        display: [
+          'Satoshi',
+          'Inter',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          'sans-serif',
+        ],
         mono: [
           'SF Mono',
           'Menlo',
