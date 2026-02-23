@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Check, Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { DndContext, DragOverlay, useDroppable, useDraggable, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
 
 /* ── Animation helpers ── */
 const fadeUp = {
@@ -20,67 +22,394 @@ const heroStagger = {
 
 const sectionViewport = { once: true, margin: '-80px' };
 
-/* ── Abstract SVG visuals for feature cards ── */
-function BoardVisual() {
+/* ── Interactive mini-view visuals for feature cards ── */
+
+const PRIORITY_COLORS = {
+  urgent: '#ef4444',
+  high: '#f97316',
+  medium: '#eab308',
+  low: '#3b82f6',
+};
+
+const PRIORITY_PILL_STYLES = {
+  urgent: { background: 'rgba(239,68,68,0.15)', color: 'rgb(252,165,165)' },
+  high: { background: 'rgba(249,115,22,0.15)', color: 'rgb(253,186,116)' },
+  medium: { background: 'rgba(234,179,8,0.15)', color: 'rgb(253,224,71)' },
+  low: { background: 'rgba(59,130,246,0.15)', color: 'rgb(147,197,253)' },
+};
+
+/* ─── Board: Draggable card ─── */
+function DraggableCard({ card }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: card.id });
+
   return (
-    <svg viewBox="0 0 280 120" fill="none" className="w-full mt-6 opacity-40">
-      {[0, 96, 192].map((x, col) => (
-        <g key={col}>
-          <rect x={x} y={0} width={80} height={8} rx={4} fill="var(--border-subtle)" />
-          {[20, 40, 60].slice(0, col === 1 ? 2 : 3).map((yy, i) => (
-            <rect
-              key={i}
-              x={x}
-              y={yy}
-              width={80}
-              height={16}
-              rx={6}
-              fill={i === 0 && col === 0 ? 'var(--accent)' : 'var(--border-subtle)'}
-              opacity={i === 0 && col === 0 ? 0.3 : 1}
+    <div
+      ref={setNodeRef}
+      style={{
+        background: isDragging ? 'transparent' : 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderLeft: `2px solid ${PRIORITY_COLORS[card.priority]}`,
+        borderRadius: 6,
+        padding: '6px 8px',
+        fontSize: '0.7rem',
+        color: 'var(--text-primary)',
+        cursor: 'grab',
+        opacity: isDragging ? 0.3 : 1,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+      }}
+      {...listeners}
+      {...attributes}
+    >
+      <GripVertical size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{card.title}</span>
+    </div>
+  );
+}
+
+/* ─── Board: Droppable column ─── */
+function DroppableColumn({ column, cards }) {
+  const { setNodeRef, isOver } = useDroppable({ id: column.id });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        background: isOver ? 'rgba(59,130,246,0.08)' : 'transparent',
+        borderRadius: 8,
+        padding: 6,
+        transition: 'background 0.15s',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+        <div style={{ width: 6, height: 6, borderRadius: '50%', background: column.color, flexShrink: 0 }} />
+        <span style={{ fontSize: '0.65rem', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          {column.name}
+        </span>
+        <span style={{ fontSize: '0.6rem', color: 'var(--text-muted)' }}>{cards.length}</span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {cards.map((card) => (
+          <DraggableCard key={card.id} card={card} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const BOARD_COLUMNS = [
+  { id: 'todo', name: 'To Do', color: '#94a3b8' },
+  { id: 'in_progress', name: 'In Progress', color: '#f97316' },
+  { id: 'done', name: 'Done', color: '#22c55e' },
+];
+
+const INITIAL_BOARD_TASKS = [
+  { id: 'b1', title: 'Design landing page', priority: 'high', column: 'todo' },
+  { id: 'b2', title: 'Set up database', priority: 'urgent', column: 'todo' },
+  { id: 'b3', title: 'API endpoints', priority: 'medium', column: 'in_progress' },
+  { id: 'b4', title: 'Auth system', priority: 'high', column: 'in_progress' },
+  { id: 'b5', title: 'Project setup', priority: 'low', column: 'done' },
+  { id: 'b6', title: 'Define requirements', priority: 'medium', column: 'done' },
+  { id: 'b7', title: 'Write unit tests', priority: 'low', column: 'todo' },
+];
+
+function BoardVisual() {
+  const [tasks, setTasks] = useState(INITIAL_BOARD_TASKS);
+  const [activeId, setActiveId] = useState(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const activeCard = activeId ? tasks.find((t) => t.id === activeId) : null;
+
+  const handleDragStart = useCallback((event) => {
+    setActiveId(event.active.id);
+  }, []);
+
+  const handleDragEnd = useCallback((event) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+
+    const overId = over.id;
+    // Check if dropped over a column
+    const isColumn = BOARD_COLUMNS.some((c) => c.id === overId);
+    if (!isColumn) return;
+
+    setTasks((prev) =>
+      prev.map((t) => (t.id === active.id ? { ...t, column: overId } : t))
+    );
+  }, []);
+
+  const handleDragCancel = useCallback(() => {
+    setActiveId(null);
+  }, []);
+
+  return (
+    <div style={{ marginTop: 16, height: 280, overflow: 'hidden' }}>
+      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd} onDragCancel={handleDragCancel}>
+        <div style={{ display: 'flex', gap: 6, height: '100%' }}>
+          {BOARD_COLUMNS.map((col) => (
+            <DroppableColumn
+              key={col.id}
+              column={col}
+              cards={tasks.filter((t) => t.column === col.id)}
             />
           ))}
-        </g>
-      ))}
-    </svg>
+        </div>
+        <DragOverlay>
+          {activeCard ? (
+            <div
+              style={{
+                background: 'rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderLeft: `2px solid ${PRIORITY_COLORS[activeCard.priority]}`,
+                borderRadius: 6,
+                padding: '6px 8px',
+                fontSize: '0.7rem',
+                color: 'var(--text-primary)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <GripVertical size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+              {activeCard.title}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
+
+/* ─── List Visual ─── */
+
+const INITIAL_LIST_TASKS = [
+  { id: 'l1', title: 'Review pull request', priority: 'urgent', completed: false },
+  { id: 'l2', title: 'Update documentation', priority: 'low', completed: true },
+  { id: 'l3', title: 'Fix navigation bug', priority: 'high', completed: false },
+  { id: 'l4', title: 'Deploy to staging', priority: 'medium', completed: false },
+  { id: 'l5', title: 'Write migration script', priority: 'high', completed: false },
+];
 
 function ListVisual() {
+  const [tasks, setTasks] = useState(INITIAL_LIST_TASKS);
+
+  const toggleTask = useCallback((id) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
+  }, []);
+
   return (
-    <svg viewBox="0 0 280 100" fill="none" className="w-full mt-6 opacity-40">
-      {[0, 24, 48, 72].map((y, i) => (
-        <g key={i}>
-          <circle cx={10} cy={y + 6} r={5} stroke="var(--border-subtle)" strokeWidth={1.5}
-            fill={i === 0 ? 'var(--accent)' : 'none'} opacity={i === 0 ? 0.4 : 1} />
-          <rect x={24} y={y + 1} width={i === 2 ? 160 : i === 0 ? 200 : 120} height={10}
-            rx={5} fill="var(--border-subtle)" />
-        </g>
-      ))}
-    </svg>
+    <div style={{ marginTop: 16, height: 200, overflow: 'hidden' }}>
+      {tasks.map((task, i) => {
+        const pillStyle = PRIORITY_PILL_STYLES[task.priority];
+        return (
+          <div
+            key={task.id}
+            onClick={() => toggleTask(task.id)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '8px 4px',
+              borderBottom: i < tasks.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+              cursor: 'pointer',
+              transition: 'background 0.1s',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            {/* Checkbox */}
+            <div
+              style={{
+                width: 16,
+                height: 16,
+                borderRadius: 4,
+                border: task.completed ? 'none' : '1.5px solid rgba(255,255,255,0.25)',
+                background: task.completed ? 'var(--accent)' : 'transparent',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                transition: 'all 0.15s',
+              }}
+            >
+              {task.completed && <Check size={10} style={{ color: '#fff' }} />}
+            </div>
+
+            {/* Title */}
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: task.completed ? 'var(--text-muted)' : 'var(--text-primary)',
+                textDecoration: task.completed ? 'line-through' : 'none',
+                opacity: task.completed ? 0.5 : 1,
+                flex: 1,
+                transition: 'all 0.15s',
+              }}
+            >
+              {task.title}
+            </span>
+
+            {/* Priority pill */}
+            <span
+              style={{
+                fontSize: '0.6rem',
+                fontWeight: 600,
+                padding: '2px 6px',
+                borderRadius: 9999,
+                textTransform: 'capitalize',
+                ...pillStyle,
+                flexShrink: 0,
+              }}
+            >
+              {task.priority}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
+/* ─── Calendar Visual ─── */
+
 function CalendarVisual() {
-  const highlighted = [4, 11, 18, 24];
+  const today = new Date();
+  const [viewDate, setViewDate] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDay, setSelectedDay] = useState(null);
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+
+  // Days in current month
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  // Day of week for the 1st (0=Sun)
+  const startDay = new Date(year, month, 1).getDay();
+
+  const isToday = (day) => day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+
+  // Mock tasks on specific days (relative to current month)
+  const taskDays = {
+    3: [{ color: PRIORITY_COLORS.urgent }],
+    7: [{ color: PRIORITY_COLORS.low }],
+    12: [{ color: PRIORITY_COLORS.high }, { color: PRIORITY_COLORS.medium }],
+    18: [{ color: PRIORITY_COLORS.medium }],
+    22: [{ color: PRIORITY_COLORS.urgent }, { color: PRIORITY_COLORS.low }],
+    27: [{ color: PRIORITY_COLORS.high }],
+  };
+
+  const prevMonth = () => setViewDate(new Date(year, month - 1, 1));
+  const nextMonth = () => setViewDate(new Date(year, month + 1, 1));
+
+  const monthName = viewDate.toLocaleString('default', { month: 'long' });
+
   return (
-    <svg viewBox="0 0 280 120" fill="none" className="w-full mt-6 opacity-40">
-      {Array.from({ length: 35 }, (_, i) => {
-        const col = i % 7;
-        const row = Math.floor(i / 7);
-        const x = col * 40;
-        const y = row * 24;
-        return (
-          <g key={i}>
-            <rect x={x} y={y} width={36} height={20} rx={4}
-              fill={highlighted.includes(i) ? 'var(--accent)' : 'var(--border-subtle)'}
-              opacity={highlighted.includes(i) ? 0.25 : 1} />
-            {highlighted.includes(i) && (
-              <circle cx={x + 18} cy={y + 10} r={3} fill="var(--accent)" opacity={0.6} />
-            )}
-          </g>
-        );
-      })}
-    </svg>
+    <div style={{ marginTop: 16, height: 240, overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+        <button
+          onClick={prevMonth}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)', display: 'flex' }}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          {monthName} {year}
+        </span>
+        <button
+          onClick={nextMonth}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-secondary)', display: 'flex' }}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, marginBottom: 4 }}>
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          <div
+            key={i}
+            style={{ textAlign: 'center', fontSize: '0.55rem', fontWeight: 600, color: 'var(--text-muted)', padding: '2px 0' }}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2 }}>
+        {/* Empty cells for offset */}
+        {Array.from({ length: startDay }, (_, i) => (
+          <div key={`empty-${i}`} />
+        ))}
+
+        {/* Day cells */}
+        {Array.from({ length: daysInMonth }, (_, i) => {
+          const day = i + 1;
+          const isTodayCell = isToday(day);
+          const isSelected = selectedDay === day;
+          const dots = taskDays[day] || [];
+
+          return (
+            <div
+              key={day}
+              onClick={() => setSelectedDay(day === selectedDay ? null : day)}
+              style={{
+                textAlign: 'center',
+                padding: '3px 0',
+                borderRadius: 4,
+                cursor: 'pointer',
+                background: isSelected ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.03)',
+                border: '1px solid transparent',
+                transition: 'background 0.1s',
+                position: 'relative',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: '0.6rem',
+                  fontWeight: isTodayCell ? 700 : 400,
+                  color: isTodayCell ? '#fff' : 'var(--text-secondary)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 16,
+                  height: 16,
+                  borderRadius: '50%',
+                  background: isTodayCell ? 'var(--accent)' : 'transparent',
+                }}
+              >
+                {day}
+              </span>
+              {dots.length > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 2, marginTop: 1 }}>
+                  {dots.map((dot, di) => (
+                    <div
+                      key={di}
+                      style={{
+                        width: 3,
+                        height: 3,
+                        borderRadius: '50%',
+                        background: dot.color,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -243,32 +572,6 @@ function LandingPage() {
           >
             Free for small teams &middot; No credit card required
           </motion.p>
-        </motion.div>
-      </section>
-
-      {/* ─────────── TRUST STRIP ─────────── */}
-      <section className="pt-16 pb-16 sm:pt-[120px] sm:pb-[120px]">
-        <motion.div
-          className="flex flex-wrap items-center justify-center gap-4"
-          initial="hidden"
-          whileInView="visible"
-          viewport={sectionViewport}
-          variants={staggerContainer}
-        >
-          {['Board view', 'List view', 'Calendar view'].map((label) => (
-            <motion.span
-              key={label}
-              variants={fadeUp}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="rounded-full text-[0.85rem] px-5 py-2"
-              style={{
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              {label}
-            </motion.span>
-          ))}
         </motion.div>
       </section>
 
