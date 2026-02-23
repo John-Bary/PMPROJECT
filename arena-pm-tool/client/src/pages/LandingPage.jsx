@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, Calendar as CalendarIcon, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { DndContext, DragOverlay, useDroppable, useDraggable, PointerSensor, useSensor, useSensors, closestCorners } from '@dnd-kit/core';
 
 /* ── Animation helpers ── */
