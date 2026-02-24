@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
@@ -161,28 +162,31 @@ function BoardVisual() {
             />
           ))}
         </div>
-        <DragOverlay>
-          {activeCard ? (
-            <div
-              style={{
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                borderLeft: `2px solid ${PRIORITY_COLORS[activeCard.priority]}`,
-                borderRadius: 6,
-                padding: '6px 8px',
-                fontSize: '0.7rem',
-                color: 'var(--text-primary)',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-              }}
-            >
-              <GripVertical size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-              {activeCard.title}
-            </div>
-          ) : null}
-        </DragOverlay>
+        {createPortal(
+          <DragOverlay>
+            {activeCard ? (
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  borderLeft: `2px solid ${PRIORITY_COLORS[activeCard.priority]}`,
+                  borderRadius: 6,
+                  padding: '6px 8px',
+                  fontSize: '0.7rem',
+                  color: 'var(--text-primary)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <GripVertical size={10} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                {activeCard.title}
+              </div>
+            ) : null}
+          </DragOverlay>,
+          document.body
+        )}
       </DndContext>
     </div>
   );
