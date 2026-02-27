@@ -410,9 +410,11 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - 7 test suites, 53 tests total
 
 ### Backend (Jest + supertest)
-- Controller tests: `server/controllers/__tests__/` (auth, billing, category, comment, task)
-- Middleware tests: `server/middleware/__tests__/` (auth, planLimits)
-- Config: `server/jest.config.js`
+- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36)
+- Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
+- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6)
+- 10 test suites, 190 tests total
+- Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
 # Run all tests
@@ -458,6 +460,9 @@ Deployment steps are commented out — uncomment and add `VERCEL_TOKEN`, `VERCEL
 - Pre-launch integration tests: auth flow (20 tests — register, verify, login, refresh, logout, error cases, anti-enumeration)
 - Pre-launch integration tests: multi-tenant data isolation (19 tests — workspace membership, role checks, cross-workspace blocking)
 - Pre-launch integration tests: plan limits enforcement (22 tests — task/member/workspace limits for free & pro, fail-open behavior)
+- Server .gitignore fixed (added coverage/, *.lcov; removed tracked coverage files)
+- Billing controller tests expanded (10 tests — subscription, plans, checkout session, portal session with Stripe mock)
+- All pre-existing server tests fixed and passing (190 tests across 10 suites — rewrote auth, task, category, comment, billing, plan limits tests to match current controller implementations: getClient transactions, workspace auth, anti-enumeration, RBAC viewer blocks)
 
 ### Remaining (from Todoria_Launch_Checklist.docx)
 - Stripe production setup (external — account, product, webhooks, portal)

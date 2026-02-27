@@ -6,8 +6,18 @@ const { register, login, logout, getCurrentUser, getAllUsers } = require('../aut
 jest.mock('bcryptjs');
 jest.mock('jsonwebtoken');
 jest.mock('../../config/database');
+jest.mock('../../lib/logger', () => ({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+}));
+jest.mock('../../utils/emailQueue', () => ({
+  queueWelcomeEmail: jest.fn().mockResolvedValue(true),
+  queueVerificationEmail: jest.fn().mockResolvedValue(true),
+  queuePasswordResetEmail: jest.fn().mockResolvedValue(true),
+}));
 
-const { query } = require('../../config/database');
+const { query, getClient } = require('../../config/database');
 
 describe('Auth Controller', () => {
   let req, res;
@@ -19,227 +29,293 @@ describe('Auth Controller', () => {
   });
 
   describe('register', () => {
-    it('should return 400 if email is missing', async () => {
-      req.body = { password: 'password123', name: 'Test User' };
+    let mockClient;
 
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Please provide email, password, and name.'
-      });
+    beforeEach(() => {
+      mockClient = {
+        query: jest.fn(),
+        release: jest.fn(),
+      };
+      getClient.mockResolvedValue(mockClient);
     });
 
-    it('should return 400 if password is missing', async () => {
-      req.body = { email: 'test@example.com', name: 'Test User' };
+    const validBody = {
+      email: 'test@example.com',
+      password: 'Password1',
+      name: 'Test User',
+      tos_accepted: true,
+    };
 
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Please provide email, password, and name.'
-      });
-    });
-
-    it('should return 400 if name is missing', async () => {
-      req.body = { email: 'test@example.com', password: 'password123' };
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Please provide email, password, and name.'
-      });
-    });
-
-    it('should return 400 for invalid email format', async () => {
-      req.body = { email: 'invalidemail', password: 'password123', name: 'Test User' };
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Please provide a valid email address.'
-      });
-    });
-
-    it('should return 400 if password is less than 6 characters', async () => {
-      req.body = { email: 'test@example.com', password: '12345', name: 'Test User' };
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Password must be at least 6 characters long.'
-      });
-    });
-
-    it('should return 400 if user already exists', async () => {
-      req.body = { email: 'existing@example.com', password: 'password123', name: 'Test User' };
-      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // User exists
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'User with this email already exists.'
-      });
-    });
-
-    it('should return 400 if max user count (5) is reached', async () => {
-      req.body = { email: 'new@example.com', password: 'password123', name: 'New User' };
-      query.mockResolvedValueOnce({ rows: [] }); // User doesn't exist
-      query.mockResolvedValueOnce({ rows: [{ count: '5' }] }); // 5 users already
-
-      await register(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(400);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Maximum number of team members (5) reached. Cannot register new users.'
-      });
-    });
-
-    it('should assign admin role to first user', async () => {
-      req.body = { email: 'first@example.com', password: 'password123', name: 'First User' };
+    const setupSuccessfulRegistration = (userCountValue = '0') => {
+      const role = parseInt(userCountValue) === 0 ? 'admin' : 'member';
       const newUser = {
         id: 1,
-        email: 'first@example.com',
-        name: 'First User',
-        role: 'admin',
-        created_at: new Date()
+        email: 'test@example.com',
+        name: 'Test User',
+        role,
+        email_verified: false,
+        created_at: new Date('2024-01-01'),
       };
+      const workspace = { id: 'ws-uuid', name: "Test User's Workspace" };
 
-      query.mockResolvedValueOnce({ rows: [] }); // User doesn't exist
-      query.mockResolvedValueOnce({ rows: [{ count: '0' }] }); // No users yet
-      query.mockResolvedValueOnce({ rows: [newUser] }); // Insert result
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] }) // user exists check
+        .mockResolvedValueOnce({}) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ count: userCountValue }] }) // user count
+        .mockResolvedValueOnce({ rows: [newUser] }) // insert user
+        .mockResolvedValueOnce({ rows: [workspace] }) // create workspace
+        .mockResolvedValueOnce({ rows: [] }) // add workspace member
+        .mockResolvedValueOnce({ rows: [{ id: 1, name: 'To Do' }, { id: 2, name: 'In Progress' }, { id: 3, name: 'Completed' }] }) // seed categories
+        .mockResolvedValueOnce({ rows: [{ id: 1, title: 'Invite your team members' }, { id: 2, title: 'Customize your categories' }, { id: 3, title: 'Explore the board' }, { id: 4, title: 'Create your first workspace' }] }) // seed tasks
+        .mockResolvedValueOnce({ rows: [] }) // seed subtasks
+        .mockResolvedValueOnce({}); // COMMIT
+
       bcrypt.genSalt.mockResolvedValue('salt');
       bcrypt.hash.mockResolvedValue('hashedpassword');
       jwt.sign.mockReturnValue('test-token');
 
+      return { newUser, workspace };
+    };
+
+    it('should return 400 if email is missing', async () => {
+      req.body = { password: 'Password1', name: 'Test User', tos_accepted: true };
+
       await register(req, res);
 
-      expect(query).toHaveBeenCalledWith(
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Please provide email, password, and name.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if password is missing', async () => {
+      req.body = { email: 'test@example.com', name: 'Test User', tos_accepted: true };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Please provide email, password, and name.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if name is missing', async () => {
+      req.body = { email: 'test@example.com', password: 'Password1', tos_accepted: true };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Please provide email, password, and name.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if tos_accepted is missing or false', async () => {
+      req.body = { email: 'test@example.com', password: 'Password1', name: 'Test User' };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You must accept the Terms of Service to register.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 for invalid email format', async () => {
+      req.body = { email: 'invalidemail', password: 'Password1', name: 'Test User', tos_accepted: true };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Please provide a valid email address.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if password is less than 8 characters', async () => {
+      req.body = { email: 'test@example.com', password: 'Pass1', name: 'Test User', tos_accepted: true };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Password must be at least 8 characters long.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if password lacks complexity', async () => {
+      req.body = { email: 'test@example.com', password: 'password1', name: 'Test User', tos_accepted: true };
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Password must contain at least one uppercase letter, one lowercase letter, and one digit.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should return 400 if user already exists with generic message', async () => {
+      req.body = { ...validBody, email: 'existing@example.com' };
+      mockClient.query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // user exists
+
+      await register(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Registration failed. Please check your details and try again.',
+      });
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should assign admin role to first user', async () => {
+      req.body = { ...validBody, email: 'first@example.com', name: 'First User' };
+      setupSuccessfulRegistration('0');
+
+      await register(req, res);
+
+      expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO users'),
-        ['first@example.com', 'hashedpassword', 'First User', 'admin']
+        expect.arrayContaining(['first@example.com', 'hashedpassword', 'First User', 'admin'])
       );
       expect(res.status).toHaveBeenCalledWith(201);
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
     it('should assign member role to subsequent users', async () => {
-      req.body = { email: 'second@example.com', password: 'password123', name: 'Second User' };
+      req.body = { ...validBody, email: 'second@example.com', name: 'Second User' };
+
       const newUser = {
         id: 2,
         email: 'second@example.com',
         name: 'Second User',
         role: 'member',
-        created_at: new Date()
+        email_verified: false,
+        created_at: new Date(),
       };
+      const workspace = { id: 'ws-uuid', name: "Second User's Workspace" };
 
-      query.mockResolvedValueOnce({ rows: [] }); // User doesn't exist
-      query.mockResolvedValueOnce({ rows: [{ count: '1' }] }); // 1 user exists
-      query.mockResolvedValueOnce({ rows: [newUser] }); // Insert result
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] }) // user exists check
+        .mockResolvedValueOnce({}) // BEGIN
+        .mockResolvedValueOnce({ rows: [{ count: '1' }] }) // user count
+        .mockResolvedValueOnce({ rows: [newUser] }) // insert user
+        .mockResolvedValueOnce({ rows: [workspace] }) // create workspace
+        .mockResolvedValueOnce({ rows: [] }) // add workspace member
+        .mockResolvedValueOnce({ rows: [{ id: 1, name: 'To Do' }, { id: 2, name: 'In Progress' }, { id: 3, name: 'Completed' }] }) // seed categories
+        .mockResolvedValueOnce({ rows: [{ id: 1, title: 'Invite your team members' }, { id: 2, title: 'Customize your categories' }, { id: 3, title: 'Explore the board' }, { id: 4, title: 'Create your first workspace' }] }) // seed tasks
+        .mockResolvedValueOnce({ rows: [] }) // seed subtasks
+        .mockResolvedValueOnce({}); // COMMIT
+
       bcrypt.genSalt.mockResolvedValue('salt');
       bcrypt.hash.mockResolvedValue('hashedpassword');
       jwt.sign.mockReturnValue('test-token');
 
       await register(req, res);
 
-      expect(query).toHaveBeenCalledWith(
+      expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO users'),
-        ['second@example.com', 'hashedpassword', 'Second User', 'member']
+        expect.arrayContaining(['second@example.com', 'hashedpassword', 'Second User', 'member'])
       );
       expect(res.status).toHaveBeenCalledWith(201);
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
-    it('should successfully register user and return token', async () => {
-      req.body = { email: 'new@example.com', password: 'password123', name: 'New User' };
-      const newUser = {
-        id: 1,
-        email: 'new@example.com',
-        name: 'New User',
-        role: 'admin',
-        created_at: new Date('2024-01-01')
-      };
-
-      query.mockResolvedValueOnce({ rows: [] }); // User doesn't exist
-      query.mockResolvedValueOnce({ rows: [{ count: '0' }] }); // First user
-      query.mockResolvedValueOnce({ rows: [newUser] }); // Insert result
-      bcrypt.genSalt.mockResolvedValue('salt');
-      bcrypt.hash.mockResolvedValue('hashedpassword');
-      jwt.sign.mockReturnValue('test-token');
+    it('should successfully register user and return token and workspace', async () => {
+      req.body = { ...validBody, email: 'new@example.com', name: 'New User' };
+      const { newUser, workspace } = setupSuccessfulRegistration('0');
+      // Override the user email in the mock to match the request
+      newUser.email = 'new@example.com';
+      newUser.name = 'New User';
 
       await register(req, res);
 
       expect(res.cookie).toHaveBeenCalledWith('token', 'test-token', expect.objectContaining({
-        httpOnly: true
+        httpOnly: true,
+      }));
+      expect(res.cookie).toHaveBeenCalledWith('refreshToken', 'test-token', expect.objectContaining({
+        httpOnly: true,
+        path: '/api/auth/refresh',
       }));
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        message: 'User registered successfully',
+        message: 'User registered successfully. Please check your email to verify your account.',
         data: {
           user: {
             id: 1,
             email: 'new@example.com',
             name: 'New User',
             role: 'admin',
-            createdAt: newUser.created_at
+            emailVerified: false,
+            createdAt: newUser.created_at,
           },
-          token: 'test-token'
-        }
+          workspace: {
+            id: 'ws-uuid',
+            name: "Test User's Workspace",
+          },
+          token: 'test-token',
+        },
       });
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
     it('should convert email to lowercase', async () => {
-      req.body = { email: 'NEW@EXAMPLE.COM', password: 'password123', name: 'New User' };
-
-      query.mockResolvedValueOnce({ rows: [] }); // User doesn't exist
-      query.mockResolvedValueOnce({ rows: [{ count: '0' }] }); // First user
-      query.mockResolvedValueOnce({ rows: [{ id: 1, email: 'new@example.com', name: 'New User', role: 'admin', created_at: new Date() }] });
-      bcrypt.genSalt.mockResolvedValue('salt');
-      bcrypt.hash.mockResolvedValue('hashedpassword');
-      jwt.sign.mockReturnValue('test-token');
+      req.body = { ...validBody, email: 'NEW@EXAMPLE.COM', name: 'New User' };
+      setupSuccessfulRegistration('0');
 
       await register(req, res);
 
-      expect(query).toHaveBeenCalledWith(
+      expect(mockClient.query).toHaveBeenCalledWith(
         'SELECT id FROM users WHERE email = $1',
         ['new@example.com']
       );
+      expect(mockClient.release).toHaveBeenCalled();
     });
 
-    it('should handle database errors', async () => {
-      req.body = { email: 'test@example.com', password: 'password123', name: 'Test User' };
-      query.mockRejectedValue(new Error('Database error'));
+    it('should handle database errors with ROLLBACK', async () => {
+      req.body = { ...validBody };
+      mockClient.query
+        .mockRejectedValueOnce(new Error('Database error')) // first query fails
+        .mockResolvedValueOnce({}); // ROLLBACK succeeds
 
       await register(req, res);
 
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Error registering user',
-        error: 'Database error'
+        error: 'Database error',
       });
+      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
   describe('login', () => {
     it('should return 400 if email is missing', async () => {
-      req.body = { password: 'password123' };
+      req.body = { password: 'Password1' };
 
       await login(req, res);
 
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Please provide email and password.'
+        message: 'Please provide email and password.',
       });
     });
 
@@ -251,12 +327,12 @@ describe('Auth Controller', () => {
       expect(res.status).toHaveBeenCalledWith(400);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Please provide email and password.'
+        message: 'Please provide email and password.',
       });
     });
 
     it('should return 401 if user not found', async () => {
-      req.body = { email: 'nonexistent@example.com', password: 'password123' };
+      req.body = { email: 'nonexistent@example.com', password: 'Password1' };
       query.mockResolvedValue({ rows: [] });
 
       await login(req, res);
@@ -264,12 +340,12 @@ describe('Auth Controller', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Invalid email or password.'
+        message: 'Invalid email or password.',
       });
     });
 
     it('should return 401 if password is invalid', async () => {
-      req.body = { email: 'test@example.com', password: 'wrongpassword' };
+      req.body = { email: 'test@example.com', password: 'WrongPass1' };
       query.mockResolvedValue({
         rows: [{
           id: 1,
@@ -277,8 +353,9 @@ describe('Auth Controller', () => {
           password: 'hashedpassword',
           name: 'Test User',
           role: 'member',
-          avatar_url: null
-        }]
+          avatar_url: null,
+          email_verified: false,
+        }],
       });
       bcrypt.compare.mockResolvedValue(false);
 
@@ -287,19 +364,20 @@ describe('Auth Controller', () => {
       expect(res.status).toHaveBeenCalledWith(401);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Invalid email or password.'
+        message: 'Invalid email or password.',
       });
     });
 
     it('should successfully login and return user with token', async () => {
-      req.body = { email: 'test@example.com', password: 'password123' };
+      req.body = { email: 'test@example.com', password: 'Password1' };
       const user = {
         id: 1,
         email: 'test@example.com',
         password: 'hashedpassword',
         name: 'Test User',
         role: 'member',
-        avatar_url: 'avatar.jpg'
+        avatar_url: 'avatar.jpg',
+        email_verified: true,
       };
 
       query.mockResolvedValue({ rows: [user] });
@@ -309,7 +387,7 @@ describe('Auth Controller', () => {
       await login(req, res);
 
       expect(res.cookie).toHaveBeenCalledWith('token', 'test-token', expect.objectContaining({
-        httpOnly: true
+        httpOnly: true,
       }));
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
@@ -320,15 +398,16 @@ describe('Auth Controller', () => {
             email: 'test@example.com',
             name: 'Test User',
             role: 'member',
-            avatarUrl: 'avatar.jpg'
+            avatarUrl: 'avatar.jpg',
+            emailVerified: true,
           },
-          token: 'test-token'
-        }
+          token: 'test-token',
+        },
       });
     });
 
     it('should handle database errors', async () => {
-      req.body = { email: 'test@example.com', password: 'password123' };
+      req.body = { email: 'test@example.com', password: 'Password1' };
       query.mockRejectedValue(new Error('Database error'));
 
       await login(req, res);
@@ -337,19 +416,20 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Error logging in',
-        error: 'Database error'
+        error: 'Database error',
       });
     });
   });
 
   describe('logout', () => {
-    it('should clear token cookie and return success', async () => {
+    it('should clear token and refreshToken cookies and return success', async () => {
       await logout(req, res);
 
       expect(res.clearCookie).toHaveBeenCalledWith('token');
+      expect(res.clearCookie).toHaveBeenCalledWith('refreshToken', { path: '/api/auth/refresh' });
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
-        message: 'Logged out successfully'
+        message: 'Logged out successfully',
       });
     });
   });
@@ -364,11 +444,11 @@ describe('Auth Controller', () => {
       expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'User not found'
+        message: 'User not found',
       });
     });
 
-    it('should return user data without password', async () => {
+    it('should return user data with emailVerified field', async () => {
       req.user = { id: 1 };
       const user = {
         id: 1,
@@ -376,7 +456,8 @@ describe('Auth Controller', () => {
         name: 'Test User',
         role: 'member',
         avatar_url: 'avatar.jpg',
-        created_at: new Date('2024-01-01')
+        email_verified: true,
+        created_at: new Date('2024-01-01'),
       };
       query.mockResolvedValue({ rows: [user] });
 
@@ -391,9 +472,10 @@ describe('Auth Controller', () => {
             name: 'Test User',
             role: 'member',
             avatarUrl: 'avatar.jpg',
-            createdAt: user.created_at
-          }
-        }
+            emailVerified: true,
+            createdAt: user.created_at,
+          },
+        },
       });
     });
 
@@ -407,16 +489,16 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Error fetching user data',
-        error: 'Database error'
+        error: 'Database error',
       });
     });
   });
 
   describe('getAllUsers', () => {
-    it('should return all users ordered by created_at', async () => {
+    it('should return all users ordered by created_at when no workspace_id', async () => {
       const users = [
         { id: 1, email: 'first@example.com', name: 'First', role: 'admin', avatar_url: null, created_at: new Date('2024-01-01') },
-        { id: 2, email: 'second@example.com', name: 'Second', role: 'member', avatar_url: 'avatar.jpg', created_at: new Date('2024-01-02') }
+        { id: 2, email: 'second@example.com', name: 'Second', role: 'member', avatar_url: 'avatar.jpg', created_at: new Date('2024-01-02') },
       ];
       query.mockResolvedValue({ rows: users });
 
@@ -430,9 +512,32 @@ describe('Auth Controller', () => {
         data: {
           users: [
             { id: 1, email: 'first@example.com', name: 'First', role: 'admin', avatarUrl: null, createdAt: users[0].created_at },
-            { id: 2, email: 'second@example.com', name: 'Second', role: 'member', avatarUrl: 'avatar.jpg', createdAt: users[1].created_at }
-          ]
-        }
+            { id: 2, email: 'second@example.com', name: 'Second', role: 'member', avatarUrl: 'avatar.jpg', createdAt: users[1].created_at },
+          ],
+        },
+      });
+    });
+
+    it('should query workspace members when workspace_id is provided', async () => {
+      req.query = { workspace_id: 'ws-123' };
+      const users = [
+        { id: 1, email: 'member@example.com', name: 'Member', role: 'member', avatar_url: null, created_at: new Date('2024-01-01') },
+      ];
+      query.mockResolvedValue({ rows: users });
+
+      await getAllUsers(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('JOIN workspace_members'),
+        ['ws-123']
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'success',
+        data: {
+          users: [
+            { id: 1, email: 'member@example.com', name: 'Member', role: 'member', avatarUrl: null, createdAt: users[0].created_at },
+          ],
+        },
       });
     });
 
@@ -444,8 +549,8 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         data: {
-          users: []
-        }
+          users: [],
+        },
       });
     });
 
@@ -458,7 +563,7 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Error fetching users',
-        error: 'Database error'
+        error: 'Database error',
       });
     });
   });

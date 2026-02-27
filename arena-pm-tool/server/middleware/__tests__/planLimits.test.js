@@ -20,6 +20,8 @@ describe('Plan Limits Middleware', () => {
       user: { id: 1 },
       workspace: { id: 'ws-uuid-123' },
       body: {},
+      query: {},
+      params: {},
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -30,11 +32,11 @@ describe('Plan Limits Middleware', () => {
 
   describe('checkTaskLimit', () => {
     it('should allow task creation when under limit', async () => {
-      // Mock subscription query - free plan with 50 task limit
+      // Subscription query - free plan
       query.mockResolvedValueOnce({
-        rows: [{ max_tasks_per_workspace: 50 }],
+        rows: [{ plan_id: 'free', max_members: 3, max_tasks_per_workspace: 50, features: {} }],
       });
-      // Mock current task count
+      // Task count
       query.mockResolvedValueOnce({
         rows: [{ count: '25' }],
       });
@@ -47,9 +49,11 @@ describe('Plan Limits Middleware', () => {
     });
 
     it('should block task creation when at limit', async () => {
+      // Subscription query
       query.mockResolvedValueOnce({
-        rows: [{ max_tasks_per_workspace: 50 }],
+        rows: [{ plan_id: 'free', max_members: 3, max_tasks_per_workspace: 50, features: {} }],
       });
+      // Task count at limit
       query.mockResolvedValueOnce({
         rows: [{ count: '50' }],
       });
@@ -59,17 +63,23 @@ describe('Plan Limits Middleware', () => {
 
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        code: 'PLAN_LIMIT_TASKS',
+      }));
     });
   });
 
   describe('checkMemberLimit', () => {
     it('should allow invite when under member limit', async () => {
+      req.params = { id: 'ws-uuid-123' };
+      // Subscription query
       query.mockResolvedValueOnce({
-        rows: [{ max_members: 3 }],
+        rows: [{ plan_id: 'free', max_members: 3, max_tasks_per_workspace: 50, features: {} }],
       });
-      query.mockResolvedValueOnce({
-        rows: [{ count: '2' }],
-      });
+      // Member count
+      query.mockResolvedValueOnce({ rows: [{ count: '1' }] });
+      // Pending invite count
+      query.mockResolvedValueOnce({ rows: [{ count: '1' }] });
 
       const { checkMemberLimit } = require('../planLimits');
       await checkMemberLimit(req, res, next);
@@ -78,26 +88,33 @@ describe('Plan Limits Middleware', () => {
     });
 
     it('should block invite when at member limit', async () => {
+      req.params = { id: 'ws-uuid-123' };
+      // Subscription query
       query.mockResolvedValueOnce({
-        rows: [{ max_members: 3 }],
+        rows: [{ plan_id: 'free', max_members: 3, max_tasks_per_workspace: 50, features: {} }],
       });
-      query.mockResolvedValueOnce({
-        rows: [{ count: '3' }],
-      });
+      // Member count
+      query.mockResolvedValueOnce({ rows: [{ count: '2' }] });
+      // Pending invite count
+      query.mockResolvedValueOnce({ rows: [{ count: '1' }] });
 
       const { checkMemberLimit } = require('../planLimits');
       await checkMemberLimit(req, res, next);
 
       expect(next).not.toHaveBeenCalled();
       expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        code: 'PLAN_LIMIT_MEMBERS',
+      }));
     });
   });
 
   describe('checkWorkspaceLimit', () => {
     it('should allow workspace creation when under limit', async () => {
-      query.mockResolvedValueOnce({
-        rows: [{ count: '0' }],
-      });
+      // Count user's workspaces
+      query.mockResolvedValueOnce({ rows: [{ count: '0' }] });
+      // Check for pro subscription
+      query.mockResolvedValueOnce({ rows: [] }); // no pro
 
       const { checkWorkspaceLimit } = require('../planLimits');
       await checkWorkspaceLimit(req, res, next);
@@ -105,21 +122,20 @@ describe('Plan Limits Middleware', () => {
       expect(next).toHaveBeenCalled();
     });
 
-    it('should block workspace creation when at limit', async () => {
-      // Free plan users can only have 1 workspace
-      query.mockResolvedValueOnce({
-        rows: [{ count: '1' }],
-      });
-      // Mock plan query
-      query.mockResolvedValueOnce({
-        rows: [{ plan_id: 'free' }],
-      });
+    it('should block workspace creation at limit on free plan', async () => {
+      // Count user's workspaces - already has 1
+      query.mockResolvedValueOnce({ rows: [{ count: '1' }] });
+      // Check for pro subscription - none
+      query.mockResolvedValueOnce({ rows: [] });
 
       const { checkWorkspaceLimit } = require('../planLimits');
       await checkWorkspaceLimit(req, res, next);
 
-      // Depending on implementation, might call next or block
-      expect(res.status).toHaveBeenCalled();
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        code: 'PLAN_LIMIT_WORKSPACES',
+      }));
     });
   });
 });

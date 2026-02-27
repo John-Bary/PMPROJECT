@@ -1,7 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
   testMatch: ['**/__tests__/**/*.test.js', '**/*.test.js'],
-  testPathIgnorePatterns: ['/node_modules/', '/tests/auth.test.sh'],
+  testPathIgnorePatterns: ['/node_modules/', '/tests/auth.test.sh', '/client/'],
   collectCoverageFrom: [
     'controllers/**/*.js',
     'middleware/**/*.js',

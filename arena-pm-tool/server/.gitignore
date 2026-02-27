@@ -11,6 +11,10 @@ backups/
 # Keep schema files
 !config/schema.sql
 
+# Test coverage
+coverage/
+*.lcov
+
 # Dependencies
 node_modules/
 

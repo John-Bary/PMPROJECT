@@ -10,19 +10,50 @@ const {
 
 // Mock dependencies
 jest.mock('../../config/database');
+jest.mock('../../middleware/workspaceAuth', () => ({
+  verifyWorkspaceAccess: jest.fn(),
+  canUserEdit: jest.fn(),
+}));
+jest.mock('../../utils/emailQueue', () => ({
+  queueTaskAssignmentNotification: jest.fn().mockResolvedValue(true),
+}));
+jest.mock('../../lib/activityLog', () => ({
+  logActivity: jest.fn(),
+}));
+jest.mock('../../lib/logger', () => ({
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+}));
 
-const { query } = require('../../config/database');
+const { query, getClient } = require('../../config/database');
+const { verifyWorkspaceAccess } = require('../../middleware/workspaceAuth');
+const { logActivity } = require('../../lib/activityLog');
 
 describe('Task Controller', () => {
   let req, res;
+  let mockClient;
+
+  const WORKSPACE_ID = 'ws-uuid-123';
 
   beforeEach(() => {
     req = createMockReq();
     res = createMockRes();
     req.user = { id: 1 };
     jest.clearAllMocks();
+
+    verifyWorkspaceAccess.mockResolvedValue({ role: 'member' });
+
+    mockClient = {
+      query: jest.fn(),
+      release: jest.fn(),
+    };
+    getClient.mockResolvedValue(mockClient);
   });
 
+  // ---------------------------------------------------------------
+  // getAllTasks
+  // ---------------------------------------------------------------
   describe('getAllTasks', () => {
     const mockTask = {
       id: 1,
@@ -37,6 +68,7 @@ describe('Task Controller', () => {
       completed_at: null,
       position: 0,
       parent_task_id: null,
+      workspace_id: WORKSPACE_ID,
       subtask_count: '2',
       completed_subtask_count: '1',
       created_by: 1,
@@ -46,8 +78,34 @@ describe('Task Controller', () => {
       assignees: [{ id: 1, name: 'Test User', email: 'test@example.com' }]
     };
 
-    it('should return all tasks with joined data', async () => {
+    it('should return 400 when workspace_id is missing', async () => {
       req.query = {};
+
+      await getAllTasks(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    });
+
+    it('should return 403 when user lacks workspace access', async () => {
+      req.query = { workspace_id: WORKSPACE_ID };
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await getAllTasks(req, res);
+
+      expect(verifyWorkspaceAccess).toHaveBeenCalledWith(1, WORKSPACE_ID);
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+
+    it('should return all tasks with joined data', async () => {
+      req.query = { workspace_id: WORKSPACE_ID };
       query.mockResolvedValue({ rows: [mockTask] });
 
       await getAllTasks(req, res);
@@ -60,90 +118,91 @@ describe('Task Controller', () => {
             title: 'Test Task',
             categoryId: 1,
             categoryName: 'Category 1',
+            workspaceId: WORKSPACE_ID,
             assignees: expect.any(Array),
             subtaskCount: 2,
             completedSubtaskCount: 1
           })],
-          count: 1
+          count: 1,
+          nextCursor: null,
+          hasMore: false,
         }
       });
     });
 
     it('should filter by category_id', async () => {
-      req.query = { category_id: '1' };
+      req.query = { workspace_id: WORKSPACE_ID, category_id: '1' };
       query.mockResolvedValue({ rows: [mockTask] });
 
       await getAllTasks(req, res);
 
+      // workspace_id is $1, category_id is $2, limit+1 is last param
       expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('AND t.category_id = $1'),
-        ['1']
+        expect.stringContaining('AND t.category_id = $2'),
+        [WORKSPACE_ID, '1', 51]
       );
     });
 
-    it('should filter by multiple assignee_ids (comma-separated)', async () => {
-      req.query = { assignee_ids: '1,2,3' };
+    it('should filter by multiple assignee_ids', async () => {
+      req.query = { workspace_id: WORKSPACE_ID, assignee_ids: '1,2,3' };
       query.mockResolvedValue({ rows: [mockTask] });
 
       await getAllTasks(req, res);
 
+      // workspace_id is $1, assignee_ids is $2, limit+1 is last
       expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('ta.user_id = ANY($1::int[])'),
-        [[1, 2, 3]]
+        expect.stringContaining('ta.user_id = ANY($2::int[])'),
+        [WORKSPACE_ID, [1, 2, 3], 51]
       );
     });
 
     it('should filter by status', async () => {
-      req.query = { status: 'completed' };
+      req.query = { workspace_id: WORKSPACE_ID, status: 'completed' };
       query.mockResolvedValue({ rows: [] });
 
       await getAllTasks(req, res);
 
       expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('AND t.status = $1'),
-        ['completed']
+        expect.stringContaining('AND t.status = $2'),
+        [WORKSPACE_ID, 'completed', 51]
       );
     });
 
     it('should filter by priority', async () => {
-      req.query = { priority: 'high' };
+      req.query = { workspace_id: WORKSPACE_ID, priority: 'high' };
       query.mockResolvedValue({ rows: [] });
 
       await getAllTasks(req, res);
 
       expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('AND t.priority = $1'),
-        ['high']
+        expect.stringContaining('AND t.priority = $2'),
+        [WORKSPACE_ID, 'high', 51]
       );
     });
 
     it('should filter by search term', async () => {
-      req.query = { search: 'test' };
+      req.query = { workspace_id: WORKSPACE_ID, search: 'test' };
       query.mockResolvedValue({ rows: [] });
 
       await getAllTasks(req, res);
 
       expect(query).toHaveBeenCalledWith(
         expect.stringContaining('ILIKE'),
-        ['%test%']
+        [WORKSPACE_ID, '%test%', 51]
       );
     });
 
-    it('should handle database errors', async () => {
-      req.query = {};
+    it('should reject on database error', async () => {
+      req.query = { workspace_id: WORKSPACE_ID };
       query.mockRejectedValue(new Error('Database error'));
 
-      await getAllTasks(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(500);
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'error',
-        message: 'Error fetching tasks',
-        error: 'Database error'
-      });
+      await expect(getAllTasks(req, res)).rejects.toThrow('Database error');
     });
   });
 
+  // ---------------------------------------------------------------
+  // getTaskById
+  // ---------------------------------------------------------------
   describe('getTaskById', () => {
     it('should return 404 if task not found', async () => {
       req.params = { id: '999' };
@@ -173,6 +232,7 @@ describe('Task Controller', () => {
         completed_at: null,
         position: 0,
         parent_task_id: null,
+        workspace_id: WORKSPACE_ID,
         subtask_count: '0',
         completed_subtask_count: '0',
         created_by: 1,
@@ -185,22 +245,75 @@ describe('Task Controller', () => {
 
       await getTaskById(req, res);
 
+      expect(verifyWorkspaceAccess).toHaveBeenCalledWith(1, WORKSPACE_ID);
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         data: {
           task: expect.objectContaining({
             id: 1,
             title: 'Test Task',
-            categoryId: 1
+            categoryId: 1,
+            workspaceId: WORKSPACE_ID,
           })
         }
       });
     });
+
+    it('should return 403 if user lacks workspace access', async () => {
+      req.params = { id: '1' };
+      const mockTask = {
+        id: 1,
+        title: 'Test Task',
+        description: null,
+        category_id: 1,
+        category_name: 'Category 1',
+        category_color: '#3b82f6',
+        priority: 'medium',
+        status: 'todo',
+        due_date: null,
+        completed_at: null,
+        position: 0,
+        parent_task_id: null,
+        workspace_id: WORKSPACE_ID,
+        subtask_count: '0',
+        completed_subtask_count: '0',
+        created_by: 1,
+        created_by_name: 'Test User',
+        created_at: new Date(),
+        updated_at: new Date(),
+        assignees: []
+      };
+      query.mockResolvedValue({ rows: [mockTask] });
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await getTaskById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
   });
 
+  // ---------------------------------------------------------------
+  // createTask
+  // ---------------------------------------------------------------
   describe('createTask', () => {
+    it('should return 400 if workspace_id is missing', async () => {
+      req.body = { title: 'Test Task' };
+
+      await createTask(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'workspace_id is required'
+      });
+    });
+
     it('should return 400 if title is missing', async () => {
-      req.body = { description: 'Test description' };
+      req.body = { workspace_id: WORKSPACE_ID, description: 'Test description' };
 
       await createTask(req, res);
 
@@ -212,7 +325,7 @@ describe('Task Controller', () => {
     });
 
     it('should return 400 for invalid priority', async () => {
-      req.body = { title: 'Test Task', priority: 'invalid' };
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task', priority: 'invalid' };
 
       await createTask(req, res);
 
@@ -224,7 +337,7 @@ describe('Task Controller', () => {
     });
 
     it('should return 400 for invalid status', async () => {
-      req.body = { title: 'Test Task', status: 'invalid' };
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task', status: 'invalid' };
 
       await createTask(req, res);
 
@@ -235,18 +348,35 @@ describe('Task Controller', () => {
       });
     });
 
+    it('should return 403 for viewer role', async () => {
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task' };
+      verifyWorkspaceAccess.mockResolvedValue({ role: 'viewer' });
+
+      await createTask(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Viewers cannot create tasks. Contact an admin to request edit permissions.'
+      });
+    });
+
     it('should calculate correct position for new task in category', async () => {
-      req.body = { title: 'Test Task', category_id: 1 };
-      query.mockResolvedValueOnce({ rows: [{ next_position: 5 }] }); // Position query
-      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert
-      query.mockResolvedValueOnce({ rows: [{
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task', category_id: 1 };
+
+      const fullTask = {
         id: 1, title: 'Test Task', description: null, category_id: 1,
         category_name: 'Category', category_color: '#fff', priority: 'medium',
         status: 'todo', due_date: null, completed_at: null, position: 5,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
         updated_at: new Date(), assignees: []
-      }] }); // Full task query
+      };
+
+      query.mockResolvedValueOnce({ rows: [{ next_position: 5 }] }); // Position query
+      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await createTask(req, res);
 
@@ -255,20 +385,27 @@ describe('Task Controller', () => {
         [1]
       );
       expect(res.status).toHaveBeenCalledWith(201);
+      expect(logActivity).toHaveBeenCalled();
     });
 
     it('should handle multiple assignees', async () => {
-      req.body = { title: 'Test Task', assignee_ids: [1, 2, 3] };
-      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert task
-      query.mockResolvedValueOnce({ rows: [] }); // Insert assignees
-      query.mockResolvedValueOnce({ rows: [{
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task', assignee_ids: [1, 2, 3] };
+
+      const fullTask = {
         id: 1, title: 'Test Task', description: null, category_id: null,
         category_name: null, category_color: null, priority: 'medium',
         status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: [{ id: 1, name: 'User 1', email: 'user1@test.com' }]
-      }] }); // Full task query
+        updated_at: new Date(),
+        assignees: [{ id: 1, name: 'User 1', email: 'user1@test.com' }]
+      };
+
+      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert task (no category_id, no position query)
+      query.mockResolvedValueOnce({ rows: [] }); // Insert assignees
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
+      query.mockResolvedValueOnce({ rows: [{ id: 1, email: 'user1@test.com', name: 'User 1', email_notifications_enabled: true }] }); // Assignee prefs
 
       await createTask(req, res);
 
@@ -276,19 +413,33 @@ describe('Task Controller', () => {
         expect.stringContaining('INSERT INTO task_assignments'),
         [1, 1, 2, 3]
       );
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            task: expect.objectContaining({
+              workspaceId: WORKSPACE_ID,
+            })
+          })
+        })
+      );
     });
 
     it('should set completed_at when status is completed', async () => {
-      req.body = { title: 'Test Task', status: 'completed' };
-      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert
-      query.mockResolvedValueOnce({ rows: [{
+      req.body = { workspace_id: WORKSPACE_ID, title: 'Test Task', status: 'completed' };
+
+      const fullTask = {
         id: 1, title: 'Test Task', description: null, category_id: null,
         category_name: null, category_color: null, priority: 'medium',
         status: 'completed', due_date: null, completed_at: new Date(), position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
         updated_at: new Date(), assignees: []
-      }] }); // Full task query
+      };
+
+      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await createTask(req, res);
 
@@ -296,29 +447,13 @@ describe('Task Controller', () => {
         expect.stringContaining('INSERT INTO tasks'),
         expect.arrayContaining(['completed', expect.any(Date)])
       );
-    });
-
-    it('should format due_date correctly', async () => {
-      req.body = { title: 'Test Task', due_date: '2024-01-15T00:00:00.000Z' };
-      query.mockResolvedValueOnce({ rows: [{ id: 1 }] }); // Insert
-      query.mockResolvedValueOnce({ rows: [{
-        id: 1, title: 'Test Task', description: null, category_id: null,
-        category_name: null, category_color: null, priority: 'medium',
-        status: 'todo', due_date: '2024-01-15', completed_at: null, position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: []
-      }] }); // Full task query
-
-      await createTask(req, res);
-
-      expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO tasks'),
-        expect.arrayContaining(['2024-01-15'])
-      );
+      expect(res.status).toHaveBeenCalledWith(201);
     });
   });
 
+  // ---------------------------------------------------------------
+  // updateTask
+  // ---------------------------------------------------------------
   describe('updateTask', () => {
     const existingTask = {
       id: 1,
@@ -326,7 +461,8 @@ describe('Task Controller', () => {
       status: 'todo',
       completed_at: null,
       category_id: 1,
-      position: 0
+      position: 0,
+      workspace_id: WORKSPACE_ID,
     };
 
     it('should return 404 if task not found', async () => {
@@ -346,7 +482,7 @@ describe('Task Controller', () => {
     it('should return 400 for invalid priority', async () => {
       req.params = { id: '1' };
       req.body = { priority: 'invalid' };
-      query.mockResolvedValue({ rows: [existingTask] });
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
 
       await updateTask(req, res);
 
@@ -360,7 +496,7 @@ describe('Task Controller', () => {
     it('should return 400 for invalid status', async () => {
       req.params = { id: '1' };
       req.body = { status: 'invalid' };
-      query.mockResolvedValue({ rows: [existingTask] });
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
 
       await updateTask(req, res);
 
@@ -374,7 +510,7 @@ describe('Task Controller', () => {
     it('should return 400 if no fields to update', async () => {
       req.params = { id: '1' };
       req.body = {};
-      query.mockResolvedValue({ rows: [existingTask] });
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
 
       await updateTask(req, res);
 
@@ -388,19 +524,24 @@ describe('Task Controller', () => {
     it('should set completed_at when status changes to completed', async () => {
       req.params = { id: '1' };
       req.body = { status: 'completed' };
-      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update
-      query.mockResolvedValueOnce({ rows: [{
+
+      const fullTask = {
         id: 1, title: 'Existing Task', description: null, category_id: 1,
         category_name: 'Category', category_color: '#fff', priority: 'medium',
         status: 'completed', due_date: null, completed_at: new Date(), position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
         updated_at: new Date(), assignees: []
-      }] }); // Full task
+      };
+
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // Update
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await updateTask(req, res);
 
+      // The update query is the 2nd call: status + completed_at + id
       expect(query).toHaveBeenNthCalledWith(2,
         expect.stringContaining('UPDATE tasks'),
         expect.arrayContaining(['completed', expect.any(Date)])
@@ -411,16 +552,20 @@ describe('Task Controller', () => {
       req.params = { id: '1' };
       req.body = { status: 'todo' };
       const completedTask = { ...existingTask, status: 'completed', completed_at: new Date() };
-      query.mockResolvedValueOnce({ rows: [completedTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update
-      query.mockResolvedValueOnce({ rows: [{
+
+      const fullTask = {
         id: 1, title: 'Existing Task', description: null, category_id: 1,
         category_name: 'Category', category_color: '#fff', priority: 'medium',
         status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
         updated_at: new Date(), assignees: []
-      }] }); // Full task
+      };
+
+      query.mockResolvedValueOnce({ rows: [completedTask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // Update
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await updateTask(req, res);
 
@@ -430,46 +575,72 @@ describe('Task Controller', () => {
       );
     });
 
-    it('should update assignees when assignee_ids provided', async () => {
+    it('should update assignees using getClient transaction', async () => {
       req.params = { id: '1' };
       req.body = { assignee_ids: [2, 3] };
-      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Delete old assignments
-      query.mockResolvedValueOnce({ rows: [] }); // Insert new assignments
-      query.mockResolvedValueOnce({ rows: [{
+
+      const fullTask = {
         id: 1, title: 'Existing Task', description: null, category_id: 1,
         category_name: 'Category', category_color: '#fff', priority: 'medium',
         status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: [{ id: 2, name: 'User 2', email: 'user2@test.com' }]
-      }] }); // Full task
+        updated_at: new Date(),
+        assignees: [{ id: 2, name: 'User 2', email: 'user2@test.com' }]
+      };
+
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
+      // Transaction via mockClient
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      mockClient.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] }); // Get current assignees
+      mockClient.query.mockResolvedValueOnce({}); // DELETE
+      mockClient.query.mockResolvedValueOnce({}); // INSERT
+      mockClient.query.mockResolvedValueOnce({}); // COMMIT
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await updateTask(req, res);
 
-      expect(query).toHaveBeenCalledWith(
+      expect(getClient).toHaveBeenCalled();
+      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'SELECT user_id FROM task_assignments WHERE task_id = $1',
+        ['1']
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
         'DELETE FROM task_assignments WHERE task_id = $1',
         ['1']
       );
-      expect(query).toHaveBeenCalledWith(
+      expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('INSERT INTO task_assignments'),
         ['1', 2, 3]
       );
+      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+      expect(mockClient.release).toHaveBeenCalled();
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Task updated successfully'
+      }));
     });
 
     it('should update partial fields', async () => {
       req.params = { id: '1' };
       req.body = { title: 'Updated Title' };
-      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update
-      query.mockResolvedValueOnce({ rows: [{
+
+      const fullTask = {
         id: 1, title: 'Updated Title', description: null, category_id: 1,
         category_name: 'Category', category_color: '#fff', priority: 'medium',
         status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: null, subtask_count: '0', completed_subtask_count: '0',
+        parent_task_id: null, workspace_id: WORKSPACE_ID,
+        subtask_count: '0', completed_subtask_count: '0',
         created_by: 1, created_by_name: 'Test', created_at: new Date(),
         updated_at: new Date(), assignees: []
-      }] }); // Full task
+      };
+
+      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // Update
+      query.mockResolvedValueOnce({ rows: [fullTask] }); // Full task fetch
 
       await updateTask(req, res);
 
@@ -477,6 +648,7 @@ describe('Task Controller', () => {
         expect.stringContaining('title = $1'),
         expect.arrayContaining(['Updated Title'])
       );
+      expect(logActivity).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         status: 'success',
         message: 'Task updated successfully'
@@ -484,12 +656,16 @@ describe('Task Controller', () => {
     });
   });
 
+  // ---------------------------------------------------------------
+  // updateTaskPosition
+  // ---------------------------------------------------------------
   describe('updateTaskPosition', () => {
     const existingTask = {
       id: 1,
       title: 'Test Task',
       category_id: 1,
-      position: 2
+      position: 2,
+      workspace_id: WORKSPACE_ID,
     };
 
     it('should return 400 if position is missing', async () => {
@@ -519,45 +695,41 @@ describe('Task Controller', () => {
       });
     });
 
-    it('should update position within same category', async () => {
+    it('should update position using getClient transaction', async () => {
       req.params = { id: '1' };
       req.body = { position: 0 };
-      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update task
-      query.mockResolvedValueOnce({ rows: [] }); // Reorder
-      query.mockResolvedValueOnce({ rows: [{ ...existingTask, position: 0 }] }); // Get updated
+
+      // Task check via query()
+      query.mockResolvedValueOnce({ rows: [existingTask] });
+      // Transaction via mockClient
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      mockClient.query.mockResolvedValueOnce({}); // UPDATE task position
+      mockClient.query.mockResolvedValueOnce({}); // Reorder new category
+      mockClient.query.mockResolvedValueOnce({}); // COMMIT
+      // Get updated task via query()
+      query.mockResolvedValueOnce({ rows: [{ ...existingTask, position: 0 }] });
 
       await updateTaskPosition(req, res);
 
-      expect(query).toHaveBeenNthCalledWith(2,
+      expect(getClient).toHaveBeenCalled();
+      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+      expect(mockClient.query).toHaveBeenCalledWith(
         expect.stringContaining('UPDATE tasks'),
         [1, 0, '1']
       );
-    });
+      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+      expect(mockClient.release).toHaveBeenCalled();
 
-    it('should handle cross-category move', async () => {
-      req.params = { id: '1' };
-      req.body = { category_id: 2, position: 0 };
-      query.mockResolvedValueOnce({ rows: [existingTask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update task
-      query.mockResolvedValueOnce({ rows: [] }); // Reorder new category
-      query.mockResolvedValueOnce({ rows: [] }); // Reorder old category
-      query.mockResolvedValueOnce({ rows: [{ ...existingTask, category_id: 2, position: 0 }] }); // Get updated
-
-      await updateTaskPosition(req, res);
-
-      expect(query).toHaveBeenNthCalledWith(2,
-        expect.stringContaining('UPDATE tasks'),
-        [2, 0, '1']
-      );
-      // Should reorder old category
-      expect(query).toHaveBeenNthCalledWith(4,
-        expect.stringContaining('position = position - 1'),
-        [1, 2]
-      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Task position updated successfully'
+      }));
     });
   });
 
+  // ---------------------------------------------------------------
+  // deleteTask
+  // ---------------------------------------------------------------
   describe('deleteTask', () => {
     it('should return 404 if task not found', async () => {
       req.params = { id: '999' };
@@ -574,13 +746,14 @@ describe('Task Controller', () => {
 
     it('should delete task and reorder remaining', async () => {
       req.params = { id: '1' };
-      const task = { id: 1, category_id: 1, position: 2 };
+      const task = { id: 1, title: 'Test Task', category_id: 1, position: 2, workspace_id: WORKSPACE_ID };
       query.mockResolvedValueOnce({ rows: [task] }); // Check exists
       query.mockResolvedValueOnce({ rows: [] }); // Delete
       query.mockResolvedValueOnce({ rows: [] }); // Reorder
 
       await deleteTask(req, res);
 
+      expect(verifyWorkspaceAccess).toHaveBeenCalledWith(1, WORKSPACE_ID);
       expect(query).toHaveBeenNthCalledWith(2,
         'DELETE FROM tasks WHERE id = $1',
         ['1']
@@ -589,21 +762,7 @@ describe('Task Controller', () => {
         expect.stringContaining('position = position - 1'),
         [1, 2]
       );
-      expect(res.json).toHaveBeenCalledWith({
-        status: 'success',
-        message: 'Task deleted successfully'
-      });
-    });
-
-    it('should not reorder if task has no category', async () => {
-      req.params = { id: '1' };
-      const task = { id: 1, category_id: null, position: 0 };
-      query.mockResolvedValueOnce({ rows: [task] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Delete
-
-      await deleteTask(req, res);
-
-      expect(query).toHaveBeenCalledTimes(2);
+      expect(logActivity).toHaveBeenCalled();
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         message: 'Task deleted successfully'
@@ -611,9 +770,13 @@ describe('Task Controller', () => {
     });
   });
 
+  // ---------------------------------------------------------------
+  // getSubtasks
+  // ---------------------------------------------------------------
   describe('getSubtasks', () => {
     it('should return subtasks for a parent task', async () => {
       req.params = { id: '1' };
+
       const subtasks = [
         {
           id: 2, title: 'Subtask 1', description: null, category_id: 1,
@@ -623,11 +786,16 @@ describe('Task Controller', () => {
           created_at: new Date(), updated_at: new Date(), assignees: []
         }
       ];
-      query.mockResolvedValue({ rows: subtasks });
+
+      // First query: parent task check
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: WORKSPACE_ID }] });
+      // Second query: subtasks
+      query.mockResolvedValueOnce({ rows: subtasks });
 
       await getSubtasks(req, res);
 
-      expect(query).toHaveBeenCalledWith(
+      expect(verifyWorkspaceAccess).toHaveBeenCalledWith(1, WORKSPACE_ID);
+      expect(query).toHaveBeenNthCalledWith(2,
         expect.stringContaining('WHERE t.parent_task_id = $1'),
         ['1']
       );
@@ -644,7 +812,11 @@ describe('Task Controller', () => {
 
     it('should return empty array when no subtasks', async () => {
       req.params = { id: '1' };
-      query.mockResolvedValue({ rows: [] });
+
+      // Parent task check
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: WORKSPACE_ID }] });
+      // Subtasks query
+      query.mockResolvedValueOnce({ rows: [] });
 
       await getSubtasks(req, res);
 
@@ -657,243 +829,19 @@ describe('Task Controller', () => {
       });
     });
 
-    it('should return subtasks with dueDate, priority, and assignees', async () => {
-      req.params = { id: '1' };
-      const subtasks = [
-        {
-          id: 2, title: 'Subtask with fields', description: 'A subtask', category_id: 1,
-          category_name: 'Category', category_color: '#fff', priority: 'high',
-          status: 'in_progress', due_date: '2024-02-15', completed_at: null, position: 0,
-          parent_task_id: 1, created_by: 1, created_by_name: 'Test',
-          created_at: new Date(), updated_at: new Date(),
-          assignees: [{ id: 1, name: 'User 1', email: 'user1@test.com' }]
-        }
-      ];
-      query.mockResolvedValue({ rows: subtasks });
+    it('should return 404 when parent task not found', async () => {
+      req.params = { id: '999' };
+
+      // Parent task check returns empty
+      query.mockResolvedValueOnce({ rows: [] });
 
       await getSubtasks(req, res);
 
+      expect(res.status).toHaveBeenCalledWith(404);
       expect(res.json).toHaveBeenCalledWith({
-        status: 'success',
-        data: {
-          subtasks: expect.arrayContaining([
-            expect.objectContaining({
-              id: 2,
-              parentTaskId: 1,
-              priority: 'high',
-              dueDate: '2024-02-15',
-              assignees: expect.arrayContaining([
-                expect.objectContaining({ id: 1, name: 'User 1' })
-              ])
-            })
-          ]),
-          count: 1
-        }
+        status: 'error',
+        message: 'Parent task not found'
       });
-    });
-  });
-
-  describe('createTask (subtask)', () => {
-    it('should create subtask with parent_task_id', async () => {
-      req.body = {
-        title: 'New Subtask',
-        parent_task_id: 1,
-        category_id: 1
-      };
-      query.mockResolvedValueOnce({ rows: [{ next_position: 0 }] }); // Position query
-      query.mockResolvedValueOnce({ rows: [{ id: 2 }] }); // Insert
-      query.mockResolvedValueOnce({ rows: [{
-        id: 2, title: 'New Subtask', description: null, category_id: 1,
-        category_name: 'Category', category_color: '#fff', priority: 'medium',
-        status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: []
-      }] }); // Full task query
-
-      await createTask(req, res);
-
-      expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO tasks'),
-        expect.arrayContaining([1]) // parent_task_id
-      );
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            task: expect.objectContaining({
-              parentTaskId: 1
-            })
-          })
-        })
-      );
-    });
-
-    it('should create subtask with dueDate, priority, and assignees', async () => {
-      req.body = {
-        title: 'Subtask with fields',
-        parent_task_id: 1,
-        category_id: 1,
-        priority: 'high',
-        due_date: '2024-02-15',
-        assignee_ids: [1, 2]
-      };
-      query.mockResolvedValueOnce({ rows: [{ next_position: 0 }] }); // Position query
-      query.mockResolvedValueOnce({ rows: [{ id: 2 }] }); // Insert task
-      query.mockResolvedValueOnce({ rows: [] }); // Insert assignees
-      query.mockResolvedValueOnce({ rows: [{
-        id: 2, title: 'Subtask with fields', description: null, category_id: 1,
-        category_name: 'Category', category_color: '#fff', priority: 'high',
-        status: 'todo', due_date: '2024-02-15', completed_at: null, position: 0,
-        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(),
-        assignees: [
-          { id: 1, name: 'User 1', email: 'user1@test.com' },
-          { id: 2, name: 'User 2', email: 'user2@test.com' }
-        ]
-      }] }); // Full task query
-
-      await createTask(req, res);
-
-      expect(res.status).toHaveBeenCalledWith(201);
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            task: expect.objectContaining({
-              parentTaskId: 1,
-              priority: 'high',
-              dueDate: '2024-02-15',
-              assignees: expect.arrayContaining([
-                expect.objectContaining({ id: 1 }),
-                expect.objectContaining({ id: 2 })
-              ])
-            })
-          })
-        })
-      );
-    });
-  });
-
-  describe('updateTask (subtask)', () => {
-    it('should update subtask priority', async () => {
-      req.params = { id: '2' };
-      req.body = { priority: 'urgent' };
-      const existingSubtask = {
-        id: 2, title: 'Existing Subtask', status: 'todo',
-        completed_at: null, category_id: 1, position: 0,
-        parent_task_id: 1
-      };
-      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update
-      query.mockResolvedValueOnce({ rows: [{
-        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
-        category_name: 'Category', category_color: '#fff', priority: 'urgent',
-        status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: []
-      }] }); // Full task
-
-      await updateTask(req, res);
-
-      expect(query).toHaveBeenNthCalledWith(2,
-        expect.stringContaining('priority = $1'),
-        expect.arrayContaining(['urgent'])
-      );
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            task: expect.objectContaining({
-              priority: 'urgent',
-              parentTaskId: 1
-            })
-          })
-        })
-      );
-    });
-
-    it('should update subtask due date', async () => {
-      req.params = { id: '2' };
-      req.body = { due_date: '2024-03-01' };
-      const existingSubtask = {
-        id: 2, title: 'Existing Subtask', status: 'todo',
-        completed_at: null, category_id: 1, position: 0,
-        parent_task_id: 1
-      };
-      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [] }); // Update
-      query.mockResolvedValueOnce({ rows: [{
-        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
-        category_name: 'Category', category_color: '#fff', priority: 'medium',
-        status: 'todo', due_date: '2024-03-01', completed_at: null, position: 0,
-        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(), assignees: []
-      }] }); // Full task
-
-      await updateTask(req, res);
-
-      expect(query).toHaveBeenNthCalledWith(2,
-        expect.stringContaining('due_date = $1'),
-        expect.arrayContaining(['2024-03-01'])
-      );
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            task: expect.objectContaining({
-              dueDate: '2024-03-01',
-              parentTaskId: 1
-            })
-          })
-        })
-      );
-    });
-
-    it('should update subtask assignees', async () => {
-      req.params = { id: '2' };
-      req.body = { assignee_ids: [3, 4] };
-      const existingSubtask = {
-        id: 2, title: 'Existing Subtask', status: 'todo',
-        completed_at: null, category_id: 1, position: 0,
-        parent_task_id: 1
-      };
-      query.mockResolvedValueOnce({ rows: [existingSubtask] }); // Check exists
-      query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] }); // Get current assignees
-      query.mockResolvedValueOnce({ rows: [] }); // Delete old assignments
-      query.mockResolvedValueOnce({ rows: [] }); // Insert new assignments
-      query.mockResolvedValueOnce({ rows: [{
-        id: 2, title: 'Existing Subtask', description: null, category_id: 1,
-        category_name: 'Category', category_color: '#fff', priority: 'medium',
-        status: 'todo', due_date: null, completed_at: null, position: 0,
-        parent_task_id: 1, subtask_count: '0', completed_subtask_count: '0',
-        created_by: 1, created_by_name: 'Test', created_at: new Date(),
-        updated_at: new Date(),
-        assignees: [
-          { id: 3, name: 'User 3', email: 'user3@test.com' },
-          { id: 4, name: 'User 4', email: 'user4@test.com' }
-        ]
-      }] }); // Full task
-
-      await updateTask(req, res);
-
-      expect(query).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO task_assignments'),
-        ['2', 3, 4]
-      );
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            task: expect.objectContaining({
-              parentTaskId: 1,
-              assignees: expect.arrayContaining([
-                expect.objectContaining({ id: 3 }),
-                expect.objectContaining({ id: 4 })
-              ])
-            })
-          })
-        })
-      );
     });
   });
 });

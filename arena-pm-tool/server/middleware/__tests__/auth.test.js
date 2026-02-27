@@ -3,6 +3,9 @@ const { authMiddleware, adminMiddleware } = require('../auth');
 
 // Mock jsonwebtoken
 jest.mock('jsonwebtoken');
+jest.mock('../../lib/sentry', () => ({
+  setUser: jest.fn(),
+}));
 
 describe('Auth Middleware', () => {
   let req, res, next;
@@ -73,8 +76,7 @@ describe('Auth Middleware', () => {
       expect(res.status).toHaveBeenCalledWith(500);
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
-        message: 'Authentication error',
-        error: 'Some unexpected error'
+        message: 'Authentication error'
       });
       expect(next).not.toHaveBeenCalled();
     });
