@@ -96,6 +96,9 @@ jobs:
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build for production
+        env:
+          REACT_APP_SENTRY_RELEASE: ${{ github.sha }}
+          SENTRY_RELEASE: ${{ github.sha }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
       - name: Upload Sentry source maps
         if: ${{ secrets.SENTRY_AUTH_TOKEN != '' }}
@@ -105,9 +108,8 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         run: |
           npm install -g @sentry/cli
-          RELEASE=$(git rev-parse --short HEAD)
-          sentry-cli releases new "$RELEASE"
-          sentry-cli releases files "$RELEASE" upload-sourcemaps ./client/build/static/js --rewrite
-          sentry-cli releases finalize "$RELEASE"
+          sentry-cli releases new "${{ github.sha }}"
+          sentry-cli releases files "${{ github.sha }}" upload-sourcemaps ./client/build/static/js --rewrite
+          sentry-cli releases finalize "${{ github.sha }}"
       - name: Deploy to production
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

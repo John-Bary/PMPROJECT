@@ -9,6 +9,7 @@ import reportWebVitals from './reportWebVitals';
 if (process.env.REACT_APP_SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.REACT_APP_SENTRY_DSN,
+    release: process.env.REACT_APP_SENTRY_RELEASE || undefined,
     environment: process.env.NODE_ENV || 'development',
     tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
     replaysSessionSampleRate: 0,

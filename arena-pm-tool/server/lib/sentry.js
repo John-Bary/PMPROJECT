@@ -2,6 +2,7 @@ const Sentry = require('@sentry/node');
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
+  release: process.env.SENTRY_RELEASE || undefined,
   environment: process.env.NODE_ENV || 'development',
 
   // Sample 20% of transactions in production, 100% in dev
