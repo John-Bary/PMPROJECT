@@ -403,11 +403,13 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 ## Testing
 
 ### Frontend (Jest + React Testing Library)
-- Store tests: `client/src/store/__tests__/` (auth, task, category stores)
-- Component tests: `ErrorBoundary.test.js`, `SubtaskList.test.js`
+- Store tests: `client/src/store/__tests__/` (auth 13, task 17, category 16, workspace 55, billing 21)
+- Component tests: `ErrorBoundary.test.js` (6), `SubtaskList.test.js` (7)
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
+- Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6)
 - API tests: `client/src/utils/api.test.js`
-- 7 test suites, 59 tests total
+- Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24)
+- 13 test suites, 194 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36)
@@ -482,6 +484,12 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Email template rendering tests (77 tests — all 8 templates: rendering, variable substitution, text version, XSS protection, conditional blocks, cross-cutting)
 - Email queue tests (43 tests — all queue functions: queueEmail, welcome, verification, reset, reminders, assignments, invites, trial ending)
 - All server tests passing (363 tests across 16 suites)
+- Missing withErrorHandling wrappers fixed (POST /workspaces, POST /workspaces/:id/invite)
+- Stale arena.com branding replaced with todoria.app (AcceptInvite, seed scripts)
+- Hardcoded localhost:5001 removed from UserArea.jsx
+- Server npm vulnerabilities fixed (0 remaining)
+- Client test coverage expanded: workspaceStore (55), billingStore (21), dateUtils (22), priorityStyles (24), ProtectedRoute (7), CookieConsent (6) — 194 client tests across 13 suites
+- Churn logging added to Stripe webhook handler
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
