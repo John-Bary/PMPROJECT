@@ -810,6 +810,114 @@ function LandingPage() {
         </motion.div>
       </section>
 
+      {/* ─────────── SOCIAL PROOF ─────────── */}
+      <section className="py-20 sm:py-[100px]" style={{ background: 'var(--bg-secondary)' }}>
+        <motion.div
+          className="max-w-[1200px] mx-auto px-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={sectionViewport}
+          variants={staggerContainer}
+        >
+          <motion.h2
+            variants={fadeUp}
+            transition={{ duration: 0.6 }}
+            className="font-display font-bold tracking-[-0.03em] text-center"
+            style={{
+              fontSize: 'clamp(1.8rem, 3.5vw, 2.5rem)',
+              color: 'var(--text-primary)',
+            }}
+          >
+            Teams ship faster with Todoria
+          </motion.h2>
+          <motion.p
+            variants={fadeUp}
+            transition={{ duration: 0.6 }}
+            className="mt-4 text-center mx-auto"
+            style={{
+              maxWidth: '520px',
+              fontSize: '1.05rem',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            Here's what our early adopters have to say.
+          </motion.p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mt-12">
+            {[
+              {
+                quote: "We ditched Asana overnight. Todoria does exactly what we need — nothing more, nothing less.",
+                name: 'Laura M.',
+                role: 'Product Lead at Pixelcraft',
+                initials: 'LM',
+                color: '#6366F1',
+              },
+              {
+                quote: "Onboarding took 2 minutes. Our whole team was set up before the coffee got cold.",
+                name: 'Tomas R.',
+                role: 'CTO at Vektorai',
+                initials: 'TR',
+                color: '#10B981',
+              },
+              {
+                quote: "The board view is buttery smooth. Drag-and-drop that actually works on mobile? Sold.",
+                name: 'Ema K.',
+                role: 'Design Manager at Norde Studio',
+                initials: 'EK',
+                color: '#F59E0B',
+              },
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                variants={fadeUp}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="rounded-2xl p-6 sm:p-8 flex flex-col"
+                style={{
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                }}
+              >
+                {/* Stars */}
+                <div className="flex gap-1 mb-4">
+                  {[...Array(5)].map((_, j) => (
+                    <svg key={j} width="16" height="16" viewBox="0 0 16 16" fill="var(--accent)">
+                      <path d="M8 0l2.47 4.94L16 5.78l-4 3.89.94 5.49L8 12.62l-4.94 2.54.94-5.49-4-3.89 5.53-.84z" />
+                    </svg>
+                  ))}
+                </div>
+
+                <p
+                  className="flex-1 leading-[1.7]"
+                  style={{
+                    fontSize: '0.95rem',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  "{testimonial.quote}"
+                </p>
+
+                <div className="flex items-center gap-3 mt-6 pt-6" style={{ borderTop: '1px solid var(--border-subtle)' }}>
+                  <div
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0"
+                    style={{ background: testimonial.color }}
+                  >
+                    {testimonial.initials}
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {testimonial.name}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      {testimonial.role}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </section>
+
       {/* ─────────── PRICING ─────────── */}
       <section className="py-16 sm:py-[80px] md:pb-[100px]">
         <motion.div
