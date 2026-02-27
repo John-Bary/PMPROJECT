@@ -14,7 +14,7 @@ const poolConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   // Connection pool settings - reduced for serverless to avoid connection exhaustion
-  max: isServerless ? 2 : 20,
+  max: isServerless ? 5 : 20,
   idleTimeoutMillis: isServerless ? 10000 : 30000,
   connectionTimeoutMillis: isServerless ? 5000 : 2000,
 };

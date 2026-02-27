@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, createContext, useContext } from 'react';
 import { createPortal } from 'react-dom';
+import { List } from 'react-window';
 import { DndContext, DragOverlay, closestCorners, useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { useDndSensors } from '../hooks/useDndSensors';
@@ -45,22 +46,273 @@ import {
   AlertDialogAction,
 } from 'components/ui/alert-dialog';
 
-// Lightweight render-prop wrapper for sortable table rows
-function SortableRow({ id, data, children }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useSortable({ id, data });
-  return children({ ref: setNodeRef, attributes, listeners, isDragging });
+// Context for sharing ListView state with virtualized row components
+const ListViewContext = createContext(null);
+
+// Grid column template for div-based virtualized rows
+const GRID_COLS = "grid grid-cols-[40px_1fr_100px_140px_140px_90px] items-center";
+
+// Virtual row dispatcher — delegates to header or task row
+function VirtualRow({ index, style, ariaAttributes, allRows }) {
+  const row = allRows[index];
+  if (row.type === 'category-header') {
+    return <VirtualCategoryHeader row={row} style={style} ariaAttributes={ariaAttributes} />;
+  }
+  return <VirtualTaskRow row={row} style={style} ariaAttributes={ariaAttributes} />;
 }
 
-// Droppable wrapper for category tbody (enables cross-category drops and empty-category drops)
-function DroppableCategoryBody({ categoryId, children }) {
+// Category header row inside the virtualized list
+function VirtualCategoryHeader({ row, style, ariaAttributes }) {
+  const ctx = useContext(ListViewContext);
+  const { category, categoryTasks } = row;
+  const isCategoryCollapsed = ctx.collapsedCategories[category.id];
   const { setNodeRef, isOver } = useDroppable({
-    id: `list-category-${categoryId}`,
-    data: { type: 'category-droppable', categoryId },
+    id: `list-category-${category.id}`,
+    data: { type: 'category-droppable', categoryId: category.id },
   });
+
   return (
-    <tbody ref={setNodeRef} className={isOver ? 'bg-accent' : undefined}>
-      {children}
-    </tbody>
+    <div ref={setNodeRef} style={style} {...ariaAttributes} className={`bg-accent border-b border-border flex items-center ${isOver ? 'ring-1 ring-primary/30' : ''}`}>
+      <button
+        onClick={() => ctx.toggleCategoryCollapse(category.id)}
+        className="flex items-center gap-2 w-full h-full px-3 text-left hover:opacity-70 transition-all duration-150"
+      >
+        {isCategoryCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+        <div className="flex items-center gap-2">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: category.color }} />
+          <span className="text-sm font-bold text-foreground">{category.name}</span>
+          <span className="text-xs text-muted-foreground">({categoryTasks.length})</span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+// Task/subtask row inside the virtualized list
+function VirtualTaskRow({ row, style, ariaAttributes }) {
+  const ctx = useContext(ListViewContext);
+  const task = row.task;
+  const isSubtask = row.type === 'subtask';
+  const isCompleted = task.status === 'completed';
+  const draggableId = `${isSubtask ? 'subtask' : 'task'}-${task.id}`;
+
+  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
+    id: draggableId,
+    data: { type: isSubtask ? 'subtask' : 'task', task, categoryId: row.categoryId },
+  });
+
+  const subtasks = isSubtask ? [] : ctx.getSubtasks(task.id);
+  const hasSubtasks = !isSubtask && subtasks.length > 0;
+  const isExpanded = ctx.expandedTasks[task.id];
+  const isToggling = ctx.togglingTaskIds.has(task.id);
+  const taskOverdue = ctx.isTaskOverdue(task);
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...ariaAttributes}
+      {...attributes}
+      style={style}
+      className={`${GRID_COLS} border-b border-border hover:bg-muted/50 transition-colors duration-150 ${isCompleted ? 'opacity-50' : ''} ${isDragging ? 'bg-muted shadow-sm opacity-50' : ''}`}
+    >
+      {/* Drag handle + expand/collapse */}
+      <div className="px-3 py-2">
+        <div className="flex items-center gap-1">
+          <span
+            {...listeners}
+            className="text-muted-foreground cursor-grab active:cursor-grabbing touch-manipulation"
+            title="Drag to reorder"
+          >
+            <GripVertical size={14} />
+          </span>
+          {!isSubtask && hasSubtasks ? (
+            <button
+              onClick={() => ctx.toggleTaskExpansion(task.id)}
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150"
+              title={isExpanded ? 'Collapse subtasks' : 'Expand subtasks'}
+            >
+              {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </button>
+          ) : (
+            <div className="w-4" />
+          )}
+        </div>
+      </div>
+
+      {/* Task Title */}
+      <div className="px-3 py-2">
+        <div className={`flex items-center gap-2 ${isSubtask ? 'pl-6' : ''}`}>
+          <button
+            onClick={() => ctx.handleToggleComplete(task)}
+            className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
+              isCompleted ? 'bg-primary border-primary' : 'border-input hover:border-foreground'
+            } ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}`}
+            disabled={isToggling}
+            aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
+          >
+            {isCompleted && (
+              <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </button>
+          <div className="flex-1 min-w-0">
+            <button
+              onClick={() => ctx.handleOpenDetail(task)}
+              className={`text-sm font-medium text-foreground text-left hover:underline transition-colors duration-150 leading-tight ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
+            >
+              {task.title}
+              {!isSubtask && hasSubtasks && (
+                <span className="ml-2 text-xs font-normal text-muted-foreground no-underline">
+                  {task.completedSubtaskCount}/{task.subtaskCount}
+                </span>
+              )}
+            </button>
+            {task.description && (
+              <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{task.description}</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Priority */}
+      <div className="px-3 py-2">
+        <div className="relative" ref={el => ctx.dropdownRefs.current[`priority-${task.id}`] = el}>
+          <button
+            onClick={() => ctx.toggleDropdown(task.id, 'priority')}
+            className={`px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1 hover:opacity-80 transition-opacity ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[task.priority] || priorityDotColors.medium}`} />
+            {task.priority}
+            <ChevronDown size={10} className="opacity-60" />
+          </button>
+        </div>
+      </div>
+
+      {/* Due Date */}
+      <div className="px-3 py-2">
+        <div className="relative">
+          <button
+            ref={el => ctx.dropdownRefs.current[`date-${task.id}`] = el}
+            onClick={() => ctx.toggleDropdown(task.id, 'date')}
+            className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors duration-150 text-xs ${
+              taskOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+            }`}
+          >
+            {task.dueDate ? (
+              <>
+                {taskOverdue ? <AlertCircle size={12} className="text-red-500" aria-hidden="true" /> : <Calendar size={12} />}
+                {taskOverdue && <span className="font-semibold">Overdue</span>}
+                {taskOverdue && <span className="mx-0.5" aria-hidden="true">·</span>}
+                <span className={taskOverdue ? 'font-medium' : ''}>{formatDueDate(task.dueDate)}</span>
+              </>
+            ) : (
+              <>
+                <Calendar size={12} />
+                <span>Set date</span>
+              </>
+            )}
+          </button>
+          {ctx.activeDropdown?.taskId === task.id && ctx.activeDropdown?.type === 'date' && (
+            <DatePicker
+              selected={toLocalDate(task.dueDate)}
+              onSelect={(date) => ctx.handleDateSelect(task.id, date)}
+              onClose={ctx.closeDropdown}
+              triggerRef={{ current: ctx.dropdownRefs.current[`date-${task.id}`] }}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Assignees */}
+      <div className="px-3 py-2">
+        <div className="relative" ref={el => ctx.dropdownRefs.current[`assignee-${task.id}`] = el}>
+          <button
+            onClick={() => ctx.toggleDropdown(task.id, 'assignee')}
+            className="flex items-center gap-1 hover:bg-accent rounded-md px-1.5 py-0.5 transition-colors duration-150"
+          >
+            {(task.assignees || []).length > 0 ? (
+              <>
+                <div className="flex -space-x-1">
+                  {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
+                    <div
+                      key={assignee.id}
+                      className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
+                      style={{ zIndex: 3 - idx }}
+                      title={assignee.name}
+                    >
+                      {assignee.name.charAt(0).toUpperCase()}
+                    </div>
+                  ))}
+                  {(task.assignees || []).length > 3 && (
+                    <div className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-white"
+                      title={`+${(task.assignees || []).length - 3} more`}
+                    >
+                      +{(task.assignees || []).length - 3}
+                    </div>
+                  )}
+                </div>
+                <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
+              </>
+            ) : (
+              <>
+                <div className="w-6 h-6 rounded-full bg-input flex items-center justify-center">
+                  <span className="text-muted-foreground text-[11px]">?</span>
+                </div>
+                <span className="text-xs text-muted-foreground">Assign</span>
+                <ChevronDown size={10} className="text-muted-foreground" />
+              </>
+            )}
+          </button>
+          {ctx.activeDropdown?.taskId === task.id && ctx.activeDropdown?.type === 'assignee' && (
+            <AssigneeDropdown
+              users={ctx.users}
+              selectedIds={(task.assignees || []).map(a => a.id)}
+              onToggle={(userId) => ctx.handleAssigneeToggle(task.id, userId)}
+              onClose={ctx.closeDropdown}
+              triggerRef={{ current: ctx.dropdownRefs.current[`assignee-${task.id}`] }}
+              variant="multi"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="px-3 py-2">
+        <div className="flex items-center justify-end gap-1">
+          {!isSubtask && (
+            <button
+              onClick={() => ctx.handleAddSubtask(task)}
+              className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
+              title="Add subtask"
+              aria-label="Add subtask"
+            >
+              <Plus size={16} />
+            </button>
+          )}
+          <button
+            onClick={() => ctx.handleEdit(task)}
+            className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
+            title={isSubtask ? 'Edit subtask' : 'Edit task'}
+            aria-label={isSubtask ? 'Edit subtask' : 'Edit task'}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+          <button
+            onClick={() => ctx.handleDelete(task)}
+            className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-accent transition-colors duration-150"
+            title={isSubtask ? 'Delete subtask' : 'Delete task'}
+            aria-label={isSubtask ? 'Delete subtask' : 'Delete task'}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -479,6 +731,62 @@ function ListView() {
     [categories, tasksByCategory, filters.categories]
   );
 
+  // Flatten all visible rows for virtualized rendering
+  const allRows = useMemo(() => {
+    const rows = [];
+    visibleCategories.forEach(category => {
+      const categoryTasks = tasksByCategory[category.id] || [];
+      rows.push({ type: 'category-header', category, categoryTasks });
+      if (!collapsedCategories[category.id]) {
+        categoryTasks.forEach(task => {
+          rows.push({ type: 'task', task, categoryId: category.id });
+          if (expandedTasks[task.id]) {
+            getSubtasks(task.id).forEach(subtask => {
+              rows.push({ type: 'subtask', task: subtask, categoryId: category.id, parentId: task.id });
+            });
+          }
+        });
+      }
+    });
+    return rows;
+  }, [visibleCategories, tasksByCategory, collapsedCategories, expandedTasks, getSubtasks]);
+
+  // Sortable item IDs for the single SortableContext
+  const sortableItems = useMemo(() =>
+    allRows
+      .filter(row => row.type === 'task' || row.type === 'subtask')
+      .map(row => `${row.type}-${row.task.id}`),
+    [allRows]
+  );
+
+  // Context value for virtual row components
+  const listViewCtx = useMemo(() => ({
+    expandedTasks,
+    collapsedCategories,
+    togglingTaskIds,
+    activeDropdown,
+    users,
+    dropdownRefs,
+    getSubtasks,
+    isTaskOverdue,
+    handleToggleComplete,
+    handleOpenDetail,
+    toggleTaskExpansion,
+    toggleCategoryCollapse,
+    toggleDropdown,
+    closeDropdown,
+    handlePrioritySelect,
+    handleDateSelect,
+    handleAssigneeToggle,
+    handleAddSubtask: handleAddSubtask,
+    handleEdit,
+    handleDelete,
+  }), [expandedTasks, collapsedCategories, togglingTaskIds, activeDropdown, users,
+    getSubtasks, isTaskOverdue, handleToggleComplete, handleOpenDetail,
+    toggleTaskExpansion, toggleCategoryCollapse, toggleDropdown, closeDropdown,
+    handlePrioritySelect, handleDateSelect, handleAssigneeToggle, handleAddSubtask,
+    handleEdit, handleDelete]);
+
   const isLoadingData = isLoading || isFetching || isCategoriesLoading;
   const disableControls = isLoadingData;
   const disablePrimaryAction = isLoadingData || isMutating;
@@ -580,371 +888,90 @@ function ListView() {
         <>
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="bg-card rounded-lg border border-border overflow-x-auto">
-            {/* Desktop Table View */}
-            <table className="w-full hidden md:table">
-              <thead className="bg-muted/80 border-b border-border">
-                <tr>
-                  <th className="w-10 px-3 py-2"></th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
-                      onClick={() => handleSort('title')}>
-                    <div className="flex items-center gap-1">
-                      Task
-                      {sortConfig.key === 'title' && (
-                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                      )}
-                    </div>
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
-                      onClick={() => handleSort('priority')}>
-                    <div className="flex items-center gap-1">
-                      Priority
-                      {sortConfig.key === 'priority' && (
-                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                      )}
-                    </div>
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
-                      onClick={() => handleSort('dueDate')}>
-                    <div className="flex items-center gap-1">
-                      Due date
-                      {sortConfig.key === 'dueDate' && (
-                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                      )}
-                    </div>
-                  </th>
-                  <th className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
-                      onClick={() => handleSort('assignee')}>
-                    <div className="flex items-center gap-1">
-                      Assignee
-                      {sortConfig.key === 'assignee' && (
-                        <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
-                      )}
-                    </div>
-                  </th>
-                  <th className="text-right px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Actions</th>
-                </tr>
-              </thead>
+            {/* Desktop Virtualized View */}
+            <div className="w-full hidden md:block">
+              {/* Column Headers */}
+              <div className={`${GRID_COLS} bg-muted/80 border-b border-border`}>
+                <div className="px-3 py-2"></div>
+                <div className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
+                    onClick={() => handleSort('title')}>
+                  <div className="flex items-center gap-1">
+                    Task
+                    {sortConfig.key === 'title' && (
+                      <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
+                    onClick={() => handleSort('priority')}>
+                  <div className="flex items-center gap-1">
+                    Priority
+                    {sortConfig.key === 'priority' && (
+                      <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
+                    onClick={() => handleSort('dueDate')}>
+                  <div className="flex items-center gap-1">
+                    Due date
+                    {sortConfig.key === 'dueDate' && (
+                      <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="text-left px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground cursor-pointer hover:text-foreground/80 select-none"
+                    onClick={() => handleSort('assignee')}>
+                  <div className="flex items-center gap-1">
+                    Assignee
+                    {sortConfig.key === 'assignee' && (
+                      <ChevronDown size={12} className={`transition-transform ${sortConfig.direction === 'desc' ? 'rotate-180' : ''}`} />
+                    )}
+                  </div>
+                </div>
+                <div className="text-right px-3 py-2 text-xs font-semibold uppercase tracking-wide text-foreground">Actions</div>
+              </div>
               {/* Quick-Add Row */}
-              <tbody>
-                <tr>
-                  <td colSpan="6" className="px-3 py-2">
-                    <div className="flex items-center gap-2 border border-dashed border-border rounded-md px-3 py-2 text-muted-foreground hover:border-primary/50 hover:text-foreground cursor-pointer transition-colors">
-                      <Plus size={16} className="flex-shrink-0" />
-                      <input
-                        ref={quickAddInputRef}
-                        type="text"
-                        value={quickAddTitle}
-                        onChange={(e) => setQuickAddTitle(e.target.value)}
-                        onKeyDown={handleQuickAdd}
-                        placeholder="Add a task... (press Enter)"
-                        disabled={isQuickAdding || !categories.length}
-                        className="w-full text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50 cursor-text"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-              {visibleCategories.length > 0 ? (
-                visibleCategories.map((category) => {
-                  const categoryTasks = tasksByCategory[category.id] || [];
-                  const isCategoryCollapsed = collapsedCategories[category.id];
-
-                  // Build a flat list of rows (parents + visible subtasks) for sortable context
-                  const categoryRows = [];
-                  categoryTasks.forEach((task) => {
-                    categoryRows.push({ task, isSubtask: false });
-                    if (expandedTasks[task.id]) {
-                      const subtasks = getSubtasks(task.id);
-                      subtasks.forEach((subtask) => {
-                        categoryRows.push({ task: subtask, isSubtask: true, parentId: task.id });
-                      });
-                    }
-                  });
-
-                  const sortableItems = categoryRows.map(row =>
-                    `${row.isSubtask ? 'subtask' : 'task'}-${row.task.id}`
-                  );
-
-                  return (
-                    <DroppableCategoryBody categoryId={category.id} key={category.id}>
-                          {/* Category Header Row */}
-                          <tr className="bg-accent border-b border-border">
-                            <td colSpan="6" className="px-3 py-2">
-                              <button
-                                onClick={() => toggleCategoryCollapse(category.id)}
-                                className="flex items-center gap-2 w-full text-left hover:opacity-70 transition-all duration-150"
-                              >
-                                {isCategoryCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className="w-2.5 h-2.5 rounded-full"
-                                    style={{ backgroundColor: category.color }}
-                                  ></div>
-                                  <span className="text-sm font-bold text-foreground">{category.name}</span>
-                                  <span className="text-xs text-muted-foreground">({categoryTasks.length})</span>
-                                </div>
-                              </button>
-                            </td>
-                          </tr>
-
-                          {/* Category Tasks + Subtasks */}
-                          <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
-                          {!isCategoryCollapsed && categoryRows.map((row, rowIndex) => {
-                            const task = row.task;
-                            const isSubtask = row.isSubtask;
-                            const isCompleted = task.status === 'completed';
-                            const subtasks = isSubtask ? [] : getSubtasks(task.id);
-                            const hasSubtasks = !isSubtask && subtasks.length > 0;
-                            const isExpanded = expandedTasks[task.id];
-                            const isToggling = togglingTaskIds.has(task.id);
-
-                            const draggableId = `${isSubtask ? 'subtask' : 'task'}-${task.id}`;
-
-                            return (
-                              <SortableRow id={draggableId} data={{ type: isSubtask ? 'subtask' : 'task', task, categoryId: category.id }} key={draggableId}>
-                                {({ ref, attributes, listeners, isDragging: isRowDragging }) => (
-                                  <tr
-                                    ref={ref}
-                                    {...attributes}
-                                    className={`border-b border-border hover:bg-muted/50 transition-colors duration-150 ${isCompleted ? 'opacity-50' : ''} ${isRowDragging ? 'bg-muted shadow-sm opacity-50' : ''}`}
-                                  >
-                                    {/* Drag handle + expand/collapse (parents) */}
-                                    <td className="px-3 py-2">
-                                      <div className="flex items-center gap-1">
-                                        <span
-                                          {...listeners}
-                                          className="text-muted-foreground cursor-grab active:cursor-grabbing p-3 -m-3 md:p-0 md:m-0 touch-manipulation"
-                                          title="Drag to reorder"
-                                        >
-                                          <GripVertical size={14} />
-                                        </span>
-                                        {!isSubtask && hasSubtasks ? (
-                                          <button
-                                            onClick={() => toggleTaskExpansion(task.id)}
-                                            className="text-muted-foreground hover:text-foreground transition-colors duration-150"
-                                            title={isExpanded ? "Collapse subtasks" : "Expand subtasks"}
-                                          >
-                                            {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                                          </button>
-                                        ) : (
-                                          <div className="w-4"></div>
-                                        )}
-                                      </div>
-                                    </td>
-
-                                    {/* Task Title and Description */}
-                                    <td className="px-3 py-2">
-                                      <div className={`flex items-center gap-2 ${isSubtask ? 'pl-6' : ''}`}>
-                                        <button
-                                          onClick={() => handleToggleComplete(task)}
-                                          className={`flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-150 ${
-                                            isCompleted
-                                              ? 'bg-primary border-primary'
-                                              : 'border-input hover:border-foreground'
-                                          } ${isToggling ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                          disabled={isToggling}
-                                          aria-label={isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
-                                        >
-                                          {isCompleted && (
-                                              <svg className="w-3 h-3 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                              </svg>
-                                            )}
-                                        </button>
-                                        <div className="flex-1 min-w-0">
-                                          <button
-                                            onClick={() => handleOpenDetail(task)}
-                                            className={`text-sm font-medium text-foreground text-left hover:underline transition-colors duration-150 leading-tight ${isCompleted ? 'line-through text-muted-foreground' : ''}`}
-                                          >
-                                            {task.title}
-                                            {!isSubtask && hasSubtasks && (
-                                              <span className="ml-2 text-xs font-normal text-muted-foreground no-underline">
-                                                {task.completedSubtaskCount}/{task.subtaskCount}
-                                              </span>
-                                            )}
-                                          </button>
-                                          {task.description && (
-                                            <div className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{task.description}</div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </td>
-
-                                    {/* Priority */}
-                                    <td className="px-3 py-2">
-                                      <div className="relative" ref={el => dropdownRefs.current[`priority-${task.id}`] = el}>
-                                        <button
-                                          onClick={() => toggleDropdown(task.id, 'priority')}
-                                          className={`px-2 py-0.5 rounded-md text-xs font-medium border flex items-center gap-1 hover:opacity-80 transition-opacity ${priorityPillStyles[task.priority] || priorityPillStyles.medium}`}
-                                        >
-                                          <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[task.priority] || priorityDotColors.medium}`} />
-                                          {task.priority}
-                                          <ChevronDown size={10} className="opacity-60" />
-                                        </button>
-
-                                      </div>
-                                    </td>
-
-                                    {/* Due Date */}
-                                    <td className="px-3 py-2">
-                                      <div className="relative">
-                                        <button
-                                          ref={el => dropdownRefs.current[`date-${task.id}`] = el}
-                                          onClick={() => toggleDropdown(task.id, 'date')}
-                                          className={`flex items-center gap-1 px-1.5 py-0.5 rounded transition-colors duration-150 text-xs ${
-                                            isTaskOverdue(task)
-                                              ? 'text-red-500 font-medium'
-                                              : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                                          }`}
-                                        >
-                                          {task.dueDate ? (() => {
-                                            const overdue = isTaskOverdue(task);
-                                            const label = formatDueDate(task.dueDate);
-                                            return (
-                                              <>
-                                                {overdue ? <AlertCircle size={12} className="text-red-500" aria-hidden="true" /> : <Calendar size={12} />}
-                                                {overdue && <span className="font-semibold">Overdue</span>}
-                                                {overdue && <span className="mx-0.5" aria-hidden="true">·</span>}
-                                                <span className={overdue ? 'font-medium' : ''}>
-                                                  {label}
-                                                </span>
-                                              </>
-                                            );
-                                          })() : (
-                                            <>
-                                              <Calendar size={12} />
-                                              <span>Set date</span>
-                                            </>
-                                          )}
-                                        </button>
-
-                                        {activeDropdown?.taskId === task.id && activeDropdown?.type === 'date' && (
-                                          <DatePicker
-                                            selected={toLocalDate(task.dueDate)}
-                                            onSelect={(date) => handleDateSelect(task.id, date)}
-                                            onClose={closeDropdown}
-                                            triggerRef={{ current: dropdownRefs.current[`date-${task.id}`] }}
-                                          />
-                                        )}
-
-                                      </div>
-                                    </td>
-
-                                    {/* Assignees - Avatar stack with multi-select */}
-                                    <td className="px-3 py-2">
-                                      <div className="relative" ref={el => dropdownRefs.current[`assignee-${task.id}`] = el}>
-                                        <button
-                                          onClick={() => toggleDropdown(task.id, 'assignee')}
-                                          className="flex items-center gap-1 hover:bg-accent rounded-md px-1.5 py-0.5 transition-colors duration-150"
-                                        >
-                                          {(task.assignees || []).length > 0 ? (
-                                            <>
-                                              {/* Avatar Stack */}
-                                              <div className="flex -space-x-1">
-                                                {(task.assignees || []).slice(0, 3).map((assignee, idx) => (
-                                                  <div
-                                                    key={assignee.id}
-                                                    className="w-6 h-6 rounded-full bg-neutral-500 flex items-center justify-center text-white text-[11px] font-semibold ring-1 ring-white"
-                                                    style={{ zIndex: 3 - idx }}
-                                                    title={assignee.name}
-                                                  >
-                                                    {assignee.name.charAt(0).toUpperCase()}
-                                                  </div>
-                                                ))}
-                                                {(task.assignees || []).length > 3 && (
-                                                  <div
-                                                    className="w-6 h-6 rounded-full bg-neutral-400 flex items-center justify-center text-white text-xs font-semibold ring-1 ring-white"
-                                                    title={`+${(task.assignees || []).length - 3} more`}
-                                                  >
-                                                    +{(task.assignees || []).length - 3}
-                                                  </div>
-                                                )}
-                                              </div>
-                                              <ChevronDown size={10} className="text-muted-foreground ml-0.5" />
-                                            </>
-                                          ) : (
-                                            <>
-                                              <div className="w-6 h-6 rounded-full bg-input flex items-center justify-center">
-                                                <span className="text-muted-foreground text-[11px]">?</span>
-                                              </div>
-                                              <span className="text-xs text-muted-foreground">Assign</span>
-                                              <ChevronDown size={10} className="text-muted-foreground" />
-                                            </>
-                                          )}
-                                        </button>
-
-                                        {activeDropdown?.taskId === task.id && activeDropdown?.type === 'assignee' && (
-                                          <AssigneeDropdown
-                                            users={users}
-                                            selectedIds={(task.assignees || []).map(a => a.id)}
-                                            onToggle={(userId) => handleAssigneeToggle(task.id, userId)}
-                                            onClose={closeDropdown}
-                                            triggerRef={{ current: dropdownRefs.current[`assignee-${task.id}`] }}
-                                            variant="multi"
-                                          />
-                                        )}
-                                      </div>
-                                    </td>
-
-                                    {/* Actions */}
-                                    <td className="px-3 py-2">
-                                      <div className="flex items-center justify-end gap-1">
-                                        {!isSubtask && (
-                                          <button
-                                            onClick={() => handleAddSubtask(task)}
-                                            className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
-                                            title="Add subtask"
-                                            aria-label="Add subtask"
-                                          >
-                                            <Plus size={16} />
-                                          </button>
-                                        )}
-                                        <button
-                                          onClick={() => handleEdit(task)}
-                                          className="text-muted-foreground hover:text-foreground p-1 rounded hover:bg-accent transition-colors duration-150"
-                                          title={isSubtask ? 'Edit subtask' : 'Edit task'}
-                                          aria-label={isSubtask ? 'Edit subtask' : 'Edit task'}
-                                        >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                          </svg>
-                                        </button>
-                                        <button
-                                          onClick={() => handleDelete(task)}
-                                          className="text-muted-foreground hover:text-destructive p-1 rounded hover:bg-accent transition-colors duration-150"
-                                          title={isSubtask ? 'Delete subtask' : 'Delete task'}
-                                          aria-label={isSubtask ? 'Delete subtask' : 'Delete task'}
-                                        >
-                                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                          </svg>
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </SortableRow>
-                            );
-                          })}
-                          </SortableContext>
-                    </DroppableCategoryBody>
-                  );
-                })
+              <div className="border-b border-border px-3 py-2">
+                <div className="flex items-center gap-2 border border-dashed border-border rounded-md px-3 py-2 text-muted-foreground hover:border-primary/50 hover:text-foreground cursor-pointer transition-colors">
+                  <Plus size={16} className="flex-shrink-0" />
+                  <input
+                    ref={quickAddInputRef}
+                    type="text"
+                    value={quickAddTitle}
+                    onChange={(e) => setQuickAddTitle(e.target.value)}
+                    onKeyDown={handleQuickAdd}
+                    placeholder="Add a task... (press Enter)"
+                    disabled={isQuickAdding || !categories.length}
+                    className="w-full text-sm bg-transparent placeholder:text-muted-foreground text-foreground outline-none disabled:opacity-50 cursor-text"
+                  />
+                </div>
+              </div>
+              {/* Virtualized Task List */}
+              {allRows.length > 0 ? (
+                <ListViewContext.Provider value={listViewCtx}>
+                  <SortableContext items={sortableItems} strategy={verticalListSortingStrategy}>
+                    <List
+                      rowComponent={VirtualRow}
+                      rowCount={allRows.length}
+                      rowHeight={44}
+                      rowProps={{ allRows }}
+                      style={{ height: `min(calc(100vh - 300px), ${allRows.length * 44}px)` }}
+                      overscanCount={10}
+                    />
+                  </SortableContext>
+                </ListViewContext.Provider>
               ) : (
-                <tbody>
-                  <tr>
-                    <td colSpan="6" className="px-4 py-12">
-                      <EmptyState
-                        icon={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? SearchX : ListTodo}
-                        title={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'No tasks match your filters' : 'No tasks yet'}
-                        description={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'Try adjusting your search or filters.' : 'Create your first task to get started!'}
-                        size="sm"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
+                <div className="px-4 py-12">
+                  <EmptyState
+                    icon={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? SearchX : ListTodo}
+                    title={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'No tasks match your filters' : 'No tasks yet'}
+                    description={searchQuery || filters.assignees.length > 0 || filters.priorities.length > 0 || filters.categories.length > 0 ? 'Try adjusting your search or filters.' : 'Create your first task to get started!'}
+                    size="sm"
+                  />
+                </div>
               )}
-            </table>
+            </div>
 
             {/* Mobile Card View */}
             <div className="md:hidden">

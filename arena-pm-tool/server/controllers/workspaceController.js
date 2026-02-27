@@ -3,7 +3,7 @@
 
 const { query, getClient } = require('../config/database');
 const crypto = require('crypto');
-const { sendWorkspaceInvite } = require('../utils/emailService');
+const { queueWorkspaceInvite } = require('../utils/emailQueue');
 const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
@@ -610,13 +610,13 @@ const inviteToWorkspace = async (req, res) => {
 
     let emailSent = false;
     try {
-      const emailResult = await sendWorkspaceInvite({
+      await queueWorkspaceInvite({
         to: email.toLowerCase(),
         inviterName: req.user.name,
         workspaceName: workspaceResult.rows[0]?.name || 'a workspace',
         inviteUrl
       });
-      emailSent = emailResult?.success || false;
+      emailSent = true;
     } catch (err) {
       logger.warn({ err, email }, 'Failed to send invite email');
     }

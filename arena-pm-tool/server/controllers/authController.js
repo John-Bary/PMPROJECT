@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { query, getClient } = require('../config/database');
-const { sendWelcomeEmail, sendPasswordResetEmail, sendVerificationEmail } = require('../utils/emailService');
+const { queueWelcomeEmail, queuePasswordResetEmail, queueVerificationEmail } = require('../utils/emailQueue');
 const logger = require('../lib/logger');
 
 // Helper: sanitize error for response (hide internals in production)
@@ -216,7 +216,7 @@ const register = async (req, res) => {
     const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
 
     try {
-      await sendVerificationEmail({
+      await queueVerificationEmail({
         to: newUser.email,
         userName: newUser.name,
         verificationUrl
@@ -551,7 +551,7 @@ const forgotPassword = async (req, res) => {
     const resetUrl = `${clientUrl}/reset-password?token=${resetToken}`;
 
     // Send email (async, don't block response)
-    sendPasswordResetEmail({
+    queuePasswordResetEmail({
       to: user.email,
       userName: user.name || user.email,
       resetUrl
@@ -671,7 +671,7 @@ const verifyEmail = async (req, res) => {
     );
 
     // Send welcome email now that they're verified
-    sendWelcomeEmail({
+    queueWelcomeEmail({
       to: user.email,
       userName: user.name
     }).catch(err => {
@@ -725,7 +725,7 @@ const resendVerificationEmail = async (req, res) => {
     const clientUrl = (process.env.CLIENT_URL || process.env.ALLOWED_ORIGINS?.split(',')[0] || 'https://www.todoria.com').replace(/\/+$/, '');
     const verificationUrl = `${clientUrl}/verify-email?token=${verificationToken}`;
 
-    await sendVerificationEmail({
+    await queueVerificationEmail({
       to: user.email,
       userName: user.name,
       verificationUrl

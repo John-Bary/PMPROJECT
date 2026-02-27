@@ -4,6 +4,7 @@
 const { query } = require('../config/database');
 const bcrypt = require('bcryptjs');
 const path = require('path');
+const FileType = require('file-type');
 const logger = require('../lib/logger');
 const { supabaseAdmin } = require('../config/supabase');
 
@@ -307,6 +308,17 @@ const uploadAvatar = async (req, res) => {
       return res.status(400).json({
         status: 'error',
         message: 'No file uploaded.'
+      });
+    }
+
+    // Validate file magic numbers (actual file content check)
+    const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+    const detectedType = await FileType.fromBuffer(req.file.buffer);
+
+    if (!detectedType || !ALLOWED_MIME_TYPES.includes(detectedType.mime)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid file content. Only JPEG, PNG, and WebP images are allowed.'
       });
     }
 

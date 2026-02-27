@@ -4,7 +4,7 @@
 const { query, getClient } = require('../config/database');
 const { verifyWorkspaceAccess } = require('../middleware/workspaceAuth');
 const logger = require('../lib/logger');
-const { sendTrialEndingEmail } = require('../utils/emailService');
+const { queueTrialEndingEmail } = require('../utils/emailQueue');
 
 // Helper: sanitize error for response (hide internals in production)
 const safeError = (error) => process.env.NODE_ENV === 'production' ? undefined : error.message;
@@ -480,7 +480,7 @@ const handleWebhook = async (req, res) => {
                 ? new Date(subscription.trial_end * 1000)
                 : null;
 
-              await sendTrialEndingEmail({
+              await queueTrialEndingEmail({
                 to: admin.email,
                 userName: admin.name,
                 trialEndDate,

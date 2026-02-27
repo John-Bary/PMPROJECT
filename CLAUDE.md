@@ -349,9 +349,12 @@ All colors are defined as CSS variables in `client/src/index.css` `:root` and co
 - `sonner` for all user notifications (`import { toast } from 'sonner'`; use `toast.success()`, `toast.error()`)
 - Tailwind CSS utility classes with CSS variable-based theming (see "UI Design System" section); all colors reference `hsl(var(--variable))` — do NOT use hardcoded color values like `bg-primary-600` or `border-[#E8EBF0]` for themeable surfaces
 - shadcn/ui components (`client/src/components/ui/*.tsx`) for all UI primitives — use `cva` variants, not inline conditional classes
-- `withErrorHandling` wrapper for controller error handling on the server
-- `AppError` class for operational errors with status codes
+- `withErrorHandling` wrapper for ALL route handlers on the server — wraps async handlers, catches errors, reports to Sentry with request context, logs with Pino, returns proper HTTP error responses. Controllers should NOT use manual try/catch for error responses; let errors propagate to `withErrorHandling`. Only use inner try/catch for transaction ROLLBACK (rethrow after rollback).
+- `AppError` class for operational errors with status codes (static factories: `badRequest()`, `unauthorized()`, `forbidden()`, `notFound()`, `conflict()`, `internal()`)
 - Pino logger (not console.log/console.error) on the server
+- All email sends routed through `emailQueue` (not `emailService` directly) — use `queueWelcomeEmail()`, `queueVerificationEmail()`, `queuePasswordResetEmail()`, `queueTaskAssignmentNotification()`, `queueWorkspaceInvite()`, `queueTrialEndingEmail()` from `utils/emailQueue.js`. Exception: `reminderService.js` uses `emailService` directly (background job with own retry logic).
+- File uploads validated with 3 defense layers: extension whitelist, MIME type check, and `file-type` magic number validation (`FileType.fromBuffer()` in meController.js)
+- ListView desktop view uses `react-window` v2 (`List` component) for virtualized rendering. Virtual row components (`VirtualRow`, `VirtualCategoryHeader`, `VirtualTaskRow`) are defined outside `ListView()` and access state via `ListViewContext`. CSS Grid (`GRID_COLS`) replaces `<table>` for column alignment. Mobile view remains non-virtualized.
 
 ## Common Patterns
 
@@ -381,11 +384,12 @@ const useStore = create((set, get) => ({
 ### Protected Routes (Backend)
 ```javascript
 const authMiddleware = require('../middleware/auth');
+const withErrorHandling = require('../lib/withErrorHandling');
 const { workspaceAuth } = require('../middleware/workspaceAuth');
 const { billingGuard } = require('../middleware/billingGuard');
 
-router.post('/', authMiddleware, billingGuard, controller.create);
-router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), controller.getMembers);
+router.post('/', authMiddleware, billingGuard, withErrorHandling(controller.create));
+router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), withErrorHandling(controller.getMembers));
 ```
 
 ### Custom Hooks

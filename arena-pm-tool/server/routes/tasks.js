@@ -8,6 +8,7 @@ const { requireActiveSubscription } = require('../middleware/billingGuard');
 const { checkTaskLimit } = require('../middleware/planLimits');
 const { auditLog } = require('../middleware/auditLog');
 const validate = require('../middleware/validate');
+const withErrorHandling = require('../lib/withErrorHandling');
 const { createTaskSchema, updateTaskSchema, createCommentSchema } = require('../middleware/schemas');
 const {
   getAllTasks,
@@ -27,16 +28,16 @@ const {
 router.use(authMiddleware);
 
 // Task CRUD routes
-router.get('/', getAllTasks);              // GET /api/tasks (with optional filters + pagination)
-router.get('/:id', getTaskById);           // GET /api/tasks/:id
-router.get('/:id/subtasks', getSubtasks);  // GET /api/tasks/:id/subtasks
-router.post('/', requireActiveSubscription, checkTaskLimit, validate(createTaskSchema), auditLog('create', 'task'), createTask); // POST /api/tasks
-router.put('/:id', requireActiveSubscription, validate(updateTaskSchema), auditLog('update', 'task'), updateTask);              // PUT /api/tasks/:id
-router.patch('/:id/position', requireActiveSubscription, auditLog('reorder', 'task'), updateTaskPosition); // PATCH /api/tasks/:id/position
-router.delete('/:id', requireActiveSubscription, auditLog('delete', 'task'), deleteTask);           // DELETE /api/tasks/:id
+router.get('/', withErrorHandling(getAllTasks));              // GET /api/tasks (with optional filters + pagination)
+router.get('/:id', withErrorHandling(getTaskById));           // GET /api/tasks/:id
+router.get('/:id/subtasks', withErrorHandling(getSubtasks));  // GET /api/tasks/:id/subtasks
+router.post('/', requireActiveSubscription, checkTaskLimit, validate(createTaskSchema), auditLog('create', 'task'), withErrorHandling(createTask)); // POST /api/tasks
+router.put('/:id', requireActiveSubscription, validate(updateTaskSchema), auditLog('update', 'task'), withErrorHandling(updateTask));              // PUT /api/tasks/:id
+router.patch('/:id/position', requireActiveSubscription, auditLog('reorder', 'task'), withErrorHandling(updateTaskPosition)); // PATCH /api/tasks/:id/position
+router.delete('/:id', requireActiveSubscription, auditLog('delete', 'task'), withErrorHandling(deleteTask));           // DELETE /api/tasks/:id
 
 // Task comments routes
-router.get('/:taskId/comments', getCommentsByTaskId); // GET /api/tasks/:taskId/comments
-router.post('/:taskId/comments', requireActiveSubscription, validate(createCommentSchema), createComment); // POST /api/tasks/:taskId/comments
+router.get('/:taskId/comments', withErrorHandling(getCommentsByTaskId)); // GET /api/tasks/:taskId/comments
+router.post('/:taskId/comments', requireActiveSubscription, validate(createCommentSchema), withErrorHandling(createComment)); // POST /api/tasks/:taskId/comments
 
 module.exports = router;

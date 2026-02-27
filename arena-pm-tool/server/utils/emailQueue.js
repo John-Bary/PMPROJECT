@@ -118,6 +118,52 @@ const queueWelcomeEmail = async ({ to, userName }) => {
   });
 };
 
+/**
+ * Enqueue an email verification email.
+ */
+const queueVerificationEmail = async ({ to, userName, verificationUrl }) => {
+  return queueEmail({
+    to,
+    subject: 'Verify Your Email — Todoria',
+    template: 'emailVerification.html',
+    templateData: {
+      userName: userName || 'there',
+      verificationUrl,
+    },
+  });
+};
+
+/**
+ * Enqueue a password reset email.
+ */
+const queuePasswordResetEmail = async ({ to, userName, resetUrl }) => {
+  return queueEmail({
+    to,
+    subject: 'Reset Your Password — Todoria',
+    template: 'passwordReset.html',
+    templateData: {
+      userName: userName || 'there',
+      resetUrl,
+    },
+  });
+};
+
+/**
+ * Enqueue a trial ending notification email.
+ */
+const queueTrialEndingEmail = async ({ to, userName, trialEndDate, billingUrl }) => {
+  return queueEmail({
+    to,
+    subject: 'Your Todoria Pro trial ends soon',
+    template: 'trialEnding.html',
+    templateData: {
+      userName: userName || 'there',
+      trialEndDate,
+      billingUrl,
+    },
+  });
+};
+
 const getPriorityColor = (priority) => {
   const colors = { high: '#ef4444', medium: '#f59e0b', low: '#22c55e' };
   return colors[priority] || colors.medium;
@@ -130,4 +176,7 @@ module.exports = {
   queueTaskAssignmentNotification,
   queueWorkspaceInvite,
   queueWelcomeEmail,
+  queueVerificationEmail,
+  queuePasswordResetEmail,
+  queueTrialEndingEmail,
 };
