@@ -59,8 +59,9 @@ function Privacy() {
           <li><strong>Resend:</strong> For transactional email delivery</li>
           <li><strong>Vercel:</strong> For hosting infrastructure</li>
           <li><strong>Supabase:</strong> For database hosting</li>
+          <li><strong>Sentry:</strong> For error monitoring and performance tracking (anonymized error reports)</li>
         </ul>
-        <p>We do not sell your personal data to any third party.</p>
+        <p>We do not sell your personal data to any third party. For a full list of sub-processors, see our <Link to="/dpa" className="text-foreground hover:text-foreground">Data Processing Agreement</Link>.</p>
 
         <h2>7. Data Retention</h2>
         <p>
@@ -83,7 +84,15 @@ function Privacy() {
 
         <h2>9. Cookies</h2>
         <p>
-          We use essential cookies only for authentication (session tokens). We do not use tracking cookies, advertising cookies, or third-party analytics cookies. Essential cookies are necessary for the Service to function and do not require consent under GDPR.
+          We use the following cookies:
+        </p>
+        <ul>
+          <li><strong>Authentication token</strong> (essential): HttpOnly session cookie for login, expires after 15 minutes</li>
+          <li><strong>Refresh token</strong> (essential): HttpOnly cookie for session renewal, expires after 7 days</li>
+          <li><strong>CSRF token</strong> (essential): HttpOnly cookie for cross-site request forgery protection</li>
+        </ul>
+        <p>
+          We do not use tracking cookies, advertising cookies, or third-party analytics cookies. All cookies listed above are strictly necessary for the Service to function and do not require consent under GDPR.
         </p>
 
         <h2>10. Security</h2>

@@ -419,3 +419,53 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 cd server && npm test        # Backend with coverage
 cd client && npm test        # Frontend
 ```
+
+## CI/CD Pipeline
+
+GitHub Actions workflow at `.github/workflows/ci.yml`:
+- **backend-test**: Runs server tests with PostgreSQL service container
+- **frontend-test**: Runs client tests (Jest + React Testing Library)
+- **frontend-build**: Builds client for production (depends on frontend-test)
+- **deploy-staging**: Placeholder for Vercel staging deploy (depends on all tests + build)
+- **deploy-production**: Placeholder for Vercel production deploy with environment protection (depends on staging)
+
+Deployment steps are commented out — uncomment and add `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets to GitHub to enable.
+
+## Launch Checklist Progress
+
+### Completed
+- Landing page pricing section (Free vs Pro, €3/seat/month)
+- UpgradeModal price fix (€5 → €3 to match DB seed)
+- SSL / security headers audit (STRONG — Helmet, HSTS, CSP, HttpOnly+Secure+SameSite cookies all configured)
+- Landing page copy review (9/10 — clear pricing, strong value prop, no typos)
+- Health endpoint review (functional, monitoring-ready with ?db=true&queue=true)
+- CI/CD pipeline created (.github/workflows/ci.yml)
+- react-window ListView virtualization
+- withErrorHandling on all controllers
+- Email queue adoption
+- File upload magic number validation
+- Category reorder workspace_id fix
+- Structured logging (Pino)
+- Sentry coverage
+- DB connection pool increase
+- Terms of Service enhanced (specific pricing €3/seat/month, 14-day trial, cancellation policy, warranty disclaimer — still needs lawyer review)
+- Privacy Policy enhanced (added Sentry to third parties, detailed cookie list with types/expiry, DPA cross-link)
+- Landing page footer legal links (Terms, Privacy added to footer)
+- Security headers in vercel.json (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy)
+- vercel.staging.json completed (full config matching production structure, without HSTS/CSP for staging)
+- CSP refined for Google Fonts, Fontshare, Sentry (Stripe removed — server-side only, no client-side Stripe.js)
+- index.html meta tag price fix (€5 → €3 in description, og:description, twitter:description)
+- Pre-launch integration tests: auth flow (20 tests — register, verify, login, refresh, logout, error cases, anti-enumeration)
+- Pre-launch integration tests: multi-tenant data isolation (19 tests — workspace membership, role checks, cross-workspace blocking)
+- Pre-launch integration tests: plan limits enforcement (22 tests — task/member/workspace limits for free & pro, fail-open behavior)
+
+### Remaining (from Todoria_Launch_Checklist.docx)
+- Stripe production setup (external — account, product, webhooks, portal)
+- Terms of Service & Privacy Policy lawyer review (content drafted, needs legal sign-off)
+- Uptime monitoring service connection (external — UptimeRobot or Better Stack on /api/health?db=true)
+- Database backups (infrastructure)
+- Custom domain setup (DNS + env vars)
+- Secrets rotation for production
+- Pre-launch testing: billing flow E2E, security testing, performance, mobile, cross-browser (manual)
+- Analytics tool setup (PostHog/Mixpanel)
+- Post-launch metrics

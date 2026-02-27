@@ -810,6 +810,181 @@ function LandingPage() {
         </motion.div>
       </section>
 
+      {/* ─────────── PRICING ─────────── */}
+      <section className="py-16 sm:py-[80px] md:pb-[100px]">
+        <motion.div
+          className="max-w-[1200px] mx-auto px-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={sectionViewport}
+          variants={staggerContainer}
+        >
+          {/* Section heading */}
+          <motion.div variants={fadeUp} transition={{ duration: 0.6 }} className="text-center mb-16">
+            <h2
+              className="font-display font-bold tracking-[-0.03em]"
+              style={{
+                fontSize: 'clamp(1.8rem, 4vw, 3rem)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              Simple, transparent pricing
+            </h2>
+            <p
+              className="mt-4 mx-auto max-w-[480px]"
+              style={{ fontSize: '1.125rem', color: 'var(--text-secondary)' }}
+            >
+              Free for small teams. Upgrade when you're ready.
+            </p>
+          </motion.div>
+
+          {/* Pricing cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[800px] mx-auto">
+            {/* Free card */}
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="rounded-2xl p-6 sm:p-10 flex flex-col"
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <h3
+                className="font-display font-semibold"
+                style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}
+              >
+                Free
+              </h3>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span
+                  className="font-display font-bold"
+                  style={{ fontSize: '2.5rem', color: 'var(--text-primary)', lineHeight: 1 }}
+                >
+                  €0
+                </span>
+                <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>/month</span>
+              </div>
+              <ul className="mt-8 space-y-3 flex-1">
+                {[
+                  'Up to 3 members',
+                  '50 tasks per workspace',
+                  '1 workspace',
+                  'Board + List views',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-2.5">
+                    <Check size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="mt-8 inline-block text-center font-display font-semibold rounded-full transition-all duration-200"
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '0.95rem',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Get started
+              </Link>
+            </motion.div>
+
+            {/* Pro card (highlighted) */}
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="rounded-2xl p-6 sm:p-10 flex flex-col relative"
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid rgba(var(--accent-rgb, 99,102,241), 0.3)',
+                boxShadow: '0 0 30px var(--accent-glow)',
+              }}
+            >
+              {/* Most Popular badge */}
+              <span
+                className="absolute -top-3 left-6 text-[0.75rem] font-bold uppercase tracking-[0.05em] rounded-full"
+                style={{
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  padding: '4px 12px',
+                }}
+              >
+                Most Popular
+              </span>
+              <h3
+                className="font-display font-semibold"
+                style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}
+              >
+                Pro
+              </h3>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span
+                  className="font-display font-bold"
+                  style={{ fontSize: '2.5rem', color: 'var(--text-primary)', lineHeight: 1 }}
+                >
+                  €3
+                </span>
+                <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>/seat/month</span>
+              </div>
+              <p
+                className="mt-2"
+                style={{ fontSize: '0.85rem', color: 'var(--accent)' }}
+              >
+                14-day free trial included
+              </p>
+              <ul className="mt-6 space-y-3 flex-1">
+                {[
+                  'Up to 50 members',
+                  'Unlimited tasks',
+                  'Unlimited workspaces',
+                  'Board + List + Calendar views',
+                  'Email reminders',
+                  'File attachments',
+                  'Priority support',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-2.5">
+                    <Check size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="mt-8 inline-block text-center font-display font-semibold rounded-full transition-all duration-200"
+                style={{
+                  background: 'var(--accent)',
+                  color: '#fff',
+                  padding: '12px 24px',
+                  fontSize: '0.95rem',
+                  boxShadow: '0 0 20px var(--accent-glow)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.filter = 'brightness(1.15)';
+                  e.currentTarget.style.boxShadow = '0 0 40px var(--accent-glow)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.filter = 'brightness(1)';
+                  e.currentTarget.style.boxShadow = '0 0 20px var(--accent-glow)';
+                }}
+              >
+                Start free trial
+              </Link>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* ─────────── FINAL CTA ─────────── */}
       <section
         className="relative text-center py-24 px-6 sm:py-[160px]"
@@ -889,7 +1064,7 @@ function LandingPage() {
           <p className="text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>
             &copy; {new Date().getFullYear()} Todoria
           </p>
-          <div className="flex items-center gap-2 text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex items-center gap-2 flex-wrap justify-center text-[0.85rem]" style={{ color: 'var(--text-muted)' }}>
             <Link
               to="/login"
               className="transition-colors duration-200"
@@ -908,6 +1083,26 @@ function LandingPage() {
               onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
             >
               Sign up
+            </Link>
+            <span>&middot;</span>
+            <Link
+              to="/terms"
+              className="transition-colors duration-200"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              Terms
+            </Link>
+            <span>&middot;</span>
+            <Link
+              to="/privacy"
+              className="transition-colors duration-200"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-secondary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+            >
+              Privacy
             </Link>
           </div>
         </div>

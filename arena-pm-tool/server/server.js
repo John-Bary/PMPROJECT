@@ -85,13 +85,12 @@ if (process.env.NODE_ENV === 'production') {
   helmetConfig.contentSecurityPolicy = {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://api.fontshare.com'],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", 'data:', 'blob:'],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      frameSrc: ["'none'"]
+      connectSrc: ["'self'", 'https://*.ingest.sentry.io'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'https://cdn.fontshare.com'],
+      objectSrc: ["'none'"]
     }
   };
   helmetConfig.hsts = {

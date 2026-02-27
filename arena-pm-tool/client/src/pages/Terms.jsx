@@ -43,7 +43,13 @@ function Terms() {
 
         <h2>5. Subscription and Billing</h2>
         <p>
-          Todoria offers a free tier and paid plans. Paid subscriptions are billed per seat per month via Stripe. You may cancel at any time; access continues until the end of the current billing period. Refunds are not provided for partial billing periods.
+          Todoria offers a Free plan and a paid Pro plan. The Free plan includes up to 3 members, 50 tasks per workspace, and 1 workspace. The Pro plan is billed at &euro;3 per seat per month and includes a 14-day free trial.
+        </p>
+        <p>
+          All payments are processed securely by Stripe. You may cancel your subscription at any time from your account settings or through the Stripe Customer Portal. Upon cancellation, your Pro features remain active until the end of the current billing period. No refunds are provided for partial billing periods.
+        </p>
+        <p>
+          We reserve the right to change pricing with 30 days&rsquo; notice to existing subscribers. Seat count is based on the number of members in your workspace. Adding members to a paid workspace will adjust your next invoice accordingly.
         </p>
 
         <h2>6. Data and Privacy</h2>
@@ -56,27 +62,32 @@ function Terms() {
           You retain ownership of all content you create within the Service. By using the Service, you grant us a limited license to store and display your content as necessary to provide the Service. Todoria and its branding are the property of Todoria.
         </p>
 
-        <h2>8. Limitation of Liability</h2>
+        <h2>8. Disclaimer of Warranties</h2>
         <p>
-          To the maximum extent permitted by law, Todoria shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability shall not exceed the amount you have paid us in the 12 months prior to the claim.
+          The Service is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties of any kind, either express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not guarantee that the Service will be uninterrupted, error-free, or secure at all times.
         </p>
 
-        <h2>9. Termination</h2>
+        <h2>9. Limitation of Liability</h2>
         <p>
-          We may suspend or terminate your account if you violate these Terms. You may delete your account at any time from your account settings. Upon termination, your data will be deleted in accordance with our Privacy Policy.
+          To the maximum extent permitted by law, Todoria shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Service, including but not limited to loss of data, revenue, or business opportunities. Our total aggregate liability shall not exceed the amount you have paid us in the 12 months prior to the claim.
         </p>
 
-        <h2>10. Changes to Terms</h2>
+        <h2>10. Termination</h2>
         <p>
-          We may update these Terms from time to time. We will notify registered users of material changes via email or in-app notification. Continued use after changes constitutes acceptance.
+          We may suspend or terminate your account if you violate these Terms or if your account is inactive for more than 12 months. You may delete your account at any time from your account settings. Upon termination, your data will be deleted within 30 days in accordance with our <Link to="/privacy" className="text-foreground hover:text-foreground">Privacy Policy</Link>. Any outstanding charges remain payable.
         </p>
 
-        <h2>11. Governing Law</h2>
+        <h2>11. Changes to Terms</h2>
         <p>
-          These Terms are governed by and construed in accordance with the laws of the European Union. Any disputes shall be resolved in the competent courts of the service provider's jurisdiction.
+          We may update these Terms from time to time. We will notify registered users of material changes via email at least 30 days before changes take effect. Continued use after changes constitutes acceptance.
         </p>
 
-        <h2>12. Contact</h2>
+        <h2>12. Governing Law</h2>
+        <p>
+          These Terms are governed by and construed in accordance with the laws of the European Union. Any disputes shall be resolved in the competent courts of the service provider&rsquo;s jurisdiction.
+        </p>
+
+        <h2>13. Contact</h2>
         <p>
           For questions about these Terms, contact us at <a href="mailto:support@todoria.app" className="text-foreground hover:text-foreground">support@todoria.app</a>.
         </p>

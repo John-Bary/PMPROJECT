@@ -22,7 +22,7 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '\u20ac5',
+    price: '\u20ac3',
     period: '/seat/month',
     description: 'For small teams who need more',
     icon: Sparkles,
