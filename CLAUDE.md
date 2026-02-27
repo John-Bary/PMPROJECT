@@ -490,6 +490,10 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Server npm vulnerabilities fixed (0 remaining)
 - Client test coverage expanded: workspaceStore (55), billingStore (21), dateUtils (22), priorityStyles (24), ProtectedRoute (7), CookieConsent (6) — 194 client tests across 13 suites
 - Churn logging added to Stripe webhook handler
+- SEO fixes: robots.txt and sitemap.xml domain corrected (todoria.com → todoria.app), manifest.json theme_color fixed (#4F46E5)
+- ErrorPage noindex meta tag added (prevents search engine indexing of error pages)
+- Accessibility: aria-labels added to TaskCard buttons (priority, due date, assignee) and FilterDropdown trigger
+- Unused React imports removed from DPA.jsx and TaskModal.jsx
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
