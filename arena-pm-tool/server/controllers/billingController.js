@@ -376,6 +376,8 @@ const handleWebhook = async (req, res) => {
 
         if (!workspaceId) break;
 
+        logger.info({ workspaceId, stripeSubscriptionId: subscription.id, canceledAt: subscription.canceled_at }, 'Subscription canceled — churn event');
+
         // Downgrade to free plan
         await client.query(
           `UPDATE subscriptions

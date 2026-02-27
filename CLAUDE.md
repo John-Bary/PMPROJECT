@@ -413,8 +413,9 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
+- Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
 - Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6)
-- 14 test suites, 243 tests total
+- 16 test suites, 363 tests total
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -477,6 +478,10 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - All server tests passing (243 tests across 14 suites)
 - Launch infrastructure guide created (docs/LAUNCH_GUIDE.md — 615 lines, 208 checklist items across 12 sections: Stripe, domain, env separation, secrets, backups, monitoring, CI/CD, email, Sentry, PostHog, manual testing, post-launch metrics)
 - Onboarding analytics tracking (step completion, onboarding complete, skip with step number)
+- NPS survey component (0-10 score, 30-day delay, PostHog tracking, localStorage persistence)
+- Email template rendering tests (77 tests — all 8 templates: rendering, variable substitution, text version, XSS protection, conditional blocks, cross-cutting)
+- Email queue tests (43 tests — all queue functions: queueEmail, welcome, verification, reset, reminders, assignments, invites, trial ending)
+- All server tests passing (363 tests across 16 suites)
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
