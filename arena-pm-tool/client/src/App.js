@@ -14,6 +14,7 @@ import InviteLanding from './pages/InviteLanding';
 import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CookieConsent from './components/CookieConsent';
+import NpsSurvey from './components/NpsSurvey';
 import { PageLoader } from './components/Loader';
 
 // Lazy load pages for better initial bundle size
@@ -51,6 +52,7 @@ function App() {
         <TooltipProvider>
         <WorkspaceProvider>
           <CookieConsent />
+          <NpsSurvey />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               {/* Public Routes */}

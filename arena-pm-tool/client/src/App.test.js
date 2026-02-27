@@ -34,6 +34,9 @@ jest.mock('./pages/ErrorPage', () => {
 jest.mock('./components/CookieConsent', () => {
   return () => null;
 });
+jest.mock('./components/NpsSurvey', () => {
+  return () => null;
+});
 jest.mock('./components/ProtectedRoute', () => {
   return ({ children }) => null;
 });
