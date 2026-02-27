@@ -9,7 +9,7 @@ const { requireActiveSubscription } = require('../middleware/billingGuard');
 const { checkMemberLimit, checkWorkspaceLimit } = require('../middleware/planLimits');
 const withErrorHandling = require('../lib/withErrorHandling');
 const validate = require('../middleware/validate');
-const { createWorkspaceSchema, updateWorkspaceSchema, inviteToWorkspaceSchema } = require('../middleware/schemas');
+const { createWorkspaceSchema, updateWorkspaceSchema, inviteToWorkspaceSchema, updateMemberRoleSchema } = require('../middleware/schemas');
 const { auditLog } = require('../middleware/auditLog');
 const workspaceController = require('../controllers/workspaceController');
 const onboardingController = require('../controllers/onboardingController');
@@ -54,7 +54,7 @@ router.delete('/:id', auditLog('delete', 'workspace'), withErrorHandling(workspa
 router.get('/:id/members', withErrorHandling(workspaceController.getWorkspaceMembers));
 
 // PATCH /api/workspaces/:id/members/:memberId - Update member role
-router.patch('/:id/members/:memberId', withErrorHandling(workspaceController.updateMemberRole));
+router.patch('/:id/members/:memberId', validate(updateMemberRoleSchema), withErrorHandling(workspaceController.updateMemberRole));
 
 // DELETE /api/workspaces/:id/members/:memberId - Remove member from workspace
 router.delete('/:id/members/:memberId', withErrorHandling(workspaceController.removeMember));

@@ -179,6 +179,38 @@ const updatePreferencesSchema = {
   }),
 };
 
+// ============================================================================
+// Additional schemas for routes with inline validation
+// ============================================================================
+
+const changePasswordSchema = {
+  body: z.object({
+    currentPassword: z.string().min(1, 'Current password is required').max(128),
+    newPassword: passwordString,
+  }),
+};
+
+const updateMemberRoleSchema = {
+  body: z.object({
+    role: z.enum(['admin', 'member', 'viewer'], { message: 'Role must be admin, member, or viewer' }),
+  }),
+};
+
+const updateTaskPositionSchema = {
+  body: z.object({
+    position: z.number().int().min(0),
+    category_id: z.number().int().positive().optional().nullable(),
+    workspace_id: uuidString.optional(),
+  }),
+};
+
+const reorderCategoriesSchema = {
+  body: z.object({
+    categoryIds: z.array(z.number().int().positive()).min(1, 'At least one category is required'),
+    workspace_id: uuidString,
+  }),
+};
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -196,4 +228,8 @@ module.exports = {
   updateCommentSchema,
   updateProfileSchema,
   updatePreferencesSchema,
+  changePasswordSchema,
+  updateMemberRoleSchema,
+  updateTaskPositionSchema,
+  reorderCategoriesSchema,
 };

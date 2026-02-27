@@ -8,6 +8,8 @@ const path = require('path');
 const { authMiddleware } = require('../middleware/auth');
 const { uploadLimiter } = require('../middleware/rateLimiter');
 const withErrorHandling = require('../lib/withErrorHandling');
+const validate = require('../middleware/validate');
+const { updateProfileSchema, updatePreferencesSchema, changePasswordSchema } = require('../middleware/schemas');
 const {
   getProfile,
   updateProfile,
@@ -53,10 +55,10 @@ router.use(authMiddleware);
 
 // Profile routes
 router.get('/', withErrorHandling(getProfile));
-router.patch('/', withErrorHandling(updateProfile));
+router.patch('/', validate(updateProfileSchema), withErrorHandling(updateProfile));
 
 // Preferences routes
-router.patch('/preferences', withErrorHandling(updatePreferences));
+router.patch('/preferences', validate(updatePreferencesSchema), withErrorHandling(updatePreferences));
 
 // Notification routes
 router.patch('/notifications', withErrorHandling(updateNotifications));
@@ -66,7 +68,7 @@ router.post('/avatar', uploadLimiter, upload.single('avatar'), withErrorHandling
 router.delete('/avatar', withErrorHandling(deleteAvatar));
 
 // Password change
-router.post('/password', withErrorHandling(changePassword));
+router.post('/password', validate(changePasswordSchema), withErrorHandling(changePassword));
 
 // Account deletion
 router.delete('/account', withErrorHandling(deleteAccount));

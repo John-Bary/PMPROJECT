@@ -9,7 +9,7 @@ const { checkTaskLimit } = require('../middleware/planLimits');
 const { auditLog } = require('../middleware/auditLog');
 const validate = require('../middleware/validate');
 const withErrorHandling = require('../lib/withErrorHandling');
-const { createTaskSchema, updateTaskSchema, createCommentSchema } = require('../middleware/schemas');
+const { createTaskSchema, updateTaskSchema, updateTaskPositionSchema, createCommentSchema } = require('../middleware/schemas');
 const {
   getAllTasks,
   getTaskById,
@@ -33,7 +33,7 @@ router.get('/:id', withErrorHandling(getTaskById));           // GET /api/tasks/
 router.get('/:id/subtasks', withErrorHandling(getSubtasks));  // GET /api/tasks/:id/subtasks
 router.post('/', requireActiveSubscription, checkTaskLimit, validate(createTaskSchema), auditLog('create', 'task'), withErrorHandling(createTask)); // POST /api/tasks
 router.put('/:id', requireActiveSubscription, validate(updateTaskSchema), auditLog('update', 'task'), withErrorHandling(updateTask));              // PUT /api/tasks/:id
-router.patch('/:id/position', requireActiveSubscription, auditLog('reorder', 'task'), withErrorHandling(updateTaskPosition)); // PATCH /api/tasks/:id/position
+router.patch('/:id/position', requireActiveSubscription, validate(updateTaskPositionSchema), auditLog('reorder', 'task'), withErrorHandling(updateTaskPosition)); // PATCH /api/tasks/:id/position
 router.delete('/:id', requireActiveSubscription, auditLog('delete', 'task'), withErrorHandling(deleteTask));           // DELETE /api/tasks/:id
 
 // Task comments routes
