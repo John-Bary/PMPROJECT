@@ -103,8 +103,8 @@ curl -I http://localhost:5001/api/health
 | `NODE_ENV` | Environment | `production` |
 | `DB_HOST` | Database host | `db.example.com` |
 | `DB_PORT` | Database port | `5432` |
-| `DB_NAME` | Database name | `arena_pm_prod` |
-| `DB_USER` | Database user | `arena_user` |
+| `DB_NAME` | Database name | `todoria_prod` |
+| `DB_USER` | Database user | `todoria_user` |
 | `DB_PASSWORD` | Database password | `strong_password` |
 | `JWT_SECRET` | JWT signing key | `64+ char random string` |
 | `ALLOWED_ORIGINS` | CORS origins | `https://app.example.com` |

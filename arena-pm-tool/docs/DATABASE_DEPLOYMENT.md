@@ -122,7 +122,7 @@ This guide covers deploying the Todoria database to various production platforms
    ```bash
    DB_HOST=your-instance.xxxx.region.rds.amazonaws.com
    DB_PORT=5432
-   DB_NAME=arena_pm
+   DB_NAME=todoria
    DB_USER=postgres
    DB_PASSWORD=your-password
    DB_SSL=true
