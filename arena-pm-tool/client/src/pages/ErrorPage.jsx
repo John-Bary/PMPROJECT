@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
 import { Button } from 'components/ui/button';
@@ -8,6 +9,15 @@ function ErrorPage({ statusCode, title, message, onRetry }) {
 
   const resolvedStatus = statusCode || location.state?.statusCode || 404;
   const isNotFound = resolvedStatus === 404;
+
+  // Prevent search engines from indexing error pages
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, follow';
+    document.head.appendChild(meta);
+    return () => document.head.removeChild(meta);
+  }, []);
 
   const heading = title || (isNotFound ? 'Page not found' : 'Something went wrong');
   const description =

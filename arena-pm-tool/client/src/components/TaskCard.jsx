@@ -271,6 +271,7 @@ function TaskCard({
                     ${priorityPillStyles[task.priority]}
                   `}
                   title="Change priority"
+                  aria-label={`Priority: ${task.priority}. Click to change`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${priorityDotColors[task.priority]}`} />
                   {task.priority}
@@ -290,6 +291,7 @@ function TaskCard({
                       : 'text-muted-foreground hover:bg-accent hover:text-foreground'}
                   `}
                   title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
+                  aria-label={`Due date: ${dueDate || 'none'}${isOverdue ? ' (overdue)' : ''}. Click to change`}
                 >
                   <Calendar size={12} />
                   {isOverdue && <span className="font-semibold">Overdue</span>}
@@ -309,6 +311,9 @@ function TaskCard({
                   title={(task.assignees || []).length > 0
                     ? (task.assignees || []).map(a => a.name).join(', ')
                     : 'Assign someone'}
+                  aria-label={(task.assignees || []).length > 0
+                    ? `Assigned to: ${(task.assignees || []).map(a => a.name).join(', ')}. Click to change`
+                    : 'No assignee. Click to assign someone'}
                 >
                   {(task.assignees || []).length > 0 ? (
                     <div className="flex -space-x-1">
