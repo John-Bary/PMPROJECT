@@ -39,7 +39,7 @@ const localStorageMock = {
 };
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
 
-const WORKSPACE_STORAGE_KEY = 'arena_current_workspace_id';
+const WORKSPACE_STORAGE_KEY = 'todoria_current_workspace_id';
 
 // Helper: default initial state for resetting
 const initialState = {

@@ -4,7 +4,13 @@ import { create } from 'zustand';
 import { workspacesAPI } from '../utils/api';
 import { toast } from 'sonner';
 
-const WORKSPACE_STORAGE_KEY = 'arena_current_workspace_id';
+const WORKSPACE_STORAGE_KEY = 'todoria_current_workspace_id';
+
+// Migrate from old key name (one-time, safe to remove after a few releases)
+if (!localStorage.getItem(WORKSPACE_STORAGE_KEY) && localStorage.getItem('arena_current_workspace_id')) {
+  localStorage.setItem(WORKSPACE_STORAGE_KEY, localStorage.getItem('arena_current_workspace_id'));
+  localStorage.removeItem('arena_current_workspace_id');
+}
 
 const useWorkspaceStore = create((set, get) => ({
   workspaces: [],
