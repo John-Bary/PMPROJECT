@@ -112,6 +112,7 @@ const useAuthStore = create((set) => ({
     });
 
     analytics.track(EVENTS.LOGOUT);
+    analytics.reset();
     toast.success('Logged out successfully');
   },
 

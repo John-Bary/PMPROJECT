@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 // Mock analytics
 jest.mock('../../utils/analytics', () => ({
   __esModule: true,
-  default: { identify: jest.fn(), track: jest.fn() },
+  default: { identify: jest.fn(), track: jest.fn(), reset: jest.fn() },
   EVENTS: { LOGIN: 'login', SIGNUP: 'signup', LOGOUT: 'logout' },
 }));
 

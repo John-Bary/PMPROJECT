@@ -407,13 +407,14 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - Component tests: `ErrorBoundary.test.js`, `SubtaskList.test.js`
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - API tests: `client/src/utils/api.test.js`
-- 7 test suites, 53 tests total
+- 7 test suites, 59 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
+- Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6)
-- 10 test suites, 190 tests total
+- 14 test suites, 243 tests total
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -428,10 +429,10 @@ GitHub Actions workflow at `.github/workflows/ci.yml`:
 - **backend-test**: Runs server tests with PostgreSQL service container
 - **frontend-test**: Runs client tests (Jest + React Testing Library)
 - **frontend-build**: Builds client for production (depends on frontend-test)
-- **deploy-staging**: Placeholder for Vercel staging deploy (depends on all tests + build)
-- **deploy-production**: Placeholder for Vercel production deploy with environment protection (depends on staging)
+- **deploy-staging**: Deploys to Vercel staging via CLI (depends on all tests + build)
+- **deploy-production**: Deploys to Vercel production via CLI with environment protection (depends on staging)
 
-Deployment steps are commented out — uncomment and add `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets to GitHub to enable.
+Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. See `docs/LAUNCH_GUIDE.md` Section 7 for setup.
 
 ## Launch Checklist Progress
 
@@ -464,14 +465,31 @@ Deployment steps are commented out — uncomment and add `VERCEL_TOKEN`, `VERCEL
 - Billing controller tests expanded (10 tests — subscription, plans, checkout session, portal session with Stripe mock)
 - All pre-existing server tests fixed and passing (190 tests across 10 suites — rewrote auth, task, category, comment, billing, plan limits tests to match current controller implementations: getClient transactions, workspace auth, anti-enumeration, RBAC viewer blocks)
 - Landing page social proof section (3 placeholder testimonial cards between "How It Works" and "Pricing")
+- PostHog analytics integration (dynamic import with env-var gating, 16 event types, onboarding step tracking, identify/reset lifecycle)
+- CI/CD pipeline deploy steps completed (Vercel CLI deploy for staging + production, no longer placeholders)
+- Client App.test.js fixed (routing tests now pass with proper lazy-load handling)
+- authStore test mock updated for analytics.reset()
+- All client tests passing (59 tests across 7 suites)
+- Pre-launch E2E: billing flow (9 tests — free defaults, subscription, plans, checkout, portal, webhooks)
+- Pre-launch E2E: security integration (13 tests — XSS, SQL injection, cross-workspace, JWT, CSRF, rate limiting, password complexity, anti-enumeration)
+- Pre-launch E2E: task CRUD flow (20 tests — create, update, position, assignees, subtasks, delete, filters, search, pagination)
+- Pre-launch E2E: invitation flow (11 tests — invite, accept, re-invite, validation, expiration, cancel, limits, roles)
+- All server tests passing (243 tests across 14 suites)
+- Launch infrastructure guide created (docs/LAUNCH_GUIDE.md — 615 lines, 208 checklist items across 12 sections: Stripe, domain, env separation, secrets, backups, monitoring, CI/CD, email, Sentry, PostHog, manual testing, post-launch metrics)
+- Onboarding analytics tracking (step completion, onboarding complete, skip with step number)
 
-### Remaining (from Todoria_Launch_Checklist.docx)
-- Stripe production setup (external — account, product, webhooks, portal)
-- Terms of Service & Privacy Policy lawyer review (content drafted, needs legal sign-off)
-- Uptime monitoring service connection (external — UptimeRobot or Better Stack on /api/health?db=true)
-- Database backups (infrastructure)
-- Custom domain setup (DNS + env vars)
-- Secrets rotation for production
-- Pre-launch testing: billing flow E2E, security testing, performance, mobile, cross-browser (manual)
-- Analytics tool setup (PostHog/Mixpanel)
-- Post-launch metrics
+### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
+All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
+- Stripe production setup (account, product, webhooks, portal, tax) — LAUNCH_GUIDE.md §1
+- Custom domain (todoria.com DNS + Vercel + env vars) — LAUNCH_GUIDE.md §2
+- Environment separation verification (staging vs production Supabase/Stripe/Sentry) — LAUNCH_GUIDE.md §3
+- Secrets rotation for production (JWT_SECRET, Stripe live keys, Resend, Sentry, CRON_SECRET) — LAUNCH_GUIDE.md §4
+- Database backups (Supabase PITR + off-site pg_dump) — LAUNCH_GUIDE.md §5
+- Uptime monitoring (UptimeRobot/Better Stack on /api/health) — LAUNCH_GUIDE.md §6
+- CI/CD pipeline activation (GitHub secrets + environment protection rules) — LAUNCH_GUIDE.md §7
+- Email domain authentication (SPF/DKIM/DMARC for todoria.app) — LAUNCH_GUIDE.md §8
+- Sentry alerts configuration — LAUNCH_GUIDE.md §9
+- PostHog account + env vars setup — LAUNCH_GUIDE.md §10
+- Manual pre-launch testing (auth, billing, limits, multi-tenant, invites, CRUD, calendar, email, security, performance, mobile, cross-browser) — LAUNCH_GUIDE.md §11
+- Post-launch monitoring setup (churn, error budget, email delivery, NPS, response times) — LAUNCH_GUIDE.md §12
+- Terms of Service & Privacy Policy lawyer review (content complete, needs legal sign-off)

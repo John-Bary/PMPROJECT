@@ -9,6 +9,7 @@ import {
 import { workspacesAPI, meAPI } from '../utils/api';
 import useAuthStore from '../store/authStore';
 import { toast } from 'sonner';
+import analytics, { EVENTS } from '../utils/analytics';
 import { Button } from 'components/ui/button';
 import { Input } from 'components/ui/input';
 import { Label } from 'components/ui/label';
@@ -112,6 +113,11 @@ function WorkspaceOnboarding() {
         step: stepIndex + 1,
         stepName: STEPS[stepIndex].id,
       });
+      analytics.track(EVENTS.ONBOARDING_STEP_COMPLETED, {
+        step: stepIndex + 1,
+        stepName: STEPS[stepIndex].id,
+        totalSteps: STEPS.length,
+      });
     } catch (err) {
       console.error('Failed to save progress:', err);
     }
@@ -172,6 +178,7 @@ function WorkspaceOnboarding() {
     try {
       await saveStepProgress(currentStep);
       await workspacesAPI.completeOnboarding(workspaceId);
+      analytics.track(EVENTS.ONBOARDING_COMPLETED, { workspaceId });
       toast.success('Welcome aboard! You\'re all set.');
       navigate('/dashboard', { replace: true });
     } catch (err) {
@@ -186,6 +193,7 @@ function WorkspaceOnboarding() {
   const handleSkip = async () => {
     try {
       await workspacesAPI.skipOnboarding(workspaceId);
+      analytics.track(EVENTS.ONBOARDING_SKIPPED, { workspaceId, skippedAtStep: currentStep + 1 });
       navigate('/dashboard', { replace: true });
     } catch (err) {
       console.error('Failed to skip onboarding:', err);
