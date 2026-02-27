@@ -463,6 +463,7 @@ Deployment steps are commented out — uncomment and add `VERCEL_TOKEN`, `VERCEL
 - Server .gitignore fixed (added coverage/, *.lcov; removed tracked coverage files)
 - Billing controller tests expanded (10 tests — subscription, plans, checkout session, portal session with Stripe mock)
 - All pre-existing server tests fixed and passing (190 tests across 10 suites — rewrote auth, task, category, comment, billing, plan limits tests to match current controller implementations: getClient transactions, workspace auth, anti-enumeration, RBAC viewer blocks)
+- Landing page social proof section (3 placeholder testimonial cards between "How It Works" and "Pricing")
 
 ### Remaining (from Todoria_Launch_Checklist.docx)
 - Stripe production setup (external — account, product, webhooks, portal)
