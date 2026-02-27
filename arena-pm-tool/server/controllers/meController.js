@@ -615,9 +615,9 @@ const deleteAccount = async (req, res) => {
       [`deleted_${req.user.id}@removed.todoria.app`, req.user.id]
     );
 
-    // Clear auth cookie
-    res.clearCookie('accessToken');
-    res.clearCookie('refreshToken');
+    // Clear auth cookies (must match names used in setAuthCookies)
+    res.clearCookie('token');
+    res.clearCookie('refreshToken', { path: '/api/auth/refresh' });
 
     res.json({ status: 'success', message: 'Account deleted successfully.' });
   } catch (error) {
