@@ -6,7 +6,7 @@
  * Restores database from a backup file.
  *
  * Usage:
- *   npm run db:restore -- --file=backups/arena_pm_backup_2024-01-20.sql
+ *   npm run db:restore -- --file=backups/todoria_backup_2024-01-20.sql
  *   node scripts/restoreDatabase.js --file=path/to/backup.sql
  */
 

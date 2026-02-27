@@ -44,7 +44,7 @@ const UserArea = () => {
     return 'U';
   };
 
-  const apiBaseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5001';
+  const apiBaseUrl = process.env.REACT_APP_API_URL?.replace('/api', '') || '';
 
   return (
     <div className="min-h-screen bg-background">

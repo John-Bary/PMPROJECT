@@ -27,7 +27,7 @@ async function resetDatabase() {
 
     console.log('✅ Database reset completed successfully!');
     console.log('\n📝 Demo credentials:');
-    console.log('   Email: admin@arena.com');
+    console.log('   Email: admin@todoria.app');
     console.log('   Password: password123\n');
 
     await pool.end();

@@ -32,7 +32,7 @@ router.use(authMiddleware);
 router.get('/', withErrorHandling(workspaceController.getMyWorkspaces));
 
 // POST /api/workspaces - Create new workspace (plan limit enforced)
-router.post('/', checkWorkspaceLimit, validate(createWorkspaceSchema), auditLog('create', 'workspace'), workspaceController.createWorkspace);
+router.post('/', checkWorkspaceLimit, validate(createWorkspaceSchema), auditLog('create', 'workspace'), withErrorHandling(workspaceController.createWorkspace));
 
 // GET /api/workspaces/users - Get users for workspace (for assignee dropdown)
 router.get('/users', withErrorHandling(workspaceController.getWorkspaceUsers));
@@ -68,7 +68,7 @@ router.delete('/:id/members/:memberId', withErrorHandling(workspaceController.re
 router.post('/accept-invite/:token', withErrorHandling(workspaceController.acceptInvitation));
 
 // POST /api/workspaces/:id/invite - Invite user to workspace (rate + plan limited)
-router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, validate(inviteToWorkspaceSchema), workspaceController.inviteToWorkspace);
+router.post('/:id/invite', inviteLimiter, requireActiveSubscription, checkMemberLimit, validate(inviteToWorkspaceSchema), withErrorHandling(workspaceController.inviteToWorkspace));
 
 // GET /api/workspaces/:id/invitations - Get pending invitations for workspace
 router.get('/:id/invitations', withErrorHandling(workspaceController.getWorkspaceInvitations));

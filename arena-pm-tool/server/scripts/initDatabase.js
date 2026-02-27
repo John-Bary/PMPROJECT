@@ -95,9 +95,9 @@ async function initializeDatabase() {
 
     console.log('\n✨ Database initialization completed successfully!');
     console.log('\n📝 Demo credentials:');
-    console.log('   Email: admin@arena.com');
+    console.log('   Email: admin@todoria.app');
     console.log('   Password: password123');
-    console.log('\n   Other users: john@arena.com, jane@arena.com, mike@arena.com, sarah@arena.com');
+    console.log('\n   Other users: john@todoria.app, jane@todoria.app, mike@todoria.app, sarah@todoria.app');
     console.log('   All passwords: password123\n');
 
   } catch (error) {

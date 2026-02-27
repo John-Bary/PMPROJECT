@@ -221,7 +221,7 @@ function AcceptInvite() {
         {/* Footer */}
         <p className="text-center text-sm text-neutral-500 mt-6">
           Need help?{' '}
-          <a href="mailto:support@arena.com" className="text-neutral-400 hover:text-neutral-300">
+          <a href="mailto:support@todoria.app" className="text-neutral-400 hover:text-neutral-300">
             Contact Support
           </a>
         </p>
