@@ -494,6 +494,9 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - ErrorPage noindex meta tag added (prevents search engine indexing of error pages)
 - Accessibility: aria-labels added to TaskCard buttons (priority, due date, assignee) and FilterDropdown trigger
 - Unused React imports removed from DPA.jsx and TaskModal.jsx
+- localStorage key rebranded: arena_current_workspace_id → todoria_current_workspace_id (with one-time migration)
+- .env.example and .env.production.example headers updated from "Arena PM Tool" to "Todoria"
+- Final quality sweep: zero remaining arena branding in active client code, zero TODO/FIXME markers, zero hardcoded localhost in production paths
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
