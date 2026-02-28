@@ -406,20 +406,22 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - Store tests: `client/src/store/__tests__/` (auth 13, task 17, category 16, workspace 55, billing 21, user 10, holiday 10)
 - Component tests: `ErrorBoundary.test.js` (6), `SubtaskList.test.js` (7)
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
-- Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6)
+- Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6), `NpsSurvey.test.js` (13)
+- Context tests: `WorkspaceContext.test.js` (18)
 - API tests: `client/src/utils/api.test.js`
 - Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24)
 - Hook tests: `useTaskFilters.test.js` (18), `useKeyboardShortcuts.test.js` (15)
-- 17 test suites, 247 tests total
+- 19 test suites, 278 tests total
 
 ### Backend (Jest + supertest)
-- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6, admin 5)
+- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 26, category 35, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6, admin 5)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
 - Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6, billingGuard 12, validate 12, csrf 10, schemas 76, workspaceAuth 30, requestId 5, auditLog 9)
 - Library tests: `server/lib/__tests__/` (AppError 15, withErrorHandling 15, alerts 17, activityLog 5)
-- 32 test suites, 701 tests total
+- 32 test suites, 729 tests total
+- Coverage: 89% statements, 83% branches, 93% functions
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -504,6 +506,9 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - All 7 Zustand stores fully tested: added userStore (10) and holidayStore (10)
 - Hook tests: useTaskFilters (18) and useKeyboardShortcuts (15) — 247 client tests across 17 suites
 - Server lib + middleware tests: workspaceAuth (30), AppError (15), withErrorHandling (15), requestId (5), alerts (17), auditLog (9), activityLog (5) — 701 server tests across 32 suites
+- Billing webhook + checkout/portal tests: +16 (billing 26 total), category reorder tests: +13 (category 35 total) — 729 server tests, 89% coverage
+- Client context + component tests: WorkspaceContext (18), NpsSurvey (13) — 278 client tests across 19 suites
+- Total: 1,007 tests across 51 suites
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
