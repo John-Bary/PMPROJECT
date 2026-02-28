@@ -5,7 +5,9 @@ module.exports = {
   collectCoverageFrom: [
     'controllers/**/*.js',
     'middleware/**/*.js',
-    '!**/node_modules/**'
+    'lib/**/*.js',
+    '!**/node_modules/**',
+    '!**/__tests__/**'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   verbose: true,
