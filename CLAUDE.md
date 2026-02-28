@@ -509,6 +509,7 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Billing webhook + checkout/portal tests: +16 (billing 26 total), category reorder tests: +13 (category 35 total) — 729 server tests, 89% coverage
 - Client context + component tests: WorkspaceContext (18), NpsSurvey (13) — 278 client tests across 19 suites
 - Total: 1,007 tests across 51 suites
+- Console.error cleanup: removed all 32 console.error calls from client production code (12 files: stores, pages, components, utils) — errors now handled via toast.error or UI state
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
