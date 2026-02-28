@@ -412,12 +412,12 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - 13 test suites, 194 tests total
 
 ### Backend (Jest + supertest)
-- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36)
+- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
 - Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6)
-- 16 test suites, 363 tests total
+- 20 test suites, 489 tests total
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -497,6 +497,8 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - localStorage key rebranded: arena_current_workspace_id → todoria_current_workspace_id (with one-time migration)
 - .env.example and .env.production.example headers updated from "Arena PM Tool" to "Todoria"
 - Final quality sweep: zero remaining arena branding in active client code, zero TODO/FIXME markers, zero hardcoded localhost in production paths
+- Stale files removed: server/client/ (outdated duplicate), STEP-1 through STEP-5-COMPLETE.md, API-DOCUMENTATION.md, DATABASE-SETUP.md, VERCEL_DEPLOYMENT.md
+- Server test coverage expanded: workspaceController (65), meController (34), onboardingController (21), holidayController (6) — 489 server tests across 20 suites
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
