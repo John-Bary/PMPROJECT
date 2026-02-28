@@ -408,20 +408,20 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6), `NpsSurvey.test.js` (13)
 - Context tests: `WorkspaceContext.test.js` (27)
-- API tests: `client/src/utils/api.test.js` (170)
+- API tests: `client/src/utils/api.test.js` (198) — 96.38% branches
 - Utility tests: `dateUtils.test.js` (24), `priorityStyles.test.js` (24), `analytics.test.js` (19)
 - Hook tests: `useTaskFilters.test.js` (24), `useKeyboardShortcuts.test.js` (15), `useTaskActions.test.js` (7), `useInView.test.js` (8)
-- 22 test suites, 606 tests total
+- 22 test suites, 634 tests total
 
 ### Backend (Jest + supertest)
-- Controller unit tests: `server/controllers/__tests__/` (auth 57, billing 46, category 50, comment 23, task 77, workspace 85, me 57, onboarding 36, holiday 9, admin 5)
+- Controller unit tests: `server/controllers/__tests__/` (auth 63, billing 46, category 50, comment 23, task 77, workspace 85, me 57, onboarding 38, holiday 9, admin 7)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
-- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 21, billingGuard 12, validate 18, csrf 10, schemas 84, workspaceAuth 34, requestId 5, auditLog 10)
+- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 21, billingGuard 12, validate 18, csrf 10, schemas 99, workspaceAuth 34, requestId 5, auditLog 10)
 - Library tests: `server/lib/__tests__/` (AppError 16, withErrorHandling 15, alerts 19, activityLog 5)
-- 32 test suites, 944 tests total
-- Coverage: 99.59% statements, 97.18% branches, 98.24% functions, 99.64% lines
+- 32 test suites, 973 tests total
+- Coverage: 99.59% statements, 97.84% branches, 98.24% functions, 99.64% lines
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -517,8 +517,8 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Branch coverage expansion: server taskController 64→77, planLimits 7→21, validate 15→18 — 935 server tests
 - Branch coverage expansion: client authStore 33→36 (100%), workspaceStore 55→64, categoryStore 27→31, dateUtils 22→24 — 602 client tests
 - Branch coverage expansion: server holidayController 100%, AppError 100%, alerts 100%, workspaceAuth 100%, auditLog 100%; client userStore +1, useInView +1, useTaskFilters +2
-- Total: 1,550 tests across 54 suites (server 944, client 606)
-- Server coverage: 99.59% statements, 97.18% branches, 98.24% functions, 99.64% lines
+- Total: 1,607 tests across 54 suites (server 973, client 634)
+- Server coverage: 99.59% statements, 97.84% branches, 98.24% functions, 99.64% lines
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
