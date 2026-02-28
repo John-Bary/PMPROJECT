@@ -414,14 +414,14 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - 21 test suites, 314 tests total
 
 ### Backend (Jest + supertest)
-- Controller unit tests: `server/controllers/__tests__/` (auth 53, billing 46, category 50, comment 23, task 64, workspace 85, me 57, onboarding 36, holiday 6, admin 5)
+- Controller unit tests: `server/controllers/__tests__/` (auth 57, billing 46, category 50, comment 23, task 64, workspace 85, me 57, onboarding 36, holiday 7, admin 5)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
-- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6, billingGuard 12, validate 12, csrf 10, schemas 76, workspaceAuth 30, requestId 5, auditLog 9)
+- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 7, billingGuard 12, validate 15, csrf 10, schemas 84, workspaceAuth 30, requestId 5, auditLog 9)
 - Library tests: `server/lib/__tests__/` (AppError 15, withErrorHandling 15, alerts 17, activityLog 5)
-- 32 test suites, 884 tests total
-- Coverage: 98.98% statements, 93.25% branches, 95.9% functions, 99.12% lines
+- 32 test suites, 905 tests total
+- Coverage: 99.54% statements, 93.53% branches, 98.24% functions, 99.64% lines
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -513,7 +513,8 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Test coverage expansion: authController 27→53 tests (refreshAccessToken, forgotPassword, resetPassword, verifyEmail, resendVerificationEmail), categoryStore 16→27 tests (100% statement coverage — loadMoreCategories, clearCategories, error edge cases), useTaskActions hook 7 tests, useInView hook 7 tests
 - Test coverage expansion: taskController 36→64 tests (100% statement/line/function coverage), meController 34→57 tests (99.1% statement coverage), onboardingController 21→36 tests (100% statement/line/function coverage)
 - Test coverage expansion: billingController 26→46 tests (100% all metrics), categoryController 35→50 tests (100% stmts/funcs/lines), commentController 15→23 tests (100% all metrics), workspaceController 65→85 tests (100% stmts/funcs/lines)
-- Total: 1,198 tests across 53 suites
+- Test coverage expansion: authController 53→57 tests, holidayController 6→7 tests, validate 12→15 tests, planLimits 6→7 tests, schemas 76→84 tests
+- Total: 1,219 tests across 53 suites
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:

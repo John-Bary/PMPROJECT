@@ -333,6 +333,70 @@ describe('inviteToWorkspaceSchema', () => {
 });
 
 // ============================================================================
+// createCommentSchema
+// ============================================================================
+describe('createCommentSchema', () => {
+  it('should pass with valid content', () => {
+    const data = expectSuccess(createCommentSchema, { content: 'This is a comment.' });
+    expect(data.content).toBe('This is a comment.');
+  });
+
+  it('should fail when content is empty string', () => {
+    expectFailure(createCommentSchema, { content: '' });
+  });
+
+  it('should fail when content is only whitespace (empty after trim)', () => {
+    expectFailure(createCommentSchema, { content: '   ' });
+  });
+
+  it('should fail when content is only HTML tags (empty after sanitization)', () => {
+    expectFailure(createCommentSchema, { content: '<script></script>' });
+  });
+
+  it('should fail when content is missing', () => {
+    expectFailure(createCommentSchema, {});
+  });
+
+  it('should strip HTML from content', () => {
+    const data = expectSuccess(createCommentSchema, { content: '<b>Bold</b> text' });
+    expect(data.content).not.toContain('<b>');
+    expect(data.content).toContain('Bold');
+  });
+});
+
+// ============================================================================
+// updateCommentSchema
+// ============================================================================
+describe('updateCommentSchema', () => {
+  it('should pass with valid content', () => {
+    const data = expectSuccess(updateCommentSchema, { content: 'Updated comment.' });
+    expect(data.content).toBe('Updated comment.');
+  });
+
+  it('should fail when content is empty string', () => {
+    expectFailure(updateCommentSchema, { content: '' });
+  });
+
+  it('should fail when content is only whitespace (empty after trim)', () => {
+    expectFailure(updateCommentSchema, { content: '   ' });
+  });
+
+  it('should fail when content is only HTML tags (empty after sanitization)', () => {
+    expectFailure(updateCommentSchema, { content: '<div></div>' });
+  });
+
+  it('should fail when content is missing', () => {
+    expectFailure(updateCommentSchema, {});
+  });
+
+  it('should strip HTML from content', () => {
+    const data = expectSuccess(updateCommentSchema, { content: '<i>Italic</i> words' });
+    expect(data.content).not.toContain('<i>');
+    expect(data.content).toContain('Italic');
+  });
+});
+
+// ============================================================================
 // updateProfileSchema
 // ============================================================================
 describe('updateProfileSchema', () => {

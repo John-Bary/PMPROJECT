@@ -107,6 +107,24 @@ describe('Plan Limits Middleware', () => {
         code: 'PLAN_LIMIT_MEMBERS',
       }));
     });
+
+    it('should allow invite when plan has unlimited members (null maxMembers)', async () => {
+      req.params = { id: 'ws-uuid-123' };
+      // Subscription query - plan with null max_members (unlimited)
+      query.mockResolvedValueOnce({
+        rows: [{ plan_id: 'enterprise', max_members: null, max_tasks_per_workspace: 1000, features: {} }],
+      });
+
+      const { checkMemberLimit } = require('../planLimits');
+      await checkMemberLimit(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+      expect(req.planLimits).toEqual(expect.objectContaining({
+        planId: 'enterprise',
+        maxMembers: null,
+      }));
+    });
   });
 
   describe('checkWorkspaceLimit', () => {

@@ -241,5 +241,70 @@ describe('Validate Middleware', () => {
       expect(() => validate(schema)(req, res, next)).toThrow(TypeError);
       expect(next).not.toHaveBeenCalled();
     });
+
+    it('should skip null/undefined schemas in the schemas object', () => {
+      const schema = {
+        body: null,
+        query: undefined,
+        params: z.object({
+          id: z.string().uuid(),
+        }),
+      };
+      req.params = { id: '550e8400-e29b-41d4-a716-446655440000' };
+
+      validate(schema)(req, res, next);
+
+      expect(next).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should handle ZodError with empty issues array (no validation errors)', () => {
+      const { ZodError } = require('zod');
+      const schema = {
+        body: {
+          parse: () => {
+            // ZodError with empty issues — e.g., programmatic throw with no details
+            throw new ZodError([]);
+          },
+        },
+      };
+      req.body = {};
+
+      validate(schema)(req, res, next);
+
+      // Empty issues means no errors collected, so next() is called
+      expect(next).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should map ZodError issues with missing path to empty field string', () => {
+      const { ZodError } = require('zod');
+      const schema = {
+        body: {
+          parse: () => {
+            throw new ZodError([
+              { code: 'custom', message: 'Something went wrong', path: [] },
+            ]);
+          },
+        },
+      };
+      req.body = {};
+
+      validate(schema)(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [
+            expect.objectContaining({
+              field: '',
+              message: 'Something went wrong',
+              source: 'body',
+            }),
+          ],
+        })
+      );
+    });
   });
 });

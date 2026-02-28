@@ -305,6 +305,30 @@ describe('Auth Controller', () => {
       });
       expect(mockClient.release).toHaveBeenCalled();
     });
+
+    it('should still succeed registration when queueVerificationEmail rejects', async () => {
+      const logger = require('../../lib/logger');
+      req.body = { ...validBody, email: 'verify-fail@example.com', name: 'Verify Fail' };
+      setupSuccessfulRegistration('0');
+
+      // Make queueVerificationEmail reject
+      queueVerificationEmail.mockRejectedValueOnce(new Error('Email service down'));
+
+      await register(req, res);
+
+      // Registration should still succeed despite email failure
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'User registered successfully. Please check your email to verify your account.',
+      }));
+      // The warning should have been logged
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'test@example.com' }),
+        'Failed to send verification email'
+      );
+      expect(mockClient.release).toHaveBeenCalled();
+    });
   });
 
   describe('login', () => {
@@ -431,6 +455,24 @@ describe('Auth Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'success',
         message: 'Logged out successfully',
+      });
+    });
+
+    it('should return 500 when an error occurs during logout', async () => {
+      const logger = require('../../lib/logger');
+      res.clearCookie.mockImplementationOnce(() => { throw new Error('Cookie clear failed'); });
+
+      await logout(req, res);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ err: expect.any(Error) }),
+        'Logout error'
+      );
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error logging out',
+        error: 'Cookie clear failed',
       });
     });
   });
@@ -743,6 +785,33 @@ describe('Auth Controller', () => {
         error: 'Database error',
       });
     });
+
+    it('should log warning when queuePasswordResetEmail rejects but still return success', async () => {
+      const logger = require('../../lib/logger');
+      req.body = { email: 'test@example.com' };
+      query
+        .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: 'Test User' }] })
+        .mockResolvedValueOnce({});
+
+      // Make queuePasswordResetEmail return a rejected promise
+      queuePasswordResetEmail.mockRejectedValueOnce(new Error('Email service down'));
+
+      await forgotPassword(req, res);
+
+      // Response should still be success (fire-and-forget email)
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'success',
+        message: 'If an account with that email exists, we sent a password reset link.',
+      });
+
+      // Wait for the .catch() callback to execute (microtask)
+      await new Promise(resolve => setImmediate(resolve));
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'test@example.com' }),
+        'Failed to send password reset email'
+      );
+    });
   });
 
   describe('resetPassword', () => {
@@ -913,6 +982,33 @@ describe('Auth Controller', () => {
         message: 'Error verifying email',
         error: 'Database error',
       });
+    });
+
+    it('should log warning when queueWelcomeEmail rejects but still return success', async () => {
+      const logger = require('../../lib/logger');
+      req.body = { token: 'valid-verification-token' };
+      query
+        .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: 'Test User' }] })
+        .mockResolvedValueOnce({});
+
+      // Make queueWelcomeEmail return a rejected promise
+      queueWelcomeEmail.mockRejectedValueOnce(new Error('Email service down'));
+
+      await verifyEmail(req, res);
+
+      // Response should still be success (fire-and-forget email)
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'success',
+        message: 'Email verified successfully!',
+      });
+
+      // Wait for the .catch() callback to execute (microtask)
+      await new Promise(resolve => setImmediate(resolve));
+
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'test@example.com' }),
+        'Failed to send welcome email'
+      );
     });
   });
 

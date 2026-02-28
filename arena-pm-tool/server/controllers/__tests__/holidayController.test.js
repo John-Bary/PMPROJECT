@@ -162,4 +162,28 @@ describe('Holiday Controller', () => {
       message: 'Error fetching holidays',
     }));
   });
+
+  it('should return 500 when ABSTRACT_API_KEY is not configured', async () => {
+    // Re-import the controller without the API key set
+    let getHolidaysNoKey;
+    const originalKey = process.env.ABSTRACT_API_KEY;
+    delete process.env.ABSTRACT_API_KEY;
+
+    jest.isolateModules(() => {
+      getHolidaysNoKey = require('../holidayController').getHolidays;
+    });
+
+    // Restore the key for other tests
+    process.env.ABSTRACT_API_KEY = originalKey;
+
+    req.query = { year: '2054' };
+
+    await getHolidaysNoKey(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'error',
+      message: 'ABSTRACT_API_KEY environment variable not configured',
+    }));
+  });
 });
