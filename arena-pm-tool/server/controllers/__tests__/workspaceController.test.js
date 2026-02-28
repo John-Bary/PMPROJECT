@@ -1528,4 +1528,425 @@ describe('Workspace Controller', () => {
       );
     });
   });
+
+  // ---------------------------------------------------------------
+  // Error path coverage — catch blocks for all controller functions
+  // ---------------------------------------------------------------
+
+  describe('getWorkspaceById - error path', () => {
+    it('should return 500 when database throws in getWorkspaceById', async () => {
+      req.params = { id: WORKSPACE_ID };
+      // verifyWorkspaceAccess throws
+      query.mockRejectedValueOnce(new Error('DB connection lost'));
+
+      await getWorkspaceById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching workspace',
+      }));
+    });
+  });
+
+  describe('updateWorkspace - error path', () => {
+    it('should return 500 when database throws in updateWorkspace', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.body = { name: 'Updated Name' };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // Update query throws
+      query.mockRejectedValueOnce(new Error('DB write error'));
+
+      await updateWorkspace(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error updating workspace',
+      }));
+    });
+  });
+
+  describe('getWorkspaceMembers - error path', () => {
+    it('should return 500 when database throws in getWorkspaceMembers', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.query = {};
+      // verifyWorkspaceAccess throws
+      query.mockRejectedValueOnce(new Error('DB timeout'));
+
+      await getWorkspaceMembers(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching workspace members',
+      }));
+    });
+  });
+
+  describe('getWorkspaceUsers - error path', () => {
+    it('should return 500 when database throws in getWorkspaceUsers', async () => {
+      req.query = { workspace_id: WORKSPACE_ID };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'member' }] });
+      // Users query throws
+      query.mockRejectedValueOnce(new Error('DB read error'));
+
+      await getWorkspaceUsers(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching workspace users',
+      }));
+    });
+  });
+
+  describe('inviteToWorkspace - missing email', () => {
+    it('should return 400 when email is empty string', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.body = { email: '   ', role: 'member' };
+      // verifyWorkspaceAccess (admin)
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+
+      await inviteToWorkspace(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Email is required',
+      });
+    });
+
+    it('should return 400 when email is not provided', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.body = { role: 'member' };
+      // verifyWorkspaceAccess (admin)
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+
+      await inviteToWorkspace(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Email is required',
+      });
+    });
+  });
+
+  describe('inviteToWorkspace - error path', () => {
+    it('should return 500 when database throws in inviteToWorkspace', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.body = { email: 'invite@example.com', role: 'member' };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // Check existing user throws
+      query.mockRejectedValueOnce(new Error('DB connection error'));
+
+      await inviteToWorkspace(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error creating invitation',
+      }));
+    });
+  });
+
+  describe('acceptInvitation - edge cases', () => {
+    it('should return 400 when user account not found', async () => {
+      req.params = { token: 'valid-token' };
+      const futureDate = new Date(Date.now() + 86400000);
+
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{
+          id: 1,
+          workspace_id: WORKSPACE_ID,
+          email: 'test@example.com',
+          role: 'member',
+          accepted_at: null,
+          expires_at: futureDate,
+          workspace_name: 'My Workspace',
+        }],
+      });
+      // Get user email - returns empty (user not found)
+      mockClient.query.mockResolvedValueOnce({ rows: [] });
+
+      await acceptInvitation(req, res);
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User account not found',
+      });
+    });
+
+    it('should handle non-fatal onboarding progress failure gracefully', async () => {
+      const logger = require('../../lib/logger');
+      req.params = { token: 'valid-token' };
+      const futureDate = new Date(Date.now() + 86400000);
+
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{
+          id: 1,
+          workspace_id: WORKSPACE_ID,
+          email: 'test@example.com',
+          role: 'member',
+          accepted_at: null,
+          expires_at: futureDate,
+          workspace_name: 'My Workspace',
+        }],
+      });
+      // Get user email
+      mockClient.query.mockResolvedValueOnce({
+        rows: [{ email: 'test@example.com' }],
+      });
+      // Check existing member
+      mockClient.query.mockResolvedValueOnce({ rows: [] });
+      // Insert member
+      mockClient.query.mockResolvedValueOnce({});
+      // Mark invitation accepted
+      mockClient.query.mockResolvedValueOnce({});
+      // COMMIT
+      mockClient.query.mockResolvedValueOnce({});
+      // Onboarding progress fails (non-fatal)
+      query.mockRejectedValueOnce(new Error('Onboarding table missing'));
+
+      await acceptInvitation(req, res);
+
+      // Should still succeed despite onboarding error
+      expect(logger.warn).toHaveBeenCalledWith(
+        expect.objectContaining({ err: expect.any(Error) }),
+        'Non-fatal: Failed to initialize onboarding progress'
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Successfully joined "My Workspace"',
+        data: expect.objectContaining({
+          needsOnboarding: true,
+        }),
+      }));
+    });
+
+    it('should return 500 and handle rollback failure in acceptInvitation', async () => {
+      const logger = require('../../lib/logger');
+      req.params = { token: 'valid-token' };
+
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      // Invitation query throws
+      mockClient.query.mockRejectedValueOnce(new Error('Critical DB error'));
+      // ROLLBACK also fails
+      mockClient.query.mockRejectedValueOnce(new Error('Rollback failed'));
+
+      await acceptInvitation(req, res);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ err: expect.any(Error) }),
+        'Rollback failed'
+      );
+      expect(logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ err: expect.any(Error) }),
+        'Accept invitation error'
+      );
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error accepting invitation',
+      }));
+    });
+
+    it('should return 500 when acceptInvitation catches a general error', async () => {
+      req.params = { token: 'valid-token' };
+
+      mockClient.query.mockResolvedValueOnce({}); // BEGIN
+      // Invitation query throws
+      mockClient.query.mockRejectedValueOnce(new Error('Unexpected error'));
+      // ROLLBACK succeeds
+      mockClient.query.mockResolvedValueOnce({});
+
+      await acceptInvitation(req, res);
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error accepting invitation',
+      }));
+    });
+  });
+
+  describe('getWorkspaceInvitations - error path', () => {
+    it('should return 500 when database throws in getWorkspaceInvitations', async () => {
+      req.params = { id: WORKSPACE_ID };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // Invitations query throws
+      query.mockRejectedValueOnce(new Error('DB read error'));
+
+      await getWorkspaceInvitations(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching invitations',
+      }));
+    });
+  });
+
+  describe('cancelInvitation - error path', () => {
+    it('should return 500 when database throws in cancelInvitation', async () => {
+      req.params = { id: WORKSPACE_ID, invitationId: '5' };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // Delete query throws
+      query.mockRejectedValueOnce(new Error('DB delete error'));
+
+      await cancelInvitation(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error cancelling invitation',
+      }));
+    });
+  });
+
+  describe('updateMemberRole - error path', () => {
+    it('should return 500 when database throws in updateMemberRole', async () => {
+      req.params = { id: WORKSPACE_ID, memberId: '5' };
+      req.body = { role: 'member' };
+      // verifyWorkspaceAccess succeeds
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // Get member throws
+      query.mockRejectedValueOnce(new Error('DB read error'));
+
+      await updateMemberRole(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error updating member role',
+      }));
+    });
+  });
+
+  describe('removeMember - error path', () => {
+    it('should return 500 when database throws in removeMember', async () => {
+      req.params = { id: WORKSPACE_ID, memberId: '5' };
+      // Get member throws
+      query.mockRejectedValueOnce(new Error('DB connection error'));
+
+      await removeMember(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error removing member',
+      }));
+    });
+  });
+
+  describe('getInviteInfo - edge cases', () => {
+    it('should return 400 when token is missing/falsy', async () => {
+      req.params = { token: '' };
+
+      await getInviteInfo(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        inviteStatus: 'invalid',
+        message: 'Invitation token is required',
+      });
+    });
+
+    it('should return 500 when database throws in getInviteInfo', async () => {
+      req.params = { token: 'some-token' };
+      // Query throws
+      query.mockRejectedValueOnce(new Error('DB error'));
+
+      await getInviteInfo(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching invitation info',
+      }));
+    });
+  });
+
+  describe('inviteToWorkspace - workspace name fallback', () => {
+    it('should use fallback workspace name when workspace query returns empty', async () => {
+      req.params = { id: WORKSPACE_ID };
+      req.body = { email: 'invite@example.com', role: 'member' };
+
+      // verifyWorkspaceAccess (admin)
+      query.mockResolvedValueOnce({ rows: [{ role: 'admin' }] });
+      // No existing user
+      query.mockResolvedValueOnce({ rows: [] });
+      // No existing invitation
+      query.mockResolvedValueOnce({ rows: [] });
+      // Insert invitation
+      query.mockResolvedValueOnce({
+        rows: [{
+          id: 1, email: 'invite@example.com', role: 'member',
+          token: 'mock-token-abc123', expires_at: new Date(), created_at: new Date(),
+        }],
+      });
+      // Get workspace name returns empty rows
+      query.mockResolvedValueOnce({ rows: [] });
+
+      await inviteToWorkspace(req, res);
+
+      expect(queueWorkspaceInvite).toHaveBeenCalledWith(expect.objectContaining({
+        workspaceName: 'a workspace',
+      }));
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({
+          invitation: expect.objectContaining({
+            workspaceName: undefined,
+          }),
+        }),
+      }));
+    });
+  });
+
+  describe('acceptInvitation - getClient failure', () => {
+    it('should return 500 when getClient itself throws', async () => {
+      req.params = { token: 'valid-token' };
+      // getClient throws before client is assigned
+      getClient.mockRejectedValueOnce(new Error('Pool exhausted'));
+
+      await acceptInvitation(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error accepting invitation',
+      }));
+    });
+  });
+
+  describe('safeError helper', () => {
+    it('should hide error details in production mode', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      // Re-require to get fresh module with production check
+      // Since safeError uses process.env at call time, just trigger an error
+      query.mockRejectedValueOnce(new Error('Secret DB info'));
+      await getMyWorkspaces(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      const callArgs = res.json.mock.calls[0][0];
+      expect(callArgs.error).toBeUndefined();
+
+      process.env.NODE_ENV = originalEnv;
+    });
+  });
 });

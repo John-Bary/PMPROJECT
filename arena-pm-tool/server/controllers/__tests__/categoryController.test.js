@@ -657,4 +657,378 @@ describe('Category Controller', () => {
       await expect(getCategoryById(req, res)).rejects.toThrow('Connection refused');
     });
   });
+
+  // -----------------------------------------------------------------
+  // Additional tests targeting uncovered lines
+  // -----------------------------------------------------------------
+
+  describe('getAllCategories - cursor pagination (lines 46-48)', () => {
+    it('should apply cursor-based pagination when cursor is provided', async () => {
+      req.query = { workspace_id: workspaceId, cursor: '5' };
+      query.mockResolvedValue({
+        rows: [
+          {
+            id: 6, name: 'Category 6', color: '#3B82F6', position: 5,
+            workspace_id: workspaceId, created_by: 1, created_by_name: 'Test User',
+            task_count: '2', created_at: new Date(), updated_at: new Date()
+          }
+        ]
+      });
+
+      await getAllCategories(req, res);
+
+      // Verify the query was called with cursor param (parsed as int)
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('AND c.id > $2'),
+        [workspaceId, 5, expect.any(Number)]
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          categories: expect.arrayContaining([
+            expect.objectContaining({ id: 6 })
+          ]),
+          hasMore: false,
+          nextCursor: null
+        })
+      }));
+    });
+  });
+
+  describe('getCategoryById - workspace access denied (line 111)', () => {
+    it('should return 403 when user lacks access to the category workspace', async () => {
+      req.params = { id: '1' };
+      const mockCategory = {
+        id: 1, name: 'Category 1', color: '#3B82F6', position: 0,
+        workspace_id: workspaceId, created_by: 1, created_by_name: 'Test User',
+        created_at: new Date(), updated_at: new Date()
+      };
+      query.mockResolvedValue({ rows: [mockCategory] });
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await getCategoryById(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+  });
+
+  describe('createCategory - workspace access denied (line 151)', () => {
+    it('should return 403 when user lacks workspace access for creating category', async () => {
+      req.body = { name: 'New Category', workspace_id: workspaceId };
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await createCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+  });
+
+  describe('createCategory - name length validation (line 175)', () => {
+    it('should return 400 when category name exceeds 100 characters', async () => {
+      const longName = 'A'.repeat(101);
+      req.body = { name: longName, workspace_id: workspaceId };
+
+      await createCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Category name must be 100 characters or less'
+      });
+    });
+  });
+
+  describe('updateCategory - workspace access denied (line 260)', () => {
+    it('should return 403 when user lacks workspace access for updating category', async () => {
+      req.params = { id: '1' };
+      req.body = { name: 'Updated Name' };
+      const existingCategory = {
+        id: 1, name: 'Existing', color: '#3B82F6', position: 0, workspace_id: workspaceId
+      };
+      query.mockResolvedValue({ rows: [existingCategory] });
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await updateCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+  });
+
+  describe('updateCategory - viewer role denied (line 266)', () => {
+    it('should return 403 when viewer tries to update category', async () => {
+      req.params = { id: '1' };
+      req.body = { name: 'Updated Name' };
+      const existingCategory = {
+        id: 1, name: 'Existing', color: '#3B82F6', position: 0, workspace_id: workspaceId
+      };
+      query.mockResolvedValue({ rows: [existingCategory] });
+      verifyWorkspaceAccess.mockResolvedValue({ role: 'viewer' });
+
+      await updateCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Viewers cannot edit categories. Contact an admin to request edit permissions.'
+      });
+    });
+  });
+
+  describe('updateCategory - name length validation (line 283)', () => {
+    it('should return 400 when updated name exceeds 100 characters', async () => {
+      req.params = { id: '1' };
+      const longName = 'B'.repeat(101);
+      req.body = { name: longName };
+      const existingCategory = {
+        id: 1, name: 'Existing', color: '#3B82F6', position: 0, workspace_id: workspaceId
+      };
+      query.mockResolvedValue({ rows: [existingCategory] });
+
+      await updateCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Category name must be 100 characters or less'
+      });
+    });
+  });
+
+  describe('updateCategory - position update (lines 324-326)', () => {
+    it('should update position field when provided', async () => {
+      req.params = { id: '1' };
+      req.body = { position: 3 };
+      const existingCategory = {
+        id: 1, name: 'Existing', color: '#3B82F6', position: 0, workspace_id: workspaceId
+      };
+      query.mockResolvedValueOnce({ rows: [existingCategory] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [{
+        ...existingCategory, position: 3, updated_at: new Date()
+      }] }); // Update
+
+      await updateCategory(req, res);
+
+      // Verify the UPDATE query includes position
+      expect(query).toHaveBeenNthCalledWith(2,
+        expect.stringContaining('position = $1'),
+        [3, '1']
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Category updated successfully'
+      }));
+    });
+  });
+
+  describe('deleteCategory - workspace access denied (line 495)', () => {
+    it('should return 403 when user lacks workspace access for deleting category', async () => {
+      req.params = { id: '1' };
+      const existingCategory = {
+        id: 1, name: 'Category', color: '#3B82F6', position: 2, workspace_id: workspaceId
+      };
+      query.mockResolvedValue({ rows: [existingCategory] });
+      verifyWorkspaceAccess.mockResolvedValue(null);
+
+      await deleteCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+  });
+
+  describe('deleteCategory - viewer role denied (line 501)', () => {
+    it('should return 403 when viewer tries to delete category', async () => {
+      req.params = { id: '1' };
+      const existingCategory = {
+        id: 1, name: 'Category', color: '#3B82F6', position: 2, workspace_id: workspaceId
+      };
+      query.mockResolvedValue({ rows: [existingCategory] });
+      verifyWorkspaceAccess.mockResolvedValue({ role: 'viewer' });
+
+      await deleteCategory(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Viewers cannot delete categories. Contact an admin to request edit permissions.'
+      });
+    });
+  });
+
+  // -----------------------------------------------------------------
+  // Branch coverage: hasMore pagination, null workspace_id paths
+  // -----------------------------------------------------------------
+
+  describe('getAllCategories - hasMore pagination (lines 61-62)', () => {
+    it('should return hasMore=true and nextCursor when more results exist', async () => {
+      req.query = { workspace_id: workspaceId, limit: '2' };
+      // Return 3 rows (limit+1) to trigger hasMore
+      const mockCategories = [
+        {
+          id: 1, name: 'Cat 1', color: '#3B82F6', position: 0,
+          workspace_id: workspaceId, created_by: 1, created_by_name: 'Test User',
+          task_count: '1', created_at: new Date(), updated_at: new Date()
+        },
+        {
+          id: 2, name: 'Cat 2', color: '#10B981', position: 1,
+          workspace_id: workspaceId, created_by: 1, created_by_name: 'Test User',
+          task_count: '2', created_at: new Date(), updated_at: new Date()
+        },
+        {
+          id: 3, name: 'Cat 3', color: '#EF4444', position: 2,
+          workspace_id: workspaceId, created_by: 1, created_by_name: 'Test User',
+          task_count: '0', created_at: new Date(), updated_at: new Date()
+        }
+      ];
+      query.mockResolvedValue({ rows: mockCategories });
+
+      await getAllCategories(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          categories: expect.arrayContaining([
+            expect.objectContaining({ id: 1 }),
+            expect.objectContaining({ id: 2 })
+          ]),
+          hasMore: true,
+          nextCursor: 2
+        })
+      }));
+      // Should only return 2 categories, not 3
+      const responseData = res.json.mock.calls[0][0].data;
+      expect(responseData.categories).toHaveLength(2);
+    });
+  });
+
+  describe('getCategoryById - null workspace_id (line 108 else branch)', () => {
+    it('should return category without workspace access check when workspace_id is null', async () => {
+      req.params = { id: '1' };
+      const mockCategory = {
+        id: 1, name: 'Legacy Category', color: '#3B82F6', position: 0,
+        workspace_id: null, created_by: 1, created_by_name: 'Test User',
+        created_at: new Date(), updated_at: new Date()
+      };
+      query.mockResolvedValue({ rows: [mockCategory] });
+
+      await getCategoryById(req, res);
+
+      expect(verifyWorkspaceAccess).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          category: expect.objectContaining({ id: 1, workspaceId: null })
+        })
+      }));
+    });
+  });
+
+  describe('updateCategory - null workspace_id branches (lines 257, 291-294)', () => {
+    it('should skip workspace access check and use simple name query when workspace_id is null', async () => {
+      req.params = { id: '1' };
+      req.body = { name: 'Updated Name' };
+      const categoryNoWorkspace = {
+        id: 1, name: 'Existing', color: '#3B82F6', position: 0, workspace_id: null
+      };
+      query.mockResolvedValueOnce({ rows: [categoryNoWorkspace] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [] }); // No name conflict
+      query.mockResolvedValueOnce({ rows: [{
+        ...categoryNoWorkspace, name: 'Updated Name', updated_at: new Date()
+      }] }); // Update
+
+      await updateCategory(req, res);
+
+      // Workspace access should not be checked
+      expect(verifyWorkspaceAccess).not.toHaveBeenCalled();
+      // Name conflict query should NOT include workspace_id
+      expect(query).toHaveBeenNthCalledWith(2,
+        'SELECT id FROM categories WHERE LOWER(name) = LOWER($1) AND id != $2',
+        ['Updated Name', '1']
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Category updated successfully'
+      }));
+    });
+  });
+
+  describe('deleteCategory - null workspace_id (line 492 else branch)', () => {
+    it('should skip workspace access check when category has no workspace_id', async () => {
+      req.params = { id: '1' };
+      const categoryNoWorkspace = {
+        id: 1, name: 'Category', color: '#3B82F6', position: 2, workspace_id: null
+      };
+      query.mockResolvedValueOnce({ rows: [categoryNoWorkspace] }); // Check exists
+      query.mockResolvedValueOnce({ rows: [{ count: '0' }] }); // No tasks
+      query.mockResolvedValueOnce({ rows: [] }); // Delete
+      query.mockResolvedValueOnce({ rows: [] }); // Reorder
+
+      await deleteCategory(req, res);
+
+      expect(verifyWorkspaceAccess).not.toHaveBeenCalled();
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'success',
+        message: 'Category deleted successfully'
+      });
+    });
+  });
+
+  describe('reorderCategories - no workspace context (lines 399, 445)', () => {
+    let mockClient;
+
+    beforeEach(() => {
+      mockClient = {
+        query: jest.fn().mockResolvedValue({ rows: [] }),
+        release: jest.fn(),
+      };
+      getClient.mockResolvedValue(mockClient);
+    });
+
+    it('should handle categories with no workspace_id (null targetWorkspaceId)', async () => {
+      req.body = { categoryIds: [1, 2] };
+      // Categories have no workspace_id
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: null },
+          { id: 2, workspace_id: null }
+        ]
+      });
+      // Fetch updated categories (no WHERE clause for workspace)
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, name: 'Cat 1', color: '#3B82F6', position: 0, created_by: 1, created_by_name: 'Test User', task_count: '0', created_at: new Date(), updated_at: new Date() },
+          { id: 2, name: 'Cat 2', color: '#10B981', position: 1, created_by: 1, created_by_name: 'Test User', task_count: '1', created_at: new Date(), updated_at: new Date() }
+        ]
+      });
+
+      await reorderCategories(req, res);
+
+      // Workspace access should not be checked when targetWorkspaceId is falsy
+      expect(verifyWorkspaceAccess).not.toHaveBeenCalled();
+      // Fetch query should not include WHERE clause for workspace
+      expect(query).toHaveBeenNthCalledWith(2,
+        expect.not.stringContaining('WHERE c.workspace_id'),
+        []
+      );
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Categories reordered successfully'
+      }));
+    });
+  });
 });

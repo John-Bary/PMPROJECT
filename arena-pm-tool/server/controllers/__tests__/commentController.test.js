@@ -89,6 +89,95 @@ describe('Comment Controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(403);
     });
+
+    it('should handle cursor-based pagination when cursor is provided', async () => {
+      req.params = { taskId: '1' };
+      req.query = { cursor: '5', limit: '10' };
+      mockTaskExists();
+      const mockComments = [
+        {
+          id: 6, task_id: 1, author_id: 1, content: 'Comment after cursor',
+          author_name: 'User 1', created_at: new Date(), updated_at: new Date()
+        }
+      ];
+      query.mockResolvedValueOnce({ rows: mockComments });
+
+      await getCommentsByTaskId(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          comments: expect.arrayContaining([
+            expect.objectContaining({ id: 6, content: 'Comment after cursor' })
+          ]),
+          hasMore: false,
+          nextCursor: null
+        })
+      }));
+      // Verify cursor was passed in query params
+      const commentQuery = query.mock.calls.find(call =>
+        typeof call[0] === 'string' && call[0].includes('LEFT JOIN users')
+      );
+      expect(commentQuery[0]).toContain('c.id > $2');
+      expect(commentQuery[1]).toContain(5); // parseInt('5')
+    });
+
+    it('should return hasMore=true and nextCursor when more results exist', async () => {
+      req.params = { taskId: '1' };
+      req.query = { limit: '2' };
+      mockTaskExists();
+      // Return 3 rows (limit + 1) to trigger hasMore = true
+      const mockComments = [
+        { id: 1, task_id: 1, author_id: 1, content: 'C1', author_name: 'U1', created_at: new Date(), updated_at: new Date() },
+        { id: 2, task_id: 1, author_id: 1, content: 'C2', author_name: 'U1', created_at: new Date(), updated_at: new Date() },
+        { id: 3, task_id: 1, author_id: 1, content: 'C3', author_name: 'U1', created_at: new Date(), updated_at: new Date() }
+      ];
+      query.mockResolvedValueOnce({ rows: mockComments });
+
+      await getCommentsByTaskId(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          comments: expect.arrayContaining([
+            expect.objectContaining({ id: 1 }),
+            expect.objectContaining({ id: 2 })
+          ]),
+          count: 2,
+          hasMore: true,
+          nextCursor: 2
+        })
+      }));
+      // Should not include the 3rd comment (it was only fetched to detect hasMore)
+      const responseData = res.json.mock.calls[0][0].data;
+      expect(responseData.comments).toHaveLength(2);
+    });
+
+    it('should allow access when task has no workspace_id (line 26)', async () => {
+      req.params = { taskId: '1' };
+      // Task exists but workspace_id is null
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: null }] });
+      const mockComments = [
+        {
+          id: 1, task_id: 1, author_id: 1, content: 'Comment on unscoped task',
+          author_name: 'User 1', created_at: new Date(), updated_at: new Date()
+        }
+      ];
+      query.mockResolvedValueOnce({ rows: mockComments });
+
+      await getCommentsByTaskId(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          comments: expect.arrayContaining([
+            expect.objectContaining({ id: 1, content: 'Comment on unscoped task' })
+          ])
+        })
+      }));
+      // verifyWorkspaceAccess should NOT have been called since workspace_id is null
+      expect(verifyWorkspaceAccess).not.toHaveBeenCalled();
+    });
   });
 
   describe('createComment', () => {
@@ -118,6 +207,19 @@ describe('Comment Controller', () => {
       });
     });
 
+    it('should return 400 if content exceeds 5000 characters', async () => {
+      req.params = { taskId: '1' };
+      req.body = { content: 'x'.repeat(5001) };
+
+      await createComment(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Comment content must be 5,000 characters or less'
+      });
+    });
+
     it('should return 404 if task not found', async () => {
       req.params = { taskId: '999' };
       req.body = { content: 'Test comment' };
@@ -129,6 +231,22 @@ describe('Comment Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Task not found'
+      });
+    });
+
+    it('should return 403 if user lacks workspace access when creating comment', async () => {
+      req.params = { taskId: '1' };
+      req.body = { content: 'Test comment' };
+      // Task exists but user has no workspace access
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: 'ws-uuid-123' }] });
+      verifyWorkspaceAccess.mockResolvedValueOnce(null);
+
+      await createComment(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
       });
     });
 
@@ -194,6 +312,19 @@ describe('Comment Controller', () => {
       });
     });
 
+    it('should return 400 if content exceeds 5000 characters', async () => {
+      req.params = { id: '1' };
+      req.body = { content: 'y'.repeat(5001) };
+
+      await updateComment(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Comment content must be 5,000 characters or less'
+      });
+    });
+
     it('should return 404 if comment not found', async () => {
       req.params = { id: '999' };
       req.body = { content: 'Updated content' };
@@ -205,6 +336,26 @@ describe('Comment Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Comment not found'
+      });
+    });
+
+    it('should return 403 if user lacks workspace access when updating comment', async () => {
+      req.params = { id: '1' };
+      req.body = { content: 'Updated content' };
+      req.user = { id: 1 };
+      // Comment found
+      query.mockResolvedValueOnce({ rows: [{ id: 1, author_id: 1, task_id: 10, content: 'Original' }] });
+      // verifyTaskWorkspaceAccess: task lookup — task exists with workspace
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: 'ws-uuid-123' }] });
+      // workspace access denied
+      verifyWorkspaceAccess.mockResolvedValueOnce(null);
+
+      await updateComment(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
       });
     });
 
@@ -267,6 +418,25 @@ describe('Comment Controller', () => {
       expect(res.json).toHaveBeenCalledWith({
         status: 'error',
         message: 'Comment not found'
+      });
+    });
+
+    it('should return 403 if user lacks workspace access when deleting comment', async () => {
+      req.params = { id: '1' };
+      req.user = { id: 1 };
+      // Comment found
+      query.mockResolvedValueOnce({ rows: [{ id: 1, author_id: 1, task_id: 10 }] });
+      // verifyTaskWorkspaceAccess: task lookup — task exists with workspace
+      query.mockResolvedValueOnce({ rows: [{ workspace_id: 'ws-uuid-123' }] });
+      // workspace access denied
+      verifyWorkspaceAccess.mockResolvedValueOnce(null);
+
+      await deleteComment(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
       });
     });
 
