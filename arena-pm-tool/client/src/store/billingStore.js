@@ -42,7 +42,7 @@ const useBillingStore = create((set, get) => ({
       const response = await billingAPI.getPlans();
       set({ plans: response.data.data.plans });
     } catch (error) {
-      console.error('Failed to fetch plans:', error);
+      // Silent fail — plans are non-critical; UI falls back gracefully
     }
   },
 

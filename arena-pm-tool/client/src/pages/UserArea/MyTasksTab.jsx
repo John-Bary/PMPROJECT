@@ -43,7 +43,6 @@ const MyTasksTab = () => {
       const response = await meAPI.getMyTasks(params);
       setTasks(response.data.data.tasks);
     } catch (err) {
-      console.error('Failed to fetch tasks:', err);
       setError('Failed to load tasks. Please try again.');
     } finally {
       setIsLoading(false);

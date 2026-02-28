@@ -73,7 +73,6 @@ function WorkspaceOnboarding() {
         setAvatarPreview(data.user.avatarUrl || null);
       }
     } catch (err) {
-      console.error('Failed to fetch onboarding:', err);
       if (err.response?.status === 401) {
         // Auth failed — redirect to login with returnUrl so user comes back here
         const returnPath = `/onboarding${workspaceId ? `?workspaceId=${workspaceId}` : ''}`;
@@ -119,7 +118,7 @@ function WorkspaceOnboarding() {
         totalSteps: STEPS.length,
       });
     } catch (err) {
-      console.error('Failed to save progress:', err);
+      // Non-critical — step progress save can fail silently
     }
   };
 
@@ -163,7 +162,6 @@ function WorkspaceOnboarding() {
 
       toast.success('Profile updated');
     } catch (err) {
-      console.error('Failed to save profile:', err);
       toast.error('Failed to update profile');
     } finally {
       setIsSaving(false);
@@ -182,7 +180,6 @@ function WorkspaceOnboarding() {
       toast.success('Welcome aboard! You\'re all set.');
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.error('Failed to complete onboarding:', err);
       toast.error('Something went wrong');
     } finally {
       setIsSaving(false);
@@ -196,7 +193,6 @@ function WorkspaceOnboarding() {
       analytics.track(EVENTS.ONBOARDING_SKIPPED, { workspaceId, skippedAtStep: currentStep + 1 });
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      console.error('Failed to skip onboarding:', err);
       navigate('/dashboard', { replace: true });
     }
   };

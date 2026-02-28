@@ -50,7 +50,7 @@ const PreferencesTab = () => {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       setDetectedTimezone(tz);
     } catch (e) {
-      console.error('Could not detect timezone:', e);
+      // Timezone detection not available — falls back to UTC
     }
   }, []);
 

@@ -97,7 +97,6 @@ const useAuthStore = create((set) => ({
     try {
       await authAPI.logout();
     } catch (error) {
-      console.error('Logout error:', error);
       toast.error('Failed to log out from the server. Clearing local session.');
     }
 
@@ -131,7 +130,6 @@ const useAuthStore = create((set) => ({
         error: null,
       });
     } catch (error) {
-      console.error('Fetch user error:', error);
       // If fetching user fails, clear auth state
       localStorage.removeItem('user');
       set({
@@ -329,7 +327,6 @@ const useAuthStore = create((set) => ({
 
       return { success: true, user };
     } catch (error) {
-      console.error('Fetch profile error:', error);
       set({ isLoading: false });
       return { success: false, error: error.message };
     }

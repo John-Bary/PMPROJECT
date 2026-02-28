@@ -78,7 +78,6 @@ const useWorkspaceStore = create((set, get) => ({
         get().fetchMembers(currentWorkspaceId);
       }
     } catch (error) {
-      console.error('Failed to initialize workspaces:', error);
       set({
         error: error.message,
         isLoading: false,
@@ -279,7 +278,6 @@ const useWorkspaceStore = create((set, get) => ({
       set({ members: transformedMembers });
       return { success: true, members: transformedMembers };
     } catch (error) {
-      console.error('Failed to fetch members:', error);
       return { success: false, error: error.message };
     }
   },
@@ -376,7 +374,6 @@ const useWorkspaceStore = create((set, get) => ({
       set({ invitations: transformedInvitations });
       return { success: true, invitations: transformedInvitations };
     } catch (error) {
-      console.error('Failed to fetch invitations:', error);
       return { success: false, error: error.message };
     }
   },

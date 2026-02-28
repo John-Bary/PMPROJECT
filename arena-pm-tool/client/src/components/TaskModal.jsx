@@ -190,7 +190,6 @@ const TaskModal = ({
       setErrors({});
       onClose();
     } catch (error) {
-      console.error(`Failed to ${isEditMode ? 'update' : 'create'} task:`, error);
       setErrors({ submit: `Failed to ${isEditMode ? 'update' : 'create'} task. Please try again.` });
     } finally {
       setIsSubmitting(false);

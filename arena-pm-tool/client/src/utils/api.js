@@ -58,8 +58,7 @@ const fetchCsrfToken = async () => {
       csrfToken = res.data.csrfToken;
       return csrfToken;
     })
-    .catch((err) => {
-      console.error('Failed to fetch CSRF token:', err.message);
+    .catch(() => {
       return null;
     })
     .finally(() => {

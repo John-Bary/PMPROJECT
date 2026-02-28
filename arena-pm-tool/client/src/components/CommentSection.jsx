@@ -33,7 +33,6 @@ function CommentSection({ taskId }) {
       const response = await commentsAPI.getByTaskId(taskId);
       setComments(response.data.data.comments || []);
     } catch (error) {
-      console.error('Failed to fetch comments:', error);
       // Don't show error toast for missing endpoint during development
       if (error.response?.status !== 404) {
         toast.error('Failed to load comments');
@@ -68,7 +67,6 @@ function CommentSection({ taskId }) {
       await fetchComments();
       toast.success('Comment added');
     } catch (error) {
-      console.error('Failed to add comment:', error);
       toast.error('Failed to add comment');
     } finally {
       setIsSubmitting(false);
@@ -97,7 +95,6 @@ function CommentSection({ taskId }) {
       setEditingContent('');
       toast.success('Comment updated');
     } catch (error) {
-      console.error('Failed to update comment:', error);
       toast.error('Failed to update comment');
     }
   };
@@ -116,7 +113,6 @@ function CommentSection({ taskId }) {
       await fetchComments();
       toast.success('Comment deleted');
     } catch (error) {
-      console.error('Failed to delete comment:', error);
       toast.error('Failed to delete comment');
     } finally {
       setDeletingIds(prev => {

@@ -12,6 +12,7 @@ import AssigneeDropdown from './AssigneeDropdown';
 import { Button } from 'components/ui/button';
 import { Input } from 'components/ui/input';
 import { Checkbox } from 'components/ui/checkbox';
+import { toast } from 'sonner';
 
 function SubtaskList({ taskId, categoryId }) {
   const [subtasks, setSubtasks] = useState([]);
@@ -58,7 +59,7 @@ function SubtaskList({ taskId, categoryId }) {
       const response = await tasksAPI.getSubtasks(taskId);
       setSubtasks(response.data.data.subtasks);
     } catch (error) {
-      console.error('Failed to fetch subtasks:', error);
+      toast.error('Failed to load subtasks');
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +112,7 @@ function SubtaskList({ taskId, categoryId }) {
         await fetchTasks({}, { showLoading: false });
       }
     } catch (error) {
-      console.error('Failed to create subtask:', error);
+      toast.error('Failed to create subtask');
     } finally {
       setIsCreating(false);
     }
@@ -141,7 +142,7 @@ function SubtaskList({ taskId, categoryId }) {
       // Also refresh parent tasks to update subtask counts
       await fetchTasks({}, { showLoading: false });
     } catch (error) {
-      console.error('Failed to toggle subtask:', error);
+      toast.error('Failed to update subtask');
     } finally {
       setTogglingIds(prev => {
         const next = new Set(prev);
@@ -161,7 +162,7 @@ function SubtaskList({ taskId, categoryId }) {
       // Also refresh parent tasks to update subtask counts
       await fetchTasks({}, { showLoading: false });
     } catch (error) {
-      console.error('Failed to delete subtask:', error);
+      toast.error('Failed to delete subtask');
     } finally {
       setDeletingIds(prev => {
         const next = new Set(prev);
@@ -185,7 +186,7 @@ function SubtaskList({ taskId, categoryId }) {
         await updateTask(editingId, { title: editingTitle.trim() });
         await fetchSubtasks();
       } catch (error) {
-        console.error('Failed to update subtask:', error);
+        toast.error('Failed to update subtask');
       }
     }
     setEditingId(null);
@@ -209,7 +210,7 @@ function SubtaskList({ taskId, categoryId }) {
       await fetchSubtasks();
       setActivePriorityDropdown(null);
     } catch (error) {
-      console.error('Failed to update subtask priority:', error);
+      toast.error('Failed to update subtask');
     }
   };
 
@@ -221,7 +222,7 @@ function SubtaskList({ taskId, categoryId }) {
       await fetchSubtasks();
       setActiveDatePicker(null);
     } catch (error) {
-      console.error('Failed to update subtask due date:', error);
+      toast.error('Failed to update subtask');
     }
   };
 
@@ -246,7 +247,7 @@ function SubtaskList({ taskId, categoryId }) {
       await updateTask(subtaskId, { assignee_ids: newAssigneeIds });
       await fetchSubtasks();
     } catch (error) {
-      console.error('Failed to update subtask assignees:', error);
+      toast.error('Failed to update subtask');
     }
   };
 

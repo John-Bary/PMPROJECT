@@ -158,7 +158,7 @@ describe('Billing Store', () => {
 
       // Should not crash; plans remain empty
       expect(useBillingStore.getState().plans).toEqual([]);
-      // No toast shown for this error (store only console.errors)
+      // No toast shown for this error (silent fail)
       expect(toast.error).not.toHaveBeenCalled();
     });
   });

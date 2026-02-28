@@ -45,8 +45,7 @@ const useHolidayStore = create((set, get) => ({
         error: errorMessage,
         isLoading: false,
       });
-      // Silent fail - don't toast error for holidays (non-critical feature)
-      console.error('Holiday fetch error:', errorMessage);
+      // Silent fail — holidays are non-critical; UI works without them
     }
   },
 
