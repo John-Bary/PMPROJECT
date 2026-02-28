@@ -120,6 +120,20 @@ describe('Audit Log Middleware', () => {
     );
   });
 
+  it('should fall back to null when user-agent header is not set', async () => {
+    req.get = jest.fn(() => undefined);
+    const middleware = auditLog('task.created', 'task');
+    middleware(req, res, next);
+
+    finishCallback();
+    await new Promise(r => setTimeout(r, 0));
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('INSERT INTO audit_logs'),
+      ['ws-1', 1, 'task.created', 'task', 'resource-1', '192.168.1.1', null]
+    );
+  });
+
   it('should log database errors without throwing', async () => {
     query.mockRejectedValue(new Error('DB write failed'));
     const middleware = auditLog('task.created', 'task');

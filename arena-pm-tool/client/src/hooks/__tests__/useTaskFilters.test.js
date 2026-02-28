@@ -87,6 +87,22 @@ describe('useTaskFilters', () => {
       expect(result.current.filteredTasks.map(t => t.id)).toEqual([1, 3]);
     });
 
+    it('should handle tasks with undefined assignees', () => {
+      const tasksWithUndefinedAssignees = [
+        { id: 1, title: 'Task A', status: 'todo', priority: 'high', categoryId: 10, assignees: undefined },
+        { id: 2, title: 'Task B', status: 'todo', priority: 'low', categoryId: 10, assignees: [{ id: 1, name: 'Alice' }] },
+      ];
+      const { result } = renderHook(() => useTaskFilters(tasksWithUndefinedAssignees));
+
+      act(() => {
+        result.current.setFilters(prev => ({ ...prev, assignees: [1] }));
+      });
+
+      // Only task B has assignee 1; task A has undefined assignees (falls back to [])
+      expect(result.current.filteredTasks).toHaveLength(1);
+      expect(result.current.filteredTasks[0].id).toBe(2);
+    });
+
     it('should filter by multiple assignees (OR logic)', () => {
       const { result } = renderHook(() => useTaskFilters(mockTasks));
 
@@ -286,6 +302,19 @@ describe('useTaskFilters', () => {
       unmount();
 
       // Should not throw after unmount
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+    });
+
+    it('should handle cleanup when no pending timeout exists', () => {
+      // Render with debounce but never type — cleanup should safely handle null ref
+      const { unmount } = renderHook(() => useTaskFilters(mockTasks, { debounceSearch: true }));
+
+      // Unmount without ever setting search input — searchDebounceRef.current is null
+      unmount();
+
+      // Should not throw
       act(() => {
         jest.advanceTimersByTime(300);
       });

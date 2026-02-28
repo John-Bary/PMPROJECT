@@ -105,4 +105,19 @@ describe('useInView', () => {
     expect(window.IntersectionObserver).not.toHaveBeenCalled();
     expect(mockObserve).not.toHaveBeenCalled();
   });
+
+  it('should not set inView when entry is not intersecting', () => {
+    render(<TestComponent />);
+
+    const target = screen.getByTestId('target');
+    expect(target).toHaveAttribute('data-inview', 'false');
+
+    // Simulate the observer firing with isIntersecting: false
+    act(() => {
+      mockObserverCallback([{ isIntersecting: false }]);
+    });
+
+    expect(target).toHaveAttribute('data-inview', 'false');
+    expect(mockUnobserve).not.toHaveBeenCalled();
+  });
 });

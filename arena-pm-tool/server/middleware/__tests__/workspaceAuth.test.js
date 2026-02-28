@@ -138,6 +138,26 @@ describe('Workspace Auth Middleware', () => {
       );
       expect(next).not.toHaveBeenCalled();
     });
+
+    it('should hide error details in production mode', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        req.body.workspace_id = 'ws-1';
+        query.mockRejectedValue(new Error('Connection lost'));
+
+        await requireWorkspaceMember(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          status: 'error',
+          message: 'Error verifying workspace access',
+          error: undefined,
+        });
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+      }
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -209,6 +229,48 @@ describe('Workspace Auth Middleware', () => {
       expect(req.workspace).toEqual({ id: 'ws-1', role: 'member' });
       expect(next).toHaveBeenCalled();
       expect(res.status).not.toHaveBeenCalled();
+    });
+
+    it('should return 500 with error details when query throws (non-production)', async () => {
+      req.body.workspace_id = 'ws-1';
+      const dbError = new Error('Connection lost');
+      query.mockRejectedValue(dbError);
+      const middleware = requireWorkspaceRole('admin');
+
+      await middleware(req, res, next);
+
+      expect(logger.error).toHaveBeenCalledWith(
+        { err: dbError },
+        'Workspace role auth error'
+      );
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error verifying workspace role',
+        error: 'Connection lost',
+      });
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('should hide error details in production mode', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        req.body.workspace_id = 'ws-1';
+        query.mockRejectedValue(new Error('Connection lost'));
+        const middleware = requireWorkspaceRole('admin');
+
+        await middleware(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          status: 'error',
+          message: 'Error verifying workspace role',
+          error: undefined,
+        });
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+      }
     });
   });
 

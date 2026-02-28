@@ -115,5 +115,15 @@ describe('AppError', () => {
       expect(err.internalMessage).toBe('null ref in userService.getById');
       expect(err.isOperational).toBe(false);
     });
+
+    it('internal uses default userMessage when called with no arguments', () => {
+      const err = AppError.internal();
+
+      expect(err).toBeInstanceOf(AppError);
+      expect(err.statusCode).toBe(500);
+      expect(err.message).toBe('Internal server error');
+      expect(err.internalMessage).toBeNull();
+      expect(err.isOperational).toBe(false);
+    });
   });
 });

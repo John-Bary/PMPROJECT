@@ -109,6 +109,31 @@ describe('Alerts', () => {
       );
     });
 
+    it('should fall back to 0 when p95Index exceeds array bounds', async () => {
+      // A single-element array: sorted.length=1, p95Index=Math.floor(0.95)=0
+      // but we need p95Index to exceed bounds. With length=1, index=0 is valid.
+      // With an empty-ish scenario the block is skipped. We need sorted[p95Index] to be undefined.
+      // Math.floor(1 * 0.95) = 0 => sorted[0] exists.
+      // Math.floor(2 * 0.95) = 1 => sorted[1] exists.
+      // Math.floor(20 * 0.95) = 19 => sorted[19] exists (last element, 0-indexed).
+      // The only way sorted[p95Index] is undefined is if p95Index === sorted.length.
+      // Math.floor(n * 0.95) === n only when n=0 (skipped) or never for positive integers.
+      // Actually Math.floor(20 * 0.95) = 19, array length 20, index 19 is last valid.
+      // For length=20: index=19 valid. For length=1: index=0 valid.
+      // sorted[p95Index] can be undefined if the value at that index is itself undefined.
+      // We can push undefined into responseTimes to make sorted[p95Index] undefined.
+      metrics.responseTimes = [undefined];
+      query.mockResolvedValue({ rows: [{ count: '0' }] });
+
+      await checkAlertThresholds();
+
+      // p95 falls back to 0 via || 0, which is below threshold, so no warn
+      expect(logger.warn).not.toHaveBeenCalledWith(
+        expect.objectContaining({ metric: 'p95_response_time' }),
+        expect.any(String)
+      );
+    });
+
     it('should warn when email queue backlog exceeds threshold', async () => {
       query.mockResolvedValue({ rows: [{ count: '150' }] });
 
@@ -125,6 +150,18 @@ describe('Alerts', () => {
 
       await checkAlertThresholds();
 
+      expect(logger.warn).not.toHaveBeenCalledWith(
+        expect.objectContaining({ metric: 'email_queue_backlog' }),
+        expect.any(String)
+      );
+    });
+
+    it('should default backlog to 0 when result.rows is empty', async () => {
+      query.mockResolvedValue({ rows: [] });
+
+      await checkAlertThresholds();
+
+      // backlog is parseInt(undefined || 0) = 0, which is below threshold
       expect(logger.warn).not.toHaveBeenCalledWith(
         expect.objectContaining({ metric: 'email_queue_backlog' }),
         expect.any(String)

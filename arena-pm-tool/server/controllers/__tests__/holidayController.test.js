@@ -163,6 +163,75 @@ describe('Holiday Controller', () => {
     }));
   });
 
+  it('should hide error details when NODE_ENV is production', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+
+    req.query = { year: '2055' };
+    global.fetch.mockRejectedValueOnce(new Error('Secret internal failure'));
+
+    // Set NODE_ENV to production before calling — safeError reads it at call time
+    process.env.NODE_ENV = 'production';
+
+    await getHolidays(req, res);
+
+    // Restore immediately after
+    process.env.NODE_ENV = originalNodeEnv;
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      status: 'error',
+      message: 'Error fetching holidays',
+      error: undefined,
+    });
+  });
+
+  it('should fall back to name when name_local is falsy', async () => {
+    req.query = { year: '2056' };
+
+    const holidaysWithoutLocal = [
+      {
+        name: 'Independence Day',
+        name_local: '',
+        date_year: '2026',
+        date_month: '3',
+        date_day: '11',
+        type: 'National',
+      },
+      {
+        name: 'Easter Monday',
+        name_local: null,
+        date_year: '2026',
+        date_month: '4',
+        date_day: '6',
+        type: 'National',
+      },
+    ];
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => holidaysWithoutLocal,
+    });
+
+    await getHolidays(req, res);
+
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      status: 'success',
+      data: expect.objectContaining({
+        fromCache: false,
+        holidays: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'Independence Day',
+            localName: 'Independence Day',
+          }),
+          expect.objectContaining({
+            name: 'Easter Monday',
+            localName: 'Easter Monday',
+          }),
+        ]),
+      }),
+    }));
+  });
+
   it('should return 500 when ABSTRACT_API_KEY is not configured', async () => {
     // Re-import the controller without the API key set
     let getHolidaysNoKey;

@@ -166,6 +166,19 @@ describe('User Store', () => {
       expect(useUserStore.getState().error).toBe('Server error');
       expect(toast.error).toHaveBeenCalledWith('Server error');
     });
+
+    it('should use fallback error message when refresh fails without response message', async () => {
+      workspacesAPI.getUsers.mockRejectedValueOnce(new Error('timeout'));
+
+      await act(async () => {
+        await useUserStore.getState().refreshUsers('ws-1');
+      });
+
+      const state = useUserStore.getState();
+      expect(state.error).toBe('Failed to fetch workspace users');
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith('Failed to fetch workspace users');
+    });
   });
 
   describe('clearUsers', () => {
