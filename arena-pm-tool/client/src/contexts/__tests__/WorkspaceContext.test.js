@@ -58,7 +58,7 @@ jest.mock('../../components/Loader', () => function Loader({ text }) {
   return <div data-testid="loader">{text}</div>;
 });
 
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import { WorkspaceProvider, useWorkspace, useCurrentWorkspaceId } from '../WorkspaceContext';
 
 beforeEach(() => {
@@ -392,6 +392,263 @@ describe('WorkspaceContext', () => {
       );
 
       expect(contextValue.currentUser).toEqual(user);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('logout cleanup (lines 74-78)', () => {
+    it('should call clear, clearTasks, and clearCategories when user logs out', () => {
+      // Start authenticated and initialized
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div data-testid="child">Child</div>
+        </WorkspaceProvider>
+      );
+
+      // Now simulate logout: isAuthenticated becomes false while isInitialized stays true
+      mockAuthState = { isAuthenticated: false, user: null };
+
+      rerender(
+        <WorkspaceProvider>
+          <div data-testid="child">Child</div>
+        </WorkspaceProvider>
+      );
+
+      expect(mockWorkspaceState.clear).toHaveBeenCalled();
+      expect(mockTaskState.clearTasks).toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).toHaveBeenCalled();
+    });
+
+    it('should not clear stores when unauthenticated and not initialized', () => {
+      // Both false — should NOT trigger the cleanup
+      mockAuthState = { isAuthenticated: false, user: null };
+      mockWorkspaceState.isInitialized = false;
+
+      render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      expect(mockWorkspaceState.clear).not.toHaveBeenCalled();
+      expect(mockTaskState.clearTasks).not.toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('workspace change data refresh (lines 82-96)', () => {
+    it('should clear and refetch tasks/categories when workspace ID changes on dashboard', () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.currentWorkspaceId = 'ws-1';
+      mockLocation = { pathname: '/dashboard' };
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      // Clear initial call counts
+      mockTaskState.clearTasks.mockClear();
+      mockTaskState.fetchTasks.mockClear();
+      mockCategoryState.clearCategories.mockClear();
+      mockCategoryState.fetchCategories.mockClear();
+
+      // Change workspace ID
+      mockWorkspaceState.currentWorkspaceId = 'ws-2';
+
+      rerender(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      expect(mockTaskState.clearTasks).toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).toHaveBeenCalled();
+      expect(mockTaskState.fetchTasks).toHaveBeenCalled();
+      expect(mockCategoryState.fetchCategories).toHaveBeenCalled();
+    });
+
+    it('should skip fetchTasks/fetchCategories on /onboarding path', () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.currentWorkspaceId = 'ws-1';
+      mockLocation = { pathname: '/onboarding' };
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      mockTaskState.clearTasks.mockClear();
+      mockTaskState.fetchTasks.mockClear();
+      mockCategoryState.clearCategories.mockClear();
+      mockCategoryState.fetchCategories.mockClear();
+
+      // Change workspace ID
+      mockWorkspaceState.currentWorkspaceId = 'ws-2';
+
+      rerender(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      // Should still clear
+      expect(mockTaskState.clearTasks).toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).toHaveBeenCalled();
+      // Should NOT fetch
+      expect(mockTaskState.fetchTasks).not.toHaveBeenCalled();
+      expect(mockCategoryState.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('should skip fetchTasks/fetchCategories on /accept-invite path', () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.currentWorkspaceId = 'ws-1';
+      mockLocation = { pathname: '/accept-invite' };
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      mockTaskState.clearTasks.mockClear();
+      mockTaskState.fetchTasks.mockClear();
+      mockCategoryState.clearCategories.mockClear();
+      mockCategoryState.fetchCategories.mockClear();
+
+      mockWorkspaceState.currentWorkspaceId = 'ws-2';
+
+      rerender(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      expect(mockTaskState.clearTasks).toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).toHaveBeenCalled();
+      expect(mockTaskState.fetchTasks).not.toHaveBeenCalled();
+      expect(mockCategoryState.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('should skip fetchTasks/fetchCategories on /invite/:token path', () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.currentWorkspaceId = 'ws-1';
+      mockLocation = { pathname: '/invite/abc-token-123' };
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      mockTaskState.clearTasks.mockClear();
+      mockTaskState.fetchTasks.mockClear();
+      mockCategoryState.clearCategories.mockClear();
+      mockCategoryState.fetchCategories.mockClear();
+
+      mockWorkspaceState.currentWorkspaceId = 'ws-2';
+
+      rerender(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      expect(mockTaskState.clearTasks).toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).toHaveBeenCalled();
+      expect(mockTaskState.fetchTasks).not.toHaveBeenCalled();
+      expect(mockCategoryState.fetchCategories).not.toHaveBeenCalled();
+    });
+
+    it('should not clear or fetch when workspace ID has not changed', () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.currentWorkspaceId = 'ws-1';
+      mockLocation = { pathname: '/dashboard' };
+
+      const { rerender } = render(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      mockTaskState.clearTasks.mockClear();
+      mockTaskState.fetchTasks.mockClear();
+      mockCategoryState.clearCategories.mockClear();
+      mockCategoryState.fetchCategories.mockClear();
+
+      // Re-render with same workspace ID
+      rerender(
+        <WorkspaceProvider>
+          <div />
+        </WorkspaceProvider>
+      );
+
+      expect(mockTaskState.clearTasks).not.toHaveBeenCalled();
+      expect(mockTaskState.fetchTasks).not.toHaveBeenCalled();
+      expect(mockCategoryState.clearCategories).not.toHaveBeenCalled();
+      expect(mockCategoryState.fetchCategories).not.toHaveBeenCalled();
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  describe('handleSwitchWorkspace (lines 99-102)', () => {
+    it('should call switchWorkspace and return its result', async () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.switchWorkspace = jest.fn().mockResolvedValue({ success: true });
+
+      let contextValue;
+      function Capture() {
+        contextValue = useWorkspace();
+        return null;
+      }
+
+      render(
+        <WorkspaceProvider>
+          <Capture />
+        </WorkspaceProvider>
+      );
+
+      let result;
+      await act(async () => {
+        result = await contextValue.switchWorkspace('ws-new');
+      });
+
+      expect(mockWorkspaceState.switchWorkspace).toHaveBeenCalledWith('ws-new');
+      expect(result).toEqual({ success: true });
+    });
+
+    it('should propagate errors from switchWorkspace', async () => {
+      mockAuthState = { isAuthenticated: true, user: { id: 1 } };
+      mockWorkspaceState.isInitialized = true;
+      mockWorkspaceState.switchWorkspace = jest.fn().mockRejectedValue(new Error('Switch failed'));
+
+      let contextValue;
+      function Capture() {
+        contextValue = useWorkspace();
+        return null;
+      }
+
+      render(
+        <WorkspaceProvider>
+          <Capture />
+        </WorkspaceProvider>
+      );
+
+      await expect(
+        act(() => contextValue.switchWorkspace('ws-bad'))
+      ).rejects.toThrow('Switch failed');
     });
   });
 });

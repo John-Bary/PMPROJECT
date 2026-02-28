@@ -279,6 +279,39 @@ describe('Auth Store', () => {
       );
       expect(toast.success).toHaveBeenCalledWith('Profile updated successfully');
     });
+
+    it('should handle updateProfile error with server message', async () => {
+      const errorMessage = 'Name is required';
+      meAPI.updateProfile.mockRejectedValue({
+        response: { data: { message: errorMessage } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updateProfile({ name: '' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe(errorMessage);
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+    });
+
+    it('should handle updateProfile error with fallback message', async () => {
+      meAPI.updateProfile.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updateProfile({ name: 'Test' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to update profile');
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe('Failed to update profile');
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith('Failed to update profile');
+    });
   });
 
   describe('updatePreferences', () => {
@@ -298,6 +331,110 @@ describe('Auth Store', () => {
       const state = useAuthStore.getState();
       expect(state.user.language).toBe('en');
       expect(state.user.timezone).toBe('UTC');
+    });
+
+    it('should handle updatePreferences error with server message', async () => {
+      const errorMessage = 'Invalid timezone';
+      meAPI.updatePreferences.mockRejectedValue({
+        response: { data: { message: errorMessage } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updatePreferences({ timezone: 'INVALID' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe(errorMessage);
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+    });
+
+    it('should handle updatePreferences error with fallback message', async () => {
+      meAPI.updatePreferences.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updatePreferences({ language: 'fr' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to update preferences');
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe('Failed to update preferences');
+      expect(toast.error).toHaveBeenCalledWith('Failed to update preferences');
+    });
+  });
+
+  describe('updateNotifications', () => {
+    it('should merge notification settings into user state', async () => {
+      useAuthStore.setState({
+        user: { id: 1, name: 'User' },
+      });
+      meAPI.updateNotifications.mockResolvedValue({
+        data: { data: { notifications: { emailNotificationsEnabled: true, emailDigestMode: 'daily' } } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updateNotifications({ emailNotificationsEnabled: true });
+        expect(result.success).toBe(true);
+        expect(result.notifications).toEqual({ emailNotificationsEnabled: true, emailDigestMode: 'daily' });
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.user.emailNotificationsEnabled).toBe(true);
+      expect(state.user.emailDigestMode).toBe('daily');
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(toast.success).toHaveBeenCalledWith('Notification settings updated successfully');
+    });
+
+    it('should store sanitized user in localStorage after notification update', async () => {
+      useAuthStore.setState({
+        user: { id: 1, name: 'User', role: 'admin', avatarUrl: null, emailVerified: true },
+      });
+      meAPI.updateNotifications.mockResolvedValue({
+        data: { data: { notifications: { emailNotificationsEnabled: false, emailDigestMode: 'weekly' } } }
+      });
+
+      await act(async () => {
+        await useAuthStore.getState().updateNotifications({ emailNotificationsEnabled: false });
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'user',
+        JSON.stringify({ id: 1, name: 'User', role: 'admin', avatarUrl: null, emailVerified: true })
+      );
+    });
+
+    it('should handle updateNotifications error with server message', async () => {
+      const errorMessage = 'Invalid digest mode';
+      meAPI.updateNotifications.mockRejectedValue({
+        response: { data: { message: errorMessage } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updateNotifications({ emailDigestMode: 'invalid' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe(errorMessage);
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+    });
+
+    it('should handle updateNotifications error with fallback message', async () => {
+      meAPI.updateNotifications.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().updateNotifications({ emailNotificationsEnabled: true });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to update notification settings');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to update notification settings');
     });
   });
 
@@ -319,6 +456,161 @@ describe('Auth Store', () => {
       const state = useAuthStore.getState();
       expect(state.user.avatarUrl).toBe('https://example.com/avatar.jpg');
       expect(toast.success).toHaveBeenCalledWith('Avatar uploaded successfully');
+    });
+
+    it('should handle uploadAvatar error with server message', async () => {
+      const errorMessage = 'File too large';
+      meAPI.uploadAvatar.mockRejectedValue({
+        response: { data: { message: errorMessage } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().uploadAvatar(new File([''], 'big.jpg'));
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe(errorMessage);
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+    });
+
+    it('should handle uploadAvatar error with fallback message', async () => {
+      meAPI.uploadAvatar.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().uploadAvatar(new File([''], 'avatar.jpg'));
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to upload avatar');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to upload avatar');
+    });
+  });
+
+  describe('deleteAvatar', () => {
+    it('should set avatarUrl to null in user state on success', async () => {
+      useAuthStore.setState({
+        user: { id: 1, name: 'User', avatarUrl: 'https://example.com/avatar.jpg' },
+      });
+      meAPI.deleteAvatar.mockResolvedValue({});
+
+      await act(async () => {
+        const result = await useAuthStore.getState().deleteAvatar();
+        expect(result.success).toBe(true);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.user.avatarUrl).toBeNull();
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+      expect(toast.success).toHaveBeenCalledWith('Avatar removed successfully');
+    });
+
+    it('should store sanitized user in localStorage after avatar deletion', async () => {
+      useAuthStore.setState({
+        user: { id: 1, name: 'User', role: 'member', avatarUrl: 'https://example.com/avatar.jpg', emailVerified: true },
+      });
+      meAPI.deleteAvatar.mockResolvedValue({});
+
+      await act(async () => {
+        await useAuthStore.getState().deleteAvatar();
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'user',
+        JSON.stringify({ id: 1, name: 'User', role: 'member', avatarUrl: null, emailVerified: true })
+      );
+    });
+
+    it('should handle deleteAvatar error with server message', async () => {
+      const errorMessage = 'No avatar to delete';
+      meAPI.deleteAvatar.mockRejectedValue({
+        response: { data: { message: errorMessage } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().deleteAvatar();
+        expect(result.success).toBe(false);
+        expect(result.error).toBe(errorMessage);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe(errorMessage);
+      expect(state.isLoading).toBe(false);
+      expect(toast.error).toHaveBeenCalledWith(errorMessage);
+    });
+
+    it('should handle deleteAvatar error with fallback message', async () => {
+      meAPI.deleteAvatar.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().deleteAvatar();
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to remove avatar');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to remove avatar');
+    });
+  });
+
+  describe('fetchProfile', () => {
+    it('should fetch and store full user profile on success', async () => {
+      const mockUser = { id: 1, name: 'User', email: 'user@test.com', language: 'en', timezone: 'UTC' };
+      meAPI.getProfile.mockResolvedValue({
+        data: { data: { user: mockUser } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().fetchProfile();
+        expect(result.success).toBe(true);
+        expect(result.user).toEqual(mockUser);
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.user).toEqual(mockUser);
+      expect(state.isLoading).toBe(false);
+      expect(state.error).toBeNull();
+    });
+
+    it('should store sanitized user in localStorage after fetchProfile', async () => {
+      const mockUser = { id: 2, name: 'Jane', email: 'jane@test.com', role: 'admin', avatarUrl: 'https://example.com/jane.jpg', emailVerified: true };
+      meAPI.getProfile.mockResolvedValue({
+        data: { data: { user: mockUser } }
+      });
+
+      await act(async () => {
+        await useAuthStore.getState().fetchProfile();
+      });
+
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'user',
+        JSON.stringify({ id: 2, name: 'Jane', role: 'admin', avatarUrl: 'https://example.com/jane.jpg', emailVerified: true })
+      );
+    });
+
+    it('should handle fetchProfile error gracefully', async () => {
+      const error = new Error('Server error');
+      meAPI.getProfile.mockRejectedValue(error);
+
+      await act(async () => {
+        const result = await useAuthStore.getState().fetchProfile();
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Server error');
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.isLoading).toBe(false);
+    });
+
+    it('should set isLoading during fetchProfile', async () => {
+      meAPI.getProfile.mockImplementation(() => new Promise(() => {})); // Never resolves
+
+      // eslint-disable-next-line no-unused-vars
+      const fetchPromise = useAuthStore.getState().fetchProfile();
+
+      expect(useAuthStore.getState().isLoading).toBe(true);
     });
   });
 
