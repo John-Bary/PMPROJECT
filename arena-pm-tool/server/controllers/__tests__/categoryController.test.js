@@ -3,7 +3,8 @@ const {
   getCategoryById,
   createCategory,
   updateCategory,
-  deleteCategory
+  deleteCategory,
+  reorderCategories
 } = require('../categoryController');
 
 // Mock dependencies
@@ -12,7 +13,7 @@ jest.mock('../../middleware/workspaceAuth', () => ({
   verifyWorkspaceAccess: jest.fn(),
 }));
 
-const { query } = require('../../config/database');
+const { query, getClient } = require('../../config/database');
 const { verifyWorkspaceAccess } = require('../../middleware/workspaceAuth');
 
 describe('Category Controller', () => {
@@ -391,6 +392,269 @@ describe('Category Controller', () => {
         status: 'success',
         message: 'Category deleted successfully'
       });
+    });
+  });
+
+  // -----------------------------------------------------------------
+  // reorderCategories
+  // -----------------------------------------------------------------
+  describe('reorderCategories', () => {
+    let mockClient;
+
+    beforeEach(() => {
+      mockClient = {
+        query: jest.fn().mockResolvedValue({ rows: [] }),
+        release: jest.fn(),
+      };
+      getClient.mockResolvedValue(mockClient);
+    });
+
+    it('should return 400 when categoryIds is missing', async () => {
+      req.body = {};
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'categoryIds array is required'
+      });
+    });
+
+    it('should return 400 when categoryIds is not an array', async () => {
+      req.body = { categoryIds: 'not-an-array' };
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'categoryIds array is required'
+      });
+    });
+
+    it('should return 400 when categoryIds is empty', async () => {
+      req.body = { categoryIds: [] };
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'categoryIds array is required'
+      });
+    });
+
+    it('should return 400 when some category IDs are invalid (not found)', async () => {
+      req.body = { categoryIds: [1, 2, 999] };
+      // Only 2 rows returned instead of 3
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Some category IDs are invalid'
+      });
+    });
+
+    it('should return 400 when categories belong to different workspaces', async () => {
+      req.body = { categoryIds: [1, 2] };
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: 'ws-aaa' },
+          { id: 2, workspace_id: 'ws-bbb' }
+        ]
+      });
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'All categories must belong to the same workspace'
+      });
+    });
+
+    it('should return 403 when user lacks workspace access', async () => {
+      req.body = { categoryIds: [1, 2] };
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+      verifyWorkspaceAccess.mockResolvedValueOnce(null);
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'You do not have access to this workspace'
+      });
+    });
+
+    it('should return 403 when user is a viewer', async () => {
+      req.body = { categoryIds: [1, 2] };
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+      verifyWorkspaceAccess.mockResolvedValueOnce({ role: 'viewer' });
+
+      await reorderCategories(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Viewers cannot reorder categories'
+      });
+    });
+
+    it('should reorder categories in a transaction', async () => {
+      const categoryIds = [3, 1, 2];
+      req.body = { categoryIds };
+      // Verify categories exist
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 3, workspace_id: workspaceId },
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+      // Fetch updated categories after reorder
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 3, name: 'Cat 3', color: '#3B82F6', position: 0, created_by: 1, created_by_name: 'Test User', task_count: '0', created_at: new Date(), updated_at: new Date() },
+          { id: 1, name: 'Cat 1', color: '#10B981', position: 1, created_by: 1, created_by_name: 'Test User', task_count: '2', created_at: new Date(), updated_at: new Date() },
+          { id: 2, name: 'Cat 2', color: '#EF4444', position: 2, created_by: 1, created_by_name: 'Test User', task_count: '1', created_at: new Date(), updated_at: new Date() }
+        ]
+      });
+
+      await reorderCategories(req, res);
+
+      // Verify transaction lifecycle
+      expect(getClient).toHaveBeenCalled();
+      expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND workspace_id = $3',
+        [0, 3, workspaceId]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND workspace_id = $3',
+        [1, 1, workspaceId]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND workspace_id = $3',
+        [2, 2, workspaceId]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+      expect(mockClient.release).toHaveBeenCalled();
+
+      // Verify success response
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Categories reordered successfully'
+      }));
+    });
+
+    it('should rollback transaction on error', async () => {
+      const categoryIds = [1, 2];
+      req.body = { categoryIds };
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+
+      // Make the second UPDATE call throw inside the transaction
+      const txError = new Error('DB write failed');
+      mockClient.query
+        .mockResolvedValueOnce({ rows: [] })  // BEGIN
+        .mockResolvedValueOnce({ rows: [] })  // First UPDATE
+        .mockRejectedValueOnce(txError)        // Second UPDATE throws
+        .mockResolvedValueOnce({ rows: [] });  // ROLLBACK
+
+      await expect(reorderCategories(req, res)).rejects.toThrow('DB write failed');
+
+      expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should use workspace_id from body when provided', async () => {
+      const bodyWorkspaceId = 'ws-from-body-456';
+      req.body = { categoryIds: [1, 2], workspace_id: bodyWorkspaceId };
+      // Categories found (their workspace_id differs from body, but only 1 unique)
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, workspace_id: workspaceId },
+          { id: 2, workspace_id: workspaceId }
+        ]
+      });
+      // Fetch updated categories
+      query.mockResolvedValueOnce({
+        rows: [
+          { id: 1, name: 'Cat 1', color: '#3B82F6', position: 0, created_by: 1, created_by_name: 'Test User', task_count: '0', created_at: new Date(), updated_at: new Date() },
+          { id: 2, name: 'Cat 2', color: '#10B981', position: 1, created_by: 1, created_by_name: 'Test User', task_count: '1', created_at: new Date(), updated_at: new Date() }
+        ]
+      });
+
+      await reorderCategories(req, res);
+
+      // Verify workspace access was checked with the body workspace_id
+      expect(verifyWorkspaceAccess).toHaveBeenCalledWith(1, bodyWorkspaceId);
+
+      // Verify the transaction UPDATE calls use bodyWorkspaceId
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND workspace_id = $3',
+        [0, 1, bodyWorkspaceId]
+      );
+      expect(mockClient.query).toHaveBeenCalledWith(
+        'UPDATE categories SET position = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 AND workspace_id = $3',
+        [1, 2, bodyWorkspaceId]
+      );
+
+      // Verify fetch query uses bodyWorkspaceId
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('WHERE c.workspace_id = $1'),
+        [bodyWorkspaceId]
+      );
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Categories reordered successfully'
+      }));
+    });
+  });
+
+  // -----------------------------------------------------------------
+  // Additional error-case tests for database failures
+  // -----------------------------------------------------------------
+  describe('getAllCategories - error handling', () => {
+    it('should handle database errors', async () => {
+      req.query = { workspace_id: workspaceId };
+      query.mockRejectedValueOnce(new Error('Connection refused'));
+
+      await expect(getAllCategories(req, res)).rejects.toThrow('Connection refused');
+    });
+  });
+
+  describe('getCategoryById - error handling', () => {
+    it('should handle database errors', async () => {
+      req.params = { id: '1' };
+      query.mockRejectedValueOnce(new Error('Connection refused'));
+
+      await expect(getCategoryById(req, res)).rejects.toThrow('Connection refused');
     });
   });
 });
