@@ -403,21 +403,21 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 ## Testing
 
 ### Frontend (Jest + React Testing Library)
-- Store tests: `client/src/store/__tests__/` (auth 13, task 17, category 16, workspace 55, billing 21)
+- Store tests: `client/src/store/__tests__/` (auth 13, task 17, category 16, workspace 55, billing 21, user 10, holiday 10)
 - Component tests: `ErrorBoundary.test.js` (6), `SubtaskList.test.js` (7)
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6)
 - API tests: `client/src/utils/api.test.js`
 - Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24)
-- 13 test suites, 194 tests total
+- 15 test suites, 214 tests total
 
 ### Backend (Jest + supertest)
-- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6)
+- Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6, admin 5)
 - Integration tests: `server/controllers/__tests__/` (authFlow 20, multiTenant 19, planLimits 22)
 - Pre-launch E2E tests: `server/tests/` (billingFlow 9, securityIntegration 13, taskCrudFlow 20, invitationFlow 11)
 - Email system tests: `server/tests/` (emailTemplates 77, emailQueue 43)
-- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6)
-- 20 test suites, 489 tests total
+- Middleware tests: `server/middleware/__tests__/` (auth 12, planLimits 6, billingGuard 12, validate 12, csrf 10, schemas 76)
+- 25 test suites, 604 tests total
 - Config: `server/jest.config.js` (testPathIgnorePatterns includes `/client/` to avoid running client tests)
 
 ```bash
@@ -498,7 +498,8 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - .env.example and .env.production.example headers updated from "Arena PM Tool" to "Todoria"
 - Final quality sweep: zero remaining arena branding in active client code, zero TODO/FIXME markers, zero hardcoded localhost in production paths
 - Stale files removed: server/client/ (outdated duplicate), STEP-1 through STEP-5-COMPLETE.md, API-DOCUMENTATION.md, DATABASE-SETUP.md, VERCEL_DEPLOYMENT.md
-- Server test coverage expanded: workspaceController (65), meController (34), onboardingController (21), holidayController (6) — 489 server tests across 20 suites
+- Server test coverage expanded: workspaceController (65), meController (34), onboardingController (21), holidayController (6), adminController (5), billingGuard (12), validate (12), csrf (10), schemas (76) — 604 server tests across 25 suites
+- All 7 Zustand stores fully tested: added userStore (10) and holidayStore (10) — 214 client tests across 15 suites
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
