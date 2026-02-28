@@ -403,7 +403,7 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 ## Testing
 
 ### Frontend (Jest + React Testing Library)
-- Store tests: `client/src/store/__tests__/` (auth 36, task 68, category 31, workspace 64, billing 21, user 11, holiday 10)
+- Store tests: `client/src/store/__tests__/` (auth 36, task 68, category 31, workspace 79, billing 21, user 11, holiday 10) — all 7 stores at 100% all metrics
 - Component tests: `ErrorBoundary.test.js` (6), `SubtaskList.test.js` (7)
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6), `NpsSurvey.test.js` (13)
@@ -411,7 +411,7 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - API tests: `client/src/utils/api.test.js` (198) — 96.38% branches
 - Utility tests: `dateUtils.test.js` (24), `priorityStyles.test.js` (24), `analytics.test.js` (19)
 - Hook tests: `useTaskFilters.test.js` (24), `useKeyboardShortcuts.test.js` (15), `useTaskActions.test.js` (7), `useInView.test.js` (8)
-- 22 test suites, 634 tests total
+- 22 test suites, 649 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 63, billing 46, category 50, comment 23, task 77, workspace 85, me 57, onboarding 38, holiday 9, admin 7)
@@ -517,7 +517,9 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Branch coverage expansion: server taskController 64→77, planLimits 7→21, validate 15→18 — 935 server tests
 - Branch coverage expansion: client authStore 33→36 (100%), workspaceStore 55→64, categoryStore 27→31, dateUtils 22→24 — 602 client tests
 - Branch coverage expansion: server holidayController 100%, AppError 100%, alerts 100%, workspaceAuth 100%, auditLog 100%; client userStore +1, useInView +1, useTaskFilters +2
-- Total: 1,607 tests across 54 suites (server 973, client 634)
+- Branch coverage expansion: authController 100%, adminController 100%, onboardingController 100%, schemas.js 100%; api.js 96.38%; workspaceStore 100%
+- All 7 client Zustand stores at 100% all metrics (auth, task, category, workspace, billing, user, holiday)
+- Total: 1,622 tests across 54 suites (server 973, client 649)
 - Server coverage: 99.59% statements, 97.84% branches, 98.24% functions, 99.64% lines
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
