@@ -713,5 +713,361 @@ describe('Me Controller', () => {
         },
       });
     });
+
+    it('should return 500 when data export query fails', async () => {
+      query.mockRejectedValue(new Error('DB connection lost'));
+
+      await getDataExport(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error exporting user data',
+        error: 'DB connection lost',
+      });
+    });
+  });
+
+  // ─── Error / catch-block coverage ─────────────────────────────────────────────
+
+  describe('getProfile - error handling', () => {
+    it('should return 500 when query throws', async () => {
+      query.mockRejectedValue(new Error('DB read error'));
+
+      await getProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error fetching profile',
+        error: 'DB read error',
+      });
+    });
+  });
+
+  describe('updateProfile - error handling', () => {
+    it('should return 404 when UPDATE returns no rows', async () => {
+      req.body = { firstName: 'Jane', lastName: 'Doe' };
+      query.mockResolvedValue({ rows: [] });
+
+      await updateProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User not found',
+      });
+    });
+
+    it('should return 500 when query throws', async () => {
+      req.body = { firstName: 'Jane', lastName: 'Doe' };
+      query.mockRejectedValue(new Error('DB write error'));
+
+      await updateProfile(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error updating profile',
+        error: 'DB write error',
+      });
+    });
+  });
+
+  describe('updatePreferences - error handling', () => {
+    it('should return 400 for invalid timezone (too short)', async () => {
+      req.body = { timezone: 'X' };
+
+      await updatePreferences(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Invalid timezone format.',
+      });
+    });
+
+    it('should return 404 when UPDATE returns no rows', async () => {
+      req.body = { language: 'en' };
+      query.mockResolvedValue({ rows: [] });
+
+      await updatePreferences(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User not found',
+      });
+    });
+
+    it('should return 500 when query throws', async () => {
+      req.body = { language: 'en' };
+      query.mockRejectedValue(new Error('DB preferences error'));
+
+      await updatePreferences(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error updating preferences',
+        error: 'DB preferences error',
+      });
+    });
+  });
+
+  describe('updateNotifications - error handling', () => {
+    it('should return 400 when emailNotificationsEnabled is not a boolean', async () => {
+      req.body = { emailNotificationsEnabled: 'yes' };
+
+      await updateNotifications(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'emailNotificationsEnabled must be a boolean.',
+      });
+    });
+
+    it('should return 404 when UPDATE returns no rows', async () => {
+      req.body = { emailNotificationsEnabled: true };
+      query.mockResolvedValue({ rows: [] });
+
+      await updateNotifications(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User not found',
+      });
+    });
+
+    it('should return 500 when query throws', async () => {
+      req.body = { emailNotificationsEnabled: true };
+      query.mockRejectedValue(new Error('DB notifications error'));
+
+      await updateNotifications(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error updating notification settings',
+        error: 'DB notifications error',
+      });
+    });
+  });
+
+  describe('uploadAvatar - error handling', () => {
+    const createMockFile = () => ({
+      buffer: Buffer.from('fake-image-data'),
+      originalname: 'avatar.jpg',
+      mimetype: 'image/jpeg',
+      size: 1024,
+    });
+
+    it('should return 500 when Supabase upload returns an error', async () => {
+      req.file = createMockFile();
+      FileType.fromBuffer.mockResolvedValue({ mime: 'image/jpeg', ext: 'jpg' });
+
+      // Current user has no existing avatar
+      query.mockResolvedValueOnce({ rows: [{ avatar_url: null }] });
+
+      // Make the upload return an error
+      const storageBucket = {
+        upload: jest.fn().mockResolvedValue({ error: { message: 'Storage quota exceeded' } }),
+        remove: jest.fn().mockResolvedValue({ error: null }),
+        getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://supabase.co/storage/avatars/1-123.jpg' } }),
+      };
+      supabaseAdmin.storage.from.mockReturnValue(storageBucket);
+
+      await uploadAvatar(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error uploading avatar.',
+      });
+    });
+
+    it('should return 500 when an unexpected error is thrown', async () => {
+      req.file = createMockFile();
+      FileType.fromBuffer.mockRejectedValue(new Error('Unexpected file read error'));
+
+      await uploadAvatar(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error uploading avatar',
+        error: 'Unexpected file read error',
+      });
+    });
+  });
+
+  describe('deleteAvatar - error handling', () => {
+    it('should return 500 when query throws', async () => {
+      query.mockRejectedValue(new Error('DB delete avatar error'));
+
+      await deleteAvatar(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error removing avatar',
+        error: 'DB delete avatar error',
+      });
+    });
+  });
+
+  describe('getMyTasks - additional paths', () => {
+    it('should filter tasks by status=completed', async () => {
+      req.query = { status: 'completed' };
+      query.mockResolvedValue({ rows: [] });
+
+      await getMyTasks(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining("t.status = 'completed'"),
+        [1]
+      );
+    });
+
+    it('should sort by a non-due_date column (e.g. title)', async () => {
+      req.query = { sort: 'title', order: 'desc' };
+      query.mockResolvedValue({ rows: [] });
+
+      await getMyTasks(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('ORDER BY t.title DESC'),
+        [1]
+      );
+      // Should NOT contain 't.due_date IS NULL' prefix
+      const queryText = query.mock.calls[0][0];
+      expect(queryText).not.toContain('t.due_date IS NULL');
+    });
+
+    it('should return 500 when query throws', async () => {
+      query.mockRejectedValue(new Error('DB tasks error'));
+
+      await getMyTasks(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error fetching tasks',
+        error: 'DB tasks error',
+      });
+    });
+  });
+
+  describe('changePassword - error handling', () => {
+    it('should return 404 when user is not found', async () => {
+      req.body = { currentPassword: 'OldPass1!', newPassword: 'NewPass1!' };
+      query.mockResolvedValue({ rows: [] });
+
+      await changePassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User not found',
+      });
+    });
+
+    it('should return 500 when query throws', async () => {
+      req.body = { currentPassword: 'OldPass1!', newPassword: 'NewPass1!' };
+      query.mockRejectedValue(new Error('DB password error'));
+
+      await changePassword(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error changing password',
+        error: 'DB password error',
+      });
+    });
+  });
+
+  describe('deleteAccount - error handling', () => {
+    it('should return 404 when user is not found', async () => {
+      req.body = { password: 'SomePass1!' };
+      query.mockResolvedValue({ rows: [] });
+
+      await deleteAccount(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'User not found',
+      });
+    });
+
+    it('should return 500 when query throws', async () => {
+      req.body = { password: 'SomePass1!' };
+      query.mockRejectedValue(new Error('DB delete error'));
+
+      await deleteAccount(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error deleting account',
+        error: 'DB delete error',
+      });
+    });
+  });
+
+  describe('exportTasksCsv - additional paths', () => {
+    it('should filter by workspace_id when provided', async () => {
+      req.query = { workspace_id: 'ws-42' };
+      query.mockResolvedValue({ rows: [] });
+
+      await exportTasksCsv(req, res);
+
+      expect(query).toHaveBeenCalledWith(
+        expect.stringContaining('t.workspace_id = $2'),
+        [1, 'ws-42']
+      );
+    });
+
+    it('should escape CSV values containing commas, quotes, and newlines', async () => {
+      const mockTasks = [
+        {
+          title: 'Task with, comma',
+          description: 'A "quoted" value',
+          status: 'todo',
+          priority: 'high',
+          due_date: null,
+          completed_at: null,
+          category_name: 'Line\nbreak',
+          created_at: new Date('2024-01-15'),
+        },
+      ];
+      query.mockResolvedValue({ rows: mockTasks });
+
+      await exportTasksCsv(req, res);
+
+      const csvContent = res.send.mock.calls[0][0];
+      // Comma in title should be escaped with double-quotes
+      expect(csvContent).toContain('"Task with, comma"');
+      // Quotes in description should be doubled
+      expect(csvContent).toContain('"A ""quoted"" value"');
+      // Newline in category should be escaped
+      expect(csvContent).toContain('"Line\nbreak"');
+    });
+
+    it('should return 500 when query throws', async () => {
+      query.mockRejectedValue(new Error('DB export error'));
+
+      await exportTasksCsv(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith({
+        status: 'error',
+        message: 'Error exporting tasks',
+        error: 'DB export error',
+      });
+    });
   });
 });

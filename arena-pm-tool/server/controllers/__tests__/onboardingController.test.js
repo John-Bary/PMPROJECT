@@ -190,6 +190,202 @@ describe('Onboarding Controller', () => {
         message: 'Error fetching onboarding status',
       }));
     });
+
+    it('should re-throw membership query errors unrelated to onboarding_completed_at', async () => {
+      // First membership query fails with a non-column error
+      query.mockRejectedValueOnce(new Error('connection timeout'));
+
+      await getOnboardingStatus(req, res);
+
+      // Should fall into the outer catch and return 500
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error fetching onboarding status',
+      }));
+    });
+
+    it('should handle invitation query failure gracefully (line 99)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info query FAILS
+      query.mockRejectedValueOnce(new Error('relation "workspace_invitations" does not exist'));
+      // 5. onboarding progress SELECT
+      query.mockResolvedValueOnce({ rows: [{ current_step: 1, steps_completed: [], completed_at: null, skipped_at: null }] });
+      // 6. user profile
+      query.mockResolvedValueOnce({ rows: [{ id: USER_ID, name: 'Test', first_name: null, last_name: null, email: 'a@b.c', avatar_url: null, avatar_color: '#000' }] });
+      // 7. workspace members
+      query.mockResolvedValueOnce({ rows: [] });
+      // 8. workspace stats
+      query.mockResolvedValueOnce({ rows: [{ member_count: '1', category_count: '0', task_count: '0' }] });
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          invitation: null,
+        }),
+      }));
+    });
+
+    it('should handle onboarding progress SELECT failure gracefully (line 112)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress (succeeds, so onboardingTableExists = true)
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info
+      query.mockResolvedValueOnce({ rows: [] });
+      // 5. onboarding progress SELECT FAILS
+      query.mockRejectedValueOnce(new Error('something went wrong reading progress'));
+      // 6. user profile
+      query.mockResolvedValueOnce({ rows: [{ id: USER_ID, name: 'Test', first_name: null, last_name: null, email: 'a@b.c', avatar_url: null, avatar_color: '#000' }] });
+      // 7. workspace members
+      query.mockResolvedValueOnce({ rows: [] });
+      // 8. workspace stats
+      query.mockResolvedValueOnce({ rows: [{ member_count: '1', category_count: '0', task_count: '0' }] });
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          onboarding: expect.objectContaining({
+            currentStep: 1,
+            stepsCompleted: [],
+          }),
+        }),
+      }));
+    });
+
+    it('should handle user profile query failure with fallback (lines 126-131)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info
+      query.mockResolvedValueOnce({ rows: [] });
+      // 5. onboarding progress SELECT
+      query.mockResolvedValueOnce({ rows: [] });
+      // 6. user profile query FAILS (e.g. first_name column missing)
+      query.mockRejectedValueOnce(new Error('column "first_name" does not exist'));
+      // 7. user profile FALLBACK succeeds
+      query.mockResolvedValueOnce({ rows: [{ id: USER_ID, name: 'Test', email: 'a@b.c', avatar_color: '#000' }] });
+      // 8. workspace members
+      query.mockResolvedValueOnce({ rows: [] });
+      // 9. workspace stats
+      query.mockResolvedValueOnce({ rows: [{ member_count: '1', category_count: '0', task_count: '0' }] });
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          user: expect.objectContaining({
+            id: USER_ID,
+            name: 'Test',
+          }),
+        }),
+      }));
+    });
+
+    it('should handle both user profile queries failing (lines 126-133)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info
+      query.mockResolvedValueOnce({ rows: [] });
+      // 5. onboarding progress SELECT
+      query.mockResolvedValueOnce({ rows: [] });
+      // 6. user profile query FAILS
+      query.mockRejectedValueOnce(new Error('column "first_name" does not exist'));
+      // 7. user profile FALLBACK also FAILS
+      query.mockRejectedValueOnce(new Error('users table does not exist'));
+      // 8. workspace members
+      query.mockResolvedValueOnce({ rows: [] });
+      // 9. workspace stats
+      query.mockResolvedValueOnce({ rows: [{ member_count: '1', category_count: '0', task_count: '0' }] });
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          user: null,
+        }),
+      }));
+    });
+
+    it('should handle workspace members query failure gracefully (line 150)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info
+      query.mockResolvedValueOnce({ rows: [] });
+      // 5. onboarding progress SELECT
+      query.mockResolvedValueOnce({ rows: [] });
+      // 6. user profile
+      query.mockResolvedValueOnce({ rows: [{ id: USER_ID, name: 'Test', first_name: null, last_name: null, email: 'a@b.c', avatar_url: null, avatar_color: '#000' }] });
+      // 7. workspace members query FAILS
+      query.mockRejectedValueOnce(new Error('could not query members'));
+      // 8. workspace stats
+      query.mockResolvedValueOnce({ rows: [{ member_count: '1', category_count: '0', task_count: '0' }] });
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          members: [],
+        }),
+      }));
+    });
+
+    it('should handle workspace stats query failure gracefully (line 165)', async () => {
+      // 1. membership query
+      query.mockResolvedValueOnce({ rows: [{ role: 'member', onboarding_completed_at: null, joined_at: new Date() }] });
+      // 2. upsert onboarding progress
+      query.mockResolvedValueOnce({ rows: [] });
+      // 3. workspace info
+      query.mockResolvedValueOnce({ rows: [{ name: 'Test Workspace', owner_id: 2, owner_name: 'Owner' }] });
+      // 4. invitation info
+      query.mockResolvedValueOnce({ rows: [] });
+      // 5. onboarding progress SELECT
+      query.mockResolvedValueOnce({ rows: [] });
+      // 6. user profile
+      query.mockResolvedValueOnce({ rows: [{ id: USER_ID, name: 'Test', first_name: null, last_name: null, email: 'a@b.c', avatar_url: null, avatar_color: '#000' }] });
+      // 7. workspace members
+      query.mockResolvedValueOnce({ rows: [] });
+      // 8. workspace stats query FAILS
+      query.mockRejectedValueOnce(new Error('could not query stats'));
+
+      await getOnboardingStatus(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        data: expect.objectContaining({
+          workspace: expect.objectContaining({
+            memberCount: 0,
+            categoryCount: 0,
+            taskCount: 0,
+          }),
+        }),
+      }));
+    });
   });
 
   // -------------------------------------------------------------------
@@ -245,6 +441,19 @@ describe('Onboarding Controller', () => {
             stepsCompleted: [],
           }),
         }),
+      }));
+    });
+
+    it('should return 500 on unexpected database error (lines 280-281)', async () => {
+      // membership check throws unexpectedly
+      query.mockRejectedValueOnce(new Error('connection refused'));
+
+      await startOnboarding(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error starting onboarding',
       }));
     });
   });
@@ -332,6 +541,55 @@ describe('Onboarding Controller', () => {
 
       expect(res.status).toHaveBeenCalledWith(403);
     });
+
+    it('should handle progress upsert failure gracefully (line 350)', async () => {
+      req.body = { step: 2 };
+      // membership check
+      query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // upsert progress FAILS
+      query.mockRejectedValueOnce(new Error('relation "workspace_onboarding_progress" does not exist'));
+
+      await updateProgress(req, res);
+
+      // Should still succeed with fallback values
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Step "profile" completed',
+        data: expect.objectContaining({
+          progress: expect.objectContaining({
+            currentStep: 3,
+            stepsCompleted: ['profile'],
+            totalSteps: TOTAL_STEPS,
+          }),
+        }),
+      }));
+    });
+
+    it('should return 500 on unexpected database error (lines 365-366)', async () => {
+      req.body = { step: 1 };
+      // membership check throws unexpectedly
+      query.mockRejectedValueOnce(new Error('connection refused'));
+
+      await updateProgress(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'error',
+        message: 'Error updating onboarding progress',
+      }));
+    });
+
+    it('should handle stepName that does not exist in ONBOARDING_STEPS', async () => {
+      req.body = { stepName: 'nonexistent' };
+
+      await updateProgress(req, res);
+
+      // indexOf returns -1, so stepNum = 0, which is < 1 → invalid
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        message: expect.stringContaining('Invalid step'),
+      }));
+    });
   });
 
   // -------------------------------------------------------------------
@@ -394,6 +652,48 @@ describe('Onboarding Controller', () => {
       }));
       expect(mockClient.release).toHaveBeenCalled();
     });
+
+    it('should handle progress table upsert failure gracefully (line 410)', async () => {
+      // BEGIN
+      mockClient.query.mockResolvedValueOnce({});
+      // membership check
+      mockClient.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // upsert progress FAILS (table may not exist)
+      mockClient.query.mockRejectedValueOnce(new Error('relation "workspace_onboarding_progress" does not exist'));
+      // update workspace_members succeeds
+      mockClient.query.mockResolvedValueOnce({});
+      // COMMIT
+      mockClient.query.mockResolvedValueOnce({});
+
+      await completeOnboarding(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Onboarding completed successfully',
+      }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should handle workspace_members update failure gracefully (line 422)', async () => {
+      // BEGIN
+      mockClient.query.mockResolvedValueOnce({});
+      // membership check
+      mockClient.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // upsert progress succeeds
+      mockClient.query.mockResolvedValueOnce({});
+      // update workspace_members FAILS (column may not exist)
+      mockClient.query.mockRejectedValueOnce(new Error('column "onboarding_completed_at" does not exist'));
+      // COMMIT
+      mockClient.query.mockResolvedValueOnce({});
+
+      await completeOnboarding(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Onboarding completed successfully',
+      }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
   });
 
   // -------------------------------------------------------------------
@@ -452,6 +752,48 @@ describe('Onboarding Controller', () => {
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         status: 'error',
         message: 'Error skipping onboarding',
+      }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should handle progress table upsert failure gracefully (line 478)', async () => {
+      // BEGIN
+      mockClient.query.mockResolvedValueOnce({});
+      // membership check
+      mockClient.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // upsert progress (skipped_at) FAILS
+      mockClient.query.mockRejectedValueOnce(new Error('relation "workspace_onboarding_progress" does not exist'));
+      // update workspace_members succeeds
+      mockClient.query.mockResolvedValueOnce({});
+      // COMMIT
+      mockClient.query.mockResolvedValueOnce({});
+
+      await skipOnboarding(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Onboarding skipped',
+      }));
+      expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it('should handle workspace_members update failure gracefully (line 490)', async () => {
+      // BEGIN
+      mockClient.query.mockResolvedValueOnce({});
+      // membership check
+      mockClient.query.mockResolvedValueOnce({ rows: [{ id: 1 }] });
+      // upsert progress (skipped_at) succeeds
+      mockClient.query.mockResolvedValueOnce({});
+      // update workspace_members FAILS
+      mockClient.query.mockRejectedValueOnce(new Error('column "onboarding_completed_at" does not exist'));
+      // COMMIT
+      mockClient.query.mockResolvedValueOnce({});
+
+      await skipOnboarding(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+        status: 'success',
+        message: 'Onboarding skipped',
       }));
       expect(mockClient.release).toHaveBeenCalled();
     });
