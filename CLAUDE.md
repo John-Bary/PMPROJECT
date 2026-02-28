@@ -403,15 +403,15 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 ## Testing
 
 ### Frontend (Jest + React Testing Library)
-- Store tests: `client/src/store/__tests__/` (auth 13, task 17, category 27, workspace 55, billing 21, user 10, holiday 10)
+- Store tests: `client/src/store/__tests__/` (auth 33, task 68, category 27, workspace 55, billing 21, user 10, holiday 10)
 - Component tests: `ErrorBoundary.test.js` (6), `SubtaskList.test.js` (7)
 - App routing tests: `App.test.js` (mocks framer-motion, sonner, IntersectionObserver, LandingPage)
 - Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6), `NpsSurvey.test.js` (13)
-- Context tests: `WorkspaceContext.test.js` (18)
-- API tests: `client/src/utils/api.test.js`
-- Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24)
-- Hook tests: `useTaskFilters.test.js` (18), `useKeyboardShortcuts.test.js` (15), `useTaskActions.test.js` (7), `useInView.test.js` (7)
-- 21 test suites, 314 tests total
+- Context tests: `WorkspaceContext.test.js` (27)
+- API tests: `client/src/utils/api.test.js` (170)
+- Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24), `analytics.test.js` (19)
+- Hook tests: `useTaskFilters.test.js` (22), `useKeyboardShortcuts.test.js` (15), `useTaskActions.test.js` (7), `useInView.test.js` (7)
+- 22 test suites, 583 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 57, billing 46, category 50, comment 23, task 64, workspace 85, me 57, onboarding 36, holiday 7, admin 5)
