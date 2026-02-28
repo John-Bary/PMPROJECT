@@ -409,7 +409,8 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - Component tests: `ProtectedRoute.test.js` (7), `CookieConsent.test.js` (6)
 - API tests: `client/src/utils/api.test.js`
 - Utility tests: `dateUtils.test.js` (22), `priorityStyles.test.js` (24)
-- 15 test suites, 214 tests total
+- Hook tests: `useTaskFilters.test.js` (18), `useKeyboardShortcuts.test.js` (15)
+- 17 test suites, 247 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 27, billing 10, category 22, comment 15, task 36, workspace 65, me 34, onboarding 21, holiday 6, admin 5)
@@ -499,7 +500,8 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Final quality sweep: zero remaining arena branding in active client code, zero TODO/FIXME markers, zero hardcoded localhost in production paths
 - Stale files removed: server/client/ (outdated duplicate), STEP-1 through STEP-5-COMPLETE.md, API-DOCUMENTATION.md, DATABASE-SETUP.md, VERCEL_DEPLOYMENT.md
 - Server test coverage expanded: workspaceController (65), meController (34), onboardingController (21), holidayController (6), adminController (5), billingGuard (12), validate (12), csrf (10), schemas (76) — 604 server tests across 25 suites
-- All 7 Zustand stores fully tested: added userStore (10) and holidayStore (10) — 214 client tests across 15 suites
+- All 7 Zustand stores fully tested: added userStore (10) and holidayStore (10)
+- Hook tests: useTaskFilters (18) and useKeyboardShortcuts (15) — 247 client tests across 17 suites
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
 All remaining items require human action outside the codebase. See `docs/LAUNCH_GUIDE.md` for step-by-step instructions:
