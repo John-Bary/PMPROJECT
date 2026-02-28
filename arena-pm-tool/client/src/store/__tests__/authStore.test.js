@@ -136,6 +136,39 @@ describe('Auth Store', () => {
       expect(state.isLoading).toBe(false);
       expect(toast.error).toHaveBeenCalledWith(errorMessage);
     });
+    it('should use default "Login failed" message when error has no response data', async () => {
+      authAPI.login.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().login({ email: 'test@test.com', password: 'wrong' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Login failed');
+      });
+
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe('Login failed');
+      expect(toast.error).toHaveBeenCalledWith('Login failed');
+    });
+
+    it('should handle login with null user from API gracefully', async () => {
+      authAPI.login.mockResolvedValue({
+        data: { data: { user: null } }
+      });
+
+      await act(async () => {
+        const result = await useAuthStore.getState().login({ email: 'test@test.com', password: 'password' });
+        // sanitizeUserForStorage(null) returns null and localStorage stores 'null',
+        // but then analytics.identify(user.id, ...) throws because user is null,
+        // so the catch block runs and returns success: false
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Login failed');
+      });
+
+      // sanitizeUserForStorage(null) was called and returned null before the error
+      expect(localStorageMock.setItem).toHaveBeenCalledWith('user', 'null');
+    });
+
   });
 
   describe('register', () => {
@@ -178,6 +211,25 @@ describe('Auth Store', () => {
 
       expect(toast.error).toHaveBeenCalledWith(errorMessage);
     });
+
+    it('should use default "Registration failed" message when error has no response data', async () => {
+      authAPI.register.mockRejectedValue(new Error('Network error'));
+
+      await act(async () => {
+        const result = await useAuthStore.getState().register({
+          email: 'new@test.com',
+          password: 'password123',
+          name: 'New User'
+        });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Registration failed');
+      });
+
+      const state = useAuthStore.getState();
+      expect(state.error).toBe('Registration failed');
+      expect(toast.error).toHaveBeenCalledWith('Registration failed');
+    });
+
   });
 
   describe('logout', () => {

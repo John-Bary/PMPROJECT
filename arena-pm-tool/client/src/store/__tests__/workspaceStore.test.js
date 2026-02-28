@@ -199,6 +199,27 @@ describe('Workspace Store', () => {
       expect(state.isLoading).toBe(false);
       expect(state.isInitialized).toBe(true);
     });
+
+    it('should fall back to first workspace when no storedWorkspaceId exists', async () => {
+      // localStorage has NO stored workspace ID (localStorageMock.store is {} from beforeEach)
+      const ws1 = mockApiWorkspace({ id: 'ws-1', name: 'First' });
+      const ws2 = mockApiWorkspace({ id: 'ws-2', name: 'Second' });
+      workspacesAPI.getAll.mockResolvedValue({
+        data: { data: { workspaces: [ws1, ws2] } },
+      });
+      workspacesAPI.getMembers.mockResolvedValue({
+        data: { data: { members: [] } },
+      });
+
+      await act(async () => {
+        await useWorkspaceStore.getState().initialize();
+      });
+
+      const state = useWorkspaceStore.getState();
+      expect(state.currentWorkspaceId).toBe('ws-1');
+      expect(state.currentWorkspace.name).toBe('First');
+      expect(localStorageMock.store[WORKSPACE_STORAGE_KEY]).toBe('ws-1');
+    });
   });
 
   // ─── switchWorkspace ───────────────────────────────────────
@@ -402,6 +423,18 @@ describe('Workspace Store', () => {
         expect(result.error).toBe('Network error');
       });
     });
+
+    it('should use fallback error message when error has no response and no message', async () => {
+      workspacesAPI.create.mockRejectedValue({});
+
+      await act(async () => {
+        const result = await useWorkspaceStore.getState().createWorkspace('Another');
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to create workspace');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to create workspace');
+    });
   });
 
   // ─── updateWorkspace ──────────────────────────────────────
@@ -466,6 +499,18 @@ describe('Workspace Store', () => {
       });
 
       expect(toast.error).toHaveBeenCalledWith('Not authorized');
+    });
+
+    it('should use fallback error message when error has no response and no message', async () => {
+      workspacesAPI.update.mockRejectedValue({});
+
+      await act(async () => {
+        const result = await useWorkspaceStore.getState().updateWorkspace('ws-1', { name: 'X' });
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to update workspace');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to update workspace');
     });
   });
 
@@ -556,6 +601,24 @@ describe('Workspace Store', () => {
       });
 
       expect(toast.error).toHaveBeenCalledWith('Cannot delete workspace');
+    });
+
+    it('should use fallback error message when error has no response and no message', async () => {
+      const ws1 = transformedWorkspace(mockApiWorkspace({ id: 'ws-1' }));
+      useWorkspaceStore.setState({
+        workspaces: [ws1],
+        currentWorkspace: ws1,
+        currentWorkspaceId: 'ws-1',
+      });
+      workspacesAPI.delete.mockRejectedValue({});
+
+      await act(async () => {
+        const result = await useWorkspaceStore.getState().deleteWorkspace('ws-1');
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Failed to delete workspace');
+      });
+
+      expect(toast.error).toHaveBeenCalledWith('Failed to delete workspace');
     });
   });
 
@@ -744,6 +807,66 @@ describe('Workspace Store', () => {
       });
 
       expect(toast.error).toHaveBeenCalledWith('Invitation expired');
+    });
+
+    it('should not switch workspace when workspaceId is falsy', async () => {
+      workspacesAPI.acceptInvitation.mockResolvedValue({
+        data: {
+          message: 'Joined workspace',
+          data: { workspaceId: null, needsOnboarding: false },
+        },
+      });
+      workspacesAPI.getAll.mockResolvedValue({
+        data: { data: { workspaces: [] } },
+      });
+
+      await act(async () => {
+        const result = await useWorkspaceStore.getState().acceptInvitation('tok-abc');
+        expect(result.success).toBe(true);
+        expect(result.workspaceId).toBeNull();
+      });
+
+      expect(useWorkspaceStore.getState().currentWorkspaceId).toBeNull();
+      expect(toast.success).toHaveBeenCalledWith('Joined workspace');
+    });
+
+    it('should not switch workspace when joinedWorkspace is not found in workspaces list', async () => {
+      workspacesAPI.acceptInvitation.mockResolvedValue({
+        data: {
+          message: 'Joined workspace',
+          data: { workspaceId: 'ws-missing', needsOnboarding: false },
+        },
+      });
+      const apiWs = mockApiWorkspace({ id: 'ws-other', name: 'Other' });
+      workspacesAPI.getAll.mockResolvedValue({
+        data: { data: { workspaces: [apiWs] } },
+      });
+
+      await act(async () => {
+        const result = await useWorkspaceStore.getState().acceptInvitation('tok-abc');
+        expect(result.success).toBe(true);
+        expect(result.workspaceId).toBe('ws-missing');
+      });
+
+      expect(useWorkspaceStore.getState().currentWorkspaceId).toBeNull();
+      expect(toast.success).toHaveBeenCalledWith('Joined workspace');
+    });
+
+    it('should use fallback message when response has no message', async () => {
+      workspacesAPI.acceptInvitation.mockResolvedValue({
+        data: {
+          data: { workspaceId: null, needsOnboarding: false },
+        },
+      });
+      workspacesAPI.getAll.mockResolvedValue({
+        data: { data: { workspaces: [] } },
+      });
+
+      await act(async () => {
+        await useWorkspaceStore.getState().acceptInvitation('tok-abc');
+      });
+
+      expect(toast.success).toHaveBeenCalledWith('Successfully joined workspace');
     });
   });
 
@@ -1029,6 +1152,34 @@ describe('Workspace Store', () => {
       expect(state.isInitialized).toBe(false);
       expect(state.error).toBeNull();
       expect(localStorageMock.store[WORKSPACE_STORAGE_KEY]).toBeUndefined();
+    });
+  });
+});
+
+// localStorage migration (module-level code)
+describe('localStorage migration', () => {
+  it('should migrate from arena_current_workspace_id to todoria_current_workspace_id', () => {
+    jest.isolateModules(() => {
+      localStorageMock.store = { 'arena_current_workspace_id': 'ws-legacy' };
+      require('../workspaceStore');
+      expect(localStorageMock.store['todoria_current_workspace_id']).toBe('ws-legacy');
+      expect(localStorageMock.store['arena_current_workspace_id']).toBeUndefined();
+    });
+  });
+
+  it('should not migrate when new key already exists', () => {
+    jest.isolateModules(() => {
+      localStorageMock.store = { 'todoria_current_workspace_id': 'ws-new', 'arena_current_workspace_id': 'ws-old' };
+      require('../workspaceStore');
+      expect(localStorageMock.store['todoria_current_workspace_id']).toBe('ws-new');
+    });
+  });
+
+  it('should not migrate when old key does not exist', () => {
+    jest.isolateModules(() => {
+      localStorageMock.store = {};
+      require('../workspaceStore');
+      expect(localStorageMock.store['todoria_current_workspace_id']).toBeUndefined();
     });
   });
 });

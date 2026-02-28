@@ -97,6 +97,10 @@ describe('formatDueDate', () => {
   it('returns null for invalid date strings', () => {
     expect(formatDueDate('not-a-date')).toBeNull();
   });
+
+  it('returns null for Infinity (truthy but produces invalid date)', () => {
+    expect(formatDueDate(Infinity)).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -126,6 +130,10 @@ describe('formatDueDateLong', () => {
 
   it('returns null for invalid date strings', () => {
     expect(formatDueDateLong('garbage')).toBeNull();
+  });
+
+  it('returns null for Infinity (truthy but produces invalid date)', () => {
+    expect(formatDueDateLong(Infinity)).toBeNull();
   });
 });
 

@@ -195,6 +195,49 @@ describe('Category Store', () => {
 
       expect(toast.error).toHaveBeenCalledWith('Failed to load more categories');
     });
+
+    it('should handle null nextCursor and hasMore in response', async () => {
+      useCategoryStore.setState({
+        categories: [{ id: 1, name: 'Existing', color: '#3B82F6' }],
+        nextCursor: 'cursor-abc',
+        hasMore: true,
+      });
+
+      const newCategories = [{ id: 2, name: 'Last Page', color: '#10B981' }];
+      categoriesAPI.getAll.mockResolvedValue({
+        data: { data: { categories: newCategories, nextCursor: null, hasMore: false } }
+      });
+
+      await act(async () => {
+        await useCategoryStore.getState().loadMoreCategories();
+      });
+
+      const state = useCategoryStore.getState();
+      expect(state.categories).toHaveLength(2);
+      expect(state.nextCursor).toBeNull();
+      expect(state.hasMore).toBe(false);
+    });
+
+    it('should handle undefined nextCursor and hasMore in response', async () => {
+      useCategoryStore.setState({
+        categories: [{ id: 1, name: 'Existing', color: '#3B82F6' }],
+        nextCursor: 'cursor-abc',
+        hasMore: true,
+      });
+
+      const newCategories = [{ id: 2, name: 'Last Page', color: '#10B981' }];
+      categoriesAPI.getAll.mockResolvedValue({
+        data: { data: { categories: newCategories } }
+      });
+
+      await act(async () => {
+        await useCategoryStore.getState().loadMoreCategories();
+      });
+
+      const state = useCategoryStore.getState();
+      expect(state.nextCursor).toBeNull();
+      expect(state.hasMore).toBe(false);
+    });
   });
 
   describe('createCategory', () => {
@@ -254,6 +297,20 @@ describe('Category Store', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Failed to create category');
       expect(toast.error).toHaveBeenCalledWith('Failed to create category');
+    });
+
+    it('should use fallback name when category response has no name', async () => {
+      const newCategory = { id: 5, color: '#EF4444' };
+      categoriesAPI.create.mockResolvedValue({
+        data: { data: { category: newCategory } }
+      });
+
+      await act(async () => {
+        const result = await useCategoryStore.getState().createCategory({ color: '#EF4444' });
+        expect(result.success).toBe(true);
+      });
+
+      expect(toast.success).toHaveBeenCalledWith('Category "Category" created');
     });
   });
 
@@ -335,6 +392,23 @@ describe('Category Store', () => {
       expect(result.success).toBe(false);
       expect(result.error).toBe('Failed to update category');
       expect(toast.error).toHaveBeenCalledWith('Failed to update category');
+    });
+
+    it('should use "Category" fallback when both response and state lack name', async () => {
+      useCategoryStore.setState({
+        categories: [],
+      });
+
+      const updatedCategory = { id: 999, color: '#EF4444' };
+      categoriesAPI.update.mockResolvedValue({
+        data: { data: { category: updatedCategory } }
+      });
+
+      await act(async () => {
+        await useCategoryStore.getState().updateCategory(999, { color: '#EF4444' });
+      });
+
+      expect(toast.success).toHaveBeenCalledWith('Category "Category" updated');
     });
   });
 
