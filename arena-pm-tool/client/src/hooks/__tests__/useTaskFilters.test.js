@@ -215,4 +215,80 @@ describe('useTaskFilters', () => {
       expect(result.current.filteredTasks).toHaveLength(0);
     });
   });
+
+  describe('debounced search', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should not immediately filter when debounceSearch is true', () => {
+      const { result } = renderHook(() => useTaskFilters(mockTasks, { debounceSearch: true }));
+
+      act(() => {
+        result.current.setSearchInput('login');
+      });
+
+      // filteredTasks should still show all tasks (search hasn't applied yet)
+      expect(result.current.filteredTasks).toHaveLength(4);
+    });
+
+    it('should filter after debounce delay', () => {
+      const { result } = renderHook(() => useTaskFilters(mockTasks, { debounceSearch: true }));
+
+      act(() => {
+        result.current.setSearchInput('login');
+      });
+
+      // Advance past the 300ms debounce
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      expect(result.current.filteredTasks).toHaveLength(1);
+      expect(result.current.filteredTasks[0].id).toBe(1);
+    });
+
+    it('should debounce rapid input changes', () => {
+      const { result } = renderHook(() => useTaskFilters(mockTasks, { debounceSearch: true }));
+
+      act(() => {
+        result.current.setSearchInput('lo');
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      act(() => {
+        result.current.setSearchInput('login');
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+
+      // Should match the final input 'login' not 'lo'
+      expect(result.current.filteredTasks).toHaveLength(1);
+      expect(result.current.filteredTasks[0].id).toBe(1);
+    });
+
+    it('should cleanup timeout on unmount', () => {
+      const { result, unmount } = renderHook(() => useTaskFilters(mockTasks, { debounceSearch: true }));
+
+      act(() => {
+        result.current.setSearchInput('login');
+      });
+
+      unmount();
+
+      // Should not throw after unmount
+      act(() => {
+        jest.advanceTimersByTime(300);
+      });
+    });
+  });
 });
