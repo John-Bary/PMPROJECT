@@ -306,5 +306,141 @@ describe('Validate Middleware', () => {
         })
       );
     });
+
+    it('should handle ZodError issue with undefined path property', () => {
+      const { ZodError } = require('zod');
+      const schema = {
+        body: {
+          parse: () => {
+            const err = new ZodError([
+              { code: 'custom', message: 'no path here', path: ['temp'] },
+            ]);
+            // Mutate the issue object to remove its path after construction
+            err.issues[0].path = undefined;
+            throw err;
+          },
+        },
+      };
+      req.body = {};
+
+      validate(schema)(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [
+            expect.objectContaining({
+              field: '',
+              message: 'no path here',
+              source: 'body',
+            }),
+          ],
+        })
+      );
+    });
+  });
+
+  describe('ZodError fallback branches (error.errors / empty fallback)', () => {
+    // These tests use jest.isolateModules to mock the zod module so that
+    // the ZodError class used by validate.js has controllable properties.
+    // This lets us test the `error.issues || error.errors || []` fallback
+    // paths on line 23, which are unreachable with real Zod because
+    // ZodError.issues is always a non-configurable array.
+
+    it('should fall back to error.errors when error.issues is falsy', () => {
+      let isolatedValidate;
+      let MockZodError;
+
+      jest.isolateModules(() => {
+        // Create a custom ZodError class whose instances lack .issues
+        MockZodError = class ZodError extends Error {
+          constructor(errors) {
+            super('Validation error');
+            this.name = 'ZodError';
+            // Only set .errors, not .issues (simulates Zod 3 shape)
+            this.errors = errors;
+          }
+        };
+
+        // Mock the zod module so validate.js gets our MockZodError
+        jest.mock('zod', () => ({
+          ZodError: MockZodError,
+        }));
+
+        isolatedValidate = require('../validate');
+      });
+
+      const req = createMockReq();
+      const res = createMockRes();
+      const next = createMockNext();
+
+      const schema = {
+        body: {
+          parse: () => {
+            throw new MockZodError([
+              { code: 'custom', message: 'from errors fallback', path: ['name'] },
+            ]);
+          },
+        },
+      };
+      req.body = {};
+
+      isolatedValidate(schema)(req, res, next);
+
+      expect(next).not.toHaveBeenCalled();
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          errors: [
+            expect.objectContaining({
+              field: 'name',
+              message: 'from errors fallback',
+              source: 'body',
+            }),
+          ],
+        })
+      );
+    });
+
+    it('should fall back to empty array when both issues and errors are falsy', () => {
+      let isolatedValidate;
+      let MockZodError;
+
+      jest.isolateModules(() => {
+        MockZodError = class ZodError extends Error {
+          constructor() {
+            super('Validation error');
+            this.name = 'ZodError';
+            // Neither .issues nor .errors set
+          }
+        };
+
+        jest.mock('zod', () => ({
+          ZodError: MockZodError,
+        }));
+
+        isolatedValidate = require('../validate');
+      });
+
+      const req = createMockReq();
+      const res = createMockRes();
+      const next = createMockNext();
+
+      const schema = {
+        body: {
+          parse: () => {
+            throw new MockZodError();
+          },
+        },
+      };
+      req.body = {};
+
+      isolatedValidate(schema)(req, res, next);
+
+      // No issues collected, so next() should be called
+      expect(next).toHaveBeenCalled();
+      expect(res.status).not.toHaveBeenCalled();
+    });
   });
 });
