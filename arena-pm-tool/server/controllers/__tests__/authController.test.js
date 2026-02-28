@@ -786,6 +786,91 @@ describe('Auth Controller', () => {
       });
     });
 
+    it('should use email as userName fallback when user.name is null (line 556)', async () => {
+      req.body = { email: 'test@example.com' };
+      query
+        .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: null }] })
+        .mockResolvedValueOnce({});
+
+      await forgotPassword(req, res);
+
+      expect(queuePasswordResetEmail).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'test@example.com',
+          userName: 'test@example.com', // Falls back to email when name is null
+          resetUrl: expect.stringContaining('/reset-password?token='),
+        })
+      );
+    });
+
+    it('should use ALLOWED_ORIGINS when CLIENT_URL is not set (line 550 fallback)', async () => {
+      const originalClientUrl = process.env.CLIENT_URL;
+      const originalAllowedOrigins = process.env.ALLOWED_ORIGINS;
+      try {
+        delete process.env.CLIENT_URL;
+        process.env.ALLOWED_ORIGINS = 'https://staging.todoria.app,https://todoria.app';
+        req.body = { email: 'test@example.com' };
+        query
+          .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: 'Test' }] })
+          .mockResolvedValueOnce({});
+
+        await forgotPassword(req, res);
+
+        expect(queuePasswordResetEmail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            resetUrl: expect.stringContaining('https://staging.todoria.app/reset-password?token='),
+          })
+        );
+      } finally {
+        process.env.CLIENT_URL = originalClientUrl;
+        process.env.ALLOWED_ORIGINS = originalAllowedOrigins;
+      }
+    });
+
+    it('should use default todoria.com when neither CLIENT_URL nor ALLOWED_ORIGINS set (line 550 fallback)', async () => {
+      const originalClientUrl = process.env.CLIENT_URL;
+      const originalAllowedOrigins = process.env.ALLOWED_ORIGINS;
+      try {
+        delete process.env.CLIENT_URL;
+        delete process.env.ALLOWED_ORIGINS;
+        req.body = { email: 'test@example.com' };
+        query
+          .mockResolvedValueOnce({ rows: [{ id: 1, email: 'test@example.com', name: 'Test' }] })
+          .mockResolvedValueOnce({});
+
+        await forgotPassword(req, res);
+
+        expect(queuePasswordResetEmail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            resetUrl: expect.stringContaining('https://www.todoria.com/reset-password?token='),
+          })
+        );
+      } finally {
+        process.env.CLIENT_URL = originalClientUrl;
+        process.env.ALLOWED_ORIGINS = originalAllowedOrigins;
+      }
+    });
+
+    it('should hide error details in production mode (safeError line 12)', async () => {
+      const originalEnv = process.env.NODE_ENV;
+      try {
+        process.env.NODE_ENV = 'production';
+        req.body = { email: 'test@example.com' };
+        query.mockRejectedValue(new Error('Database error'));
+
+        await forgotPassword(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.json).toHaveBeenCalledWith({
+          status: 'error',
+          message: 'Error processing password reset request',
+          error: undefined, // safeError returns undefined in production
+        });
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+      }
+    });
+
     it('should log warning when queuePasswordResetEmail rejects but still return success', async () => {
       const logger = require('../../lib/logger');
       req.body = { email: 'test@example.com' };
@@ -1072,6 +1157,56 @@ describe('Auth Controller', () => {
         status: 'success',
         message: 'Verification email sent. Please check your inbox.',
       });
+    });
+
+    it('should use default todoria.com for verification URL when neither CLIENT_URL nor ALLOWED_ORIGINS set (line 725)', async () => {
+      const originalClientUrl = process.env.CLIENT_URL;
+      const originalAllowedOrigins = process.env.ALLOWED_ORIGINS;
+      try {
+        delete process.env.CLIENT_URL;
+        delete process.env.ALLOWED_ORIGINS;
+        query
+          .mockResolvedValueOnce({
+            rows: [{ id: 1, email: 'test@example.com', name: 'Test', email_verified: false }],
+          })
+          .mockResolvedValueOnce({});
+
+        await resendVerificationEmail(req, res);
+
+        expect(queueVerificationEmail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            verificationUrl: expect.stringContaining('https://www.todoria.com/verify-email?token='),
+          })
+        );
+      } finally {
+        process.env.CLIENT_URL = originalClientUrl;
+        process.env.ALLOWED_ORIGINS = originalAllowedOrigins;
+      }
+    });
+
+    it('should use ALLOWED_ORIGINS fallback for verification URL when CLIENT_URL unset (line 725)', async () => {
+      const originalClientUrl = process.env.CLIENT_URL;
+      const originalAllowedOrigins = process.env.ALLOWED_ORIGINS;
+      try {
+        delete process.env.CLIENT_URL;
+        process.env.ALLOWED_ORIGINS = 'https://staging.todoria.app';
+        query
+          .mockResolvedValueOnce({
+            rows: [{ id: 1, email: 'test@example.com', name: 'Test User', email_verified: false }],
+          })
+          .mockResolvedValueOnce({});
+
+        await resendVerificationEmail(req, res);
+
+        expect(queueVerificationEmail).toHaveBeenCalledWith(
+          expect.objectContaining({
+            verificationUrl: expect.stringContaining('https://staging.todoria.app/verify-email?token='),
+          })
+        );
+      } finally {
+        process.env.CLIENT_URL = originalClientUrl;
+        process.env.ALLOWED_ORIGINS = originalAllowedOrigins;
+      }
     });
 
     it('should return 500 on database error', async () => {

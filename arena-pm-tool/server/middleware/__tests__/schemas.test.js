@@ -20,6 +20,9 @@ const {
   updateMemberRoleSchema,
   updateTaskPositionSchema,
   reorderCategoriesSchema,
+  _sanitize: sanitize,
+  _sanitizedString: sanitizedString,
+  _optionalSanitizedString: optionalSanitizedString,
 } = require('../schemas');
 
 // Helper: a valid UUID for workspace_id fields
@@ -555,5 +558,148 @@ describe('reorderCategoriesSchema', () => {
 
   it('should fail with non-integer category ids', () => {
     expectFailure(reorderCategoriesSchema, { categoryIds: [1.5], workspace_id: VALID_UUID });
+  });
+});
+
+// ============================================================================
+// sanitize helper — branch coverage for non-string input (lines 10-12)
+// ============================================================================
+describe('sanitize helper — branch coverage (lines 9-12)', () => {
+  it('should strip HTML tags and trim when given a string (true branch)', () => {
+    expect(sanitize('<b>Hello</b>')).toBe('Hello');
+    expect(sanitize('  spaced  ')).toBe('spaced');
+    expect(sanitize('<script>alert(1)</script>text')).toBe('alert(1)text');
+  });
+
+  it('should return value as-is when given a non-string (false branch)', () => {
+    expect(sanitize(42)).toBe(42);
+    expect(sanitize(null)).toBeNull();
+    expect(sanitize(undefined)).toBeUndefined();
+    expect(sanitize(true)).toBe(true);
+    expect(sanitize({ key: 'val' })).toEqual({ key: 'val' });
+    expect(sanitize([1, 2])).toEqual([1, 2]);
+  });
+
+  it('should handle null passed to an optionalSanitizedString field', () => {
+    const data = createTaskSchema.body.safeParse({
+      title: 'Test',
+      workspace_id: VALID_UUID,
+      description: null,
+    });
+    expect(data.success).toBe(true);
+    expect(data.data.description).toBeNull();
+  });
+});
+
+// ============================================================================
+// sanitizedString/optionalSanitizedString — default parameter branches (lines 14, 17)
+// ============================================================================
+describe('sanitizedString and optionalSanitizedString — default maxLen branch coverage', () => {
+  it('should use default maxLen=500 when called with no arguments (line 14)', () => {
+    // Calling sanitizedString() with no arg exercises the maxLen=500 default branch
+    const schema = sanitizedString();
+    const result = schema.safeParse('A'.repeat(500));
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject strings exceeding default maxLen=500', () => {
+    const schema = sanitizedString();
+    const result = schema.safeParse('A'.repeat(501));
+    expect(result.success).toBe(false);
+  });
+
+  it('should use explicit maxLen when provided', () => {
+    const schema = sanitizedString(100);
+    const result = schema.safeParse('A'.repeat(100));
+    expect(result.success).toBe(true);
+    const failResult = schema.safeParse('A'.repeat(101));
+    expect(failResult.success).toBe(false);
+  });
+
+  it('should use default maxLen=500 for optionalSanitizedString when called with no arguments (line 17)', () => {
+    // Calling optionalSanitizedString() with no arg exercises the maxLen=500 default
+    const schema = optionalSanitizedString();
+    const result = schema.safeParse('A'.repeat(500));
+    expect(result.success).toBe(true);
+  });
+
+  it('should reject strings exceeding default maxLen=500 for optionalSanitizedString', () => {
+    const schema = optionalSanitizedString();
+    const result = schema.safeParse('A'.repeat(501));
+    expect(result.success).toBe(false);
+  });
+
+  it('should accept empty string via .or(z.literal("")) in optionalSanitizedString (line 18)', () => {
+    const schema = optionalSanitizedString();
+    const result = schema.safeParse('');
+    expect(result.success).toBe(true);
+    expect(result.data).toBe('');
+  });
+
+  it('should accept undefined for optionalSanitizedString', () => {
+    const schema = optionalSanitizedString();
+    const result = schema.safeParse(undefined);
+    expect(result.success).toBe(true);
+  });
+
+  it('should use explicit maxLen for optionalSanitizedString', () => {
+    const schema = optionalSanitizedString(10000);
+    const result = schema.safeParse('A'.repeat(10000));
+    expect(result.success).toBe(true);
+    const failResult = schema.safeParse('A'.repeat(10001));
+    expect(failResult.success).toBe(false);
+  });
+});
+
+// ============================================================================
+// forgotPasswordSchema
+// ============================================================================
+describe('forgotPasswordSchema', () => {
+  it('should pass with valid email', () => {
+    expectSuccess(forgotPasswordSchema, { email: 'user@example.com' });
+  });
+
+  it('should fail when email is missing', () => {
+    expectFailure(forgotPasswordSchema, {});
+  });
+});
+
+// ============================================================================
+// resetPasswordSchema
+// ============================================================================
+describe('resetPasswordSchema', () => {
+  it('should pass with valid token and password', () => {
+    expectSuccess(resetPasswordSchema, { token: 'abc123', password: STRONG_PASSWORD });
+  });
+
+  it('should fail when token is empty', () => {
+    expectFailure(resetPasswordSchema, { token: '', password: STRONG_PASSWORD });
+  });
+});
+
+// ============================================================================
+// verifyEmailSchema
+// ============================================================================
+describe('verifyEmailSchema', () => {
+  it('should pass with valid token', () => {
+    expectSuccess(verifyEmailSchema, { token: 'verify-token-123' });
+  });
+
+  it('should fail when token is empty', () => {
+    expectFailure(verifyEmailSchema, { token: '' });
+  });
+});
+
+// ============================================================================
+// updateWorkspaceSchema
+// ============================================================================
+describe('updateWorkspaceSchema', () => {
+  it('should pass with empty body (all optional)', () => {
+    expectSuccess(updateWorkspaceSchema, {});
+  });
+
+  it('should pass with name update', () => {
+    const data = expectSuccess(updateWorkspaceSchema, { name: 'New Name' });
+    expect(data.name).toBe('New Name');
   });
 });

@@ -232,4 +232,8 @@ module.exports = {
   updateMemberRoleSchema,
   updateTaskPositionSchema,
   reorderCategoriesSchema,
+  // Exported for testing only
+  _sanitize: sanitize,
+  _sanitizedString: sanitizedString,
+  _optionalSanitizedString: optionalSanitizedString,
 };

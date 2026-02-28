@@ -124,4 +124,46 @@ describe('Admin Controller — getStats', () => {
       })
     );
   });
+
+  it('should include error.message in non-production environments', async () => {
+    query.mockRejectedValueOnce(new Error('Some DB error'));
+
+    await getStats(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    const responseBody = res.json.mock.calls[0][0];
+    expect(responseBody.error).toBe('Some DB error');
+  });
+
+  it('should hide error details when NODE_ENV is production (line 7 branch)', async () => {
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    // Re-require the module to pick up the new NODE_ENV for safeError
+    jest.resetModules();
+
+    // Re-mock dependencies before requiring
+    jest.mock('../../config/database', () => ({
+      query: jest.fn(),
+      getClient: jest.fn(),
+    }));
+    jest.mock('../../lib/logger', () => ({
+      info: jest.fn(),
+      error: jest.fn(),
+      warn: jest.fn(),
+    }));
+
+    const { query: prodQuery } = require('../../config/database');
+    const { getStats: prodGetStats } = require('../adminController');
+
+    prodQuery.mockRejectedValueOnce(new Error('Sensitive DB error'));
+
+    await prodGetStats(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    const responseBody = res.json.mock.calls[0][0];
+    expect(responseBody.error).toBeUndefined();
+
+    process.env.NODE_ENV = originalNodeEnv;
+  });
 });
