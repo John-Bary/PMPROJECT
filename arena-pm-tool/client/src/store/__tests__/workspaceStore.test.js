@@ -1156,6 +1156,193 @@ describe('Workspace Store', () => {
   });
 });
 
+// ─── || [] fallback and error message fallback branches ─────
+describe('workspaceStore fallback branches', () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState(initialState);
+    jest.clearAllMocks();
+    localStorageMock.store = {};
+  });
+
+  it('initialize: should default workspaces to [] when response.data.data.workspaces is undefined (line 33)', async () => {
+    workspacesAPI.getAll.mockResolvedValue({
+      data: { data: {} }, // no .workspaces field
+    });
+
+    await act(async () => {
+      await useWorkspaceStore.getState().initialize();
+    });
+
+    expect(useWorkspaceStore.getState().workspaces).toEqual([]);
+  });
+
+  it('fetchWorkspaces: should default workspaces to [] when response.data.data.workspaces is undefined (line 136)', async () => {
+    workspacesAPI.getAll.mockResolvedValue({
+      data: { data: {} },
+    });
+
+    await act(async () => {
+      await useWorkspaceStore.getState().fetchWorkspaces();
+    });
+
+    expect(useWorkspaceStore.getState().workspaces).toEqual([]);
+  });
+
+  it('fetchMembers: should default members to [] when response.data.data.members is undefined (line 262)', async () => {
+    workspacesAPI.getMembers.mockResolvedValue({
+      data: { data: {} }, // no .members field
+    });
+
+    await act(async () => {
+      await useWorkspaceStore.getState().fetchMembers('ws-1');
+    });
+
+    expect(useWorkspaceStore.getState().members).toEqual([]);
+  });
+
+  it('fetchInvitations: should default invitations to [] when response.data.data.invitations is undefined (line 362)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1' });
+    workspacesAPI.getInvitations.mockResolvedValue({
+      data: { data: {} }, // no .invitations field
+    });
+
+    await act(async () => {
+      await useWorkspaceStore.getState().fetchInvitations();
+    });
+
+    expect(useWorkspaceStore.getState().invitations).toEqual([]);
+  });
+
+  it('sendInvitation: should use error.message fallback when no response.data.message (line 313)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1' });
+    workspacesAPI.invite.mockRejectedValue(new Error('Network error'));
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().inviteUser('test@example.com', 'member');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Network error');
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Network error');
+  });
+
+  it('sendInvitation: should use hardcoded fallback when neither response.data.message nor error.message (line 313)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1' });
+    workspacesAPI.invite.mockRejectedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().inviteUser('test@example.com', 'member');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to send invitation');
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Failed to send invitation');
+  });
+
+  it('acceptInvitation: should use error.message fallback when no response.data.message (line 349)', async () => {
+    workspacesAPI.acceptInvitation.mockRejectedValue(new Error('Token expired'));
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().acceptInvitation('tok-123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Token expired');
+    });
+
+    expect(toast.error).toHaveBeenCalledWith('Token expired');
+  });
+
+  it('acceptInvitation: should use hardcoded fallback when no error data at all (line 349)', async () => {
+    workspacesAPI.acceptInvitation.mockRejectedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().acceptInvitation('tok-123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Failed to accept invitation');
+    });
+  });
+
+  it('removeMember: should use error.message fallback (line 398)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1', members: [{ id: 'm-1' }] });
+    workspacesAPI.removeMember.mockRejectedValue(new Error('Forbidden'));
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().removeMember('m-1');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Forbidden');
+    });
+  });
+
+  it('removeMember: should use hardcoded fallback (line 398)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1', members: [{ id: 'm-1' }] });
+    workspacesAPI.removeMember.mockRejectedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().removeMember('m-1');
+      expect(result.error).toBe('Failed to remove member');
+    });
+  });
+
+  it('updateMemberRole: should update matching member and leave others unchanged (lines 416-423)', async () => {
+    useWorkspaceStore.setState({
+      currentWorkspaceId: 'ws-1',
+      members: [
+        { id: 'm-1', role: 'member' },
+        { id: 'm-2', role: 'member' },
+      ],
+    });
+    workspacesAPI.updateMemberRole.mockResolvedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().updateMemberRole('m-1', 'admin');
+      expect(result.success).toBe(true);
+    });
+
+    const { members } = useWorkspaceStore.getState();
+    expect(members[0]).toEqual({ id: 'm-1', role: 'admin' });
+    expect(members[1]).toEqual({ id: 'm-2', role: 'member' }); // unchanged
+  });
+
+  it('updateMemberRole: should use error.message fallback (line 423)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1' });
+    workspacesAPI.updateMemberRole.mockRejectedValue(new Error('Server error'));
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().updateMemberRole('m-1', 'admin');
+      expect(result.error).toBe('Server error');
+    });
+  });
+
+  it('updateMemberRole: should use hardcoded fallback (line 423)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1' });
+    workspacesAPI.updateMemberRole.mockRejectedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().updateMemberRole('m-1', 'admin');
+      expect(result.error).toBe('Failed to update member role');
+    });
+  });
+
+  it('cancelInvitation: should use error.message fallback (line 446)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1', invitations: [{ id: 'inv-1' }] });
+    workspacesAPI.cancelInvitation.mockRejectedValue(new Error('Not found'));
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().cancelInvitation('inv-1');
+      expect(result.error).toBe('Not found');
+    });
+  });
+
+  it('cancelInvitation: should use hardcoded fallback (line 446)', async () => {
+    useWorkspaceStore.setState({ currentWorkspaceId: 'ws-1', invitations: [{ id: 'inv-1' }] });
+    workspacesAPI.cancelInvitation.mockRejectedValue({});
+
+    await act(async () => {
+      const result = await useWorkspaceStore.getState().cancelInvitation('inv-1');
+      expect(result.error).toBe('Failed to cancel invitation');
+    });
+  });
+});
+
 // localStorage migration (module-level code)
 describe('localStorage migration', () => {
   it('should migrate from arena_current_workspace_id to todoria_current_workspace_id', () => {
