@@ -50,12 +50,12 @@ arena-pm-tool/
 │   │   │   └── ui/              # shadcn/ui primitives (23 .tsx files)
 │   │   ├── contexts/            # React contexts (WorkspaceContext)
 │   │   ├── lib/                 # Utility functions (cn() from clsx + tailwind-merge)
-│   │   ├── hooks/               # Custom hooks (focus trap, keyboard shortcuts, task actions/filters)
+│   │   ├── hooks/               # Custom hooks (focus trap, task actions/filters)
 │   │   ├── pages/               # Page components (22 files)
 │   │   │   └── UserArea/        # User settings sub-pages (Profile, Preferences, Notifications, My Tasks, Team, Activity, Account)
 │   │   ├── store/               # Zustand stores (auth, task, category, workspace, billing, user, holiday)
 │   │   ├── types/               # TypeScript type definitions
-│   │   ├── utils/               # Helpers (api, analytics, dateUtils, priorityStyles, supabase)
+│   │   ├── utils/               # Helpers (api, analytics, dateUtils, priorityStyles)
 │   │   └── App.js               # Root component with routing
 │   ├── tailwind.config.js
 │   └── package.json
@@ -70,7 +70,7 @@ arena-pm-tool/
 │   │   └── __tests__/           # Middleware tests
 │   ├── migrations/              # node-pg-migrate migrations (5 files)
 │   ├── routes/                  # API route definitions (10 files)
-│   ├── scripts/                 # Database & utility scripts (18 files)
+│   ├── scripts/                 # Database & utility scripts (10 files)
 │   ├── templates/email/         # HTML email templates (7 templates)
 │   ├── tests/                   # Integration tests
 │   ├── uploads/                 # Avatar uploads
@@ -396,7 +396,6 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 ```javascript
 // useTaskActions — shared task toggle logic
 // useTaskFilters — shared filtering with debounced search
-// useKeyboardShortcuts — global keyboard shortcut handler
 // useFocusTrap — accessible modal focus management
 ```
 
@@ -410,8 +409,8 @@ router.get('/:id/members', authMiddleware, workspaceAuth('admin', 'member'), wit
 - Context tests: `WorkspaceContext.test.js` (27)
 - API tests: `client/src/utils/api.test.js` (198) — 96.38% branches
 - Utility tests: `dateUtils.test.js` (24), `priorityStyles.test.js` (24), `analytics.test.js` (19)
-- Hook tests: `useTaskFilters.test.js` (24), `useKeyboardShortcuts.test.js` (15), `useTaskActions.test.js` (7), `useInView.test.js` (8)
-- 22 test suites, 649 tests total
+- Hook tests: `useTaskFilters.test.js` (24), `useTaskActions.test.js` (7)
+- 20 test suites, 626 tests total
 
 ### Backend (Jest + supertest)
 - Controller unit tests: `server/controllers/__tests__/` (auth 63, billing 46, category 50, comment 23, task 77, workspace 85, me 57, onboarding 38, holiday 9, admin 7)
@@ -519,7 +518,7 @@ Requires GitHub secrets: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`. S
 - Branch coverage expansion: server holidayController 100%, AppError 100%, alerts 100%, workspaceAuth 100%, auditLog 100%; client userStore +1, useInView +1, useTaskFilters +2
 - Branch coverage expansion: authController 100%, adminController 100%, onboardingController 100%, schemas.js 100%; api.js 96.38%; workspaceStore 100%
 - All 7 client Zustand stores at 100% all metrics (auth, task, category, workspace, billing, user, holiday)
-- Total: 1,622 tests across 54 suites (server 973, client 649)
+- Total: 1,599 tests across 52 suites (server 973, client 626)
 - Server coverage: 99.59% statements, 97.84% branches, 98.24% functions, 99.64% lines
 
 ### Remaining (from Todoria_Launch_Checklist.docx — all external/infrastructure, no code changes needed)
