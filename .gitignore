@@ -53,3 +53,6 @@ build/
 
 # Vercel
 .vercel
+
+# Production secrets template
+arena-pm-tool/docs/PRODUCTION_SECRETS.md

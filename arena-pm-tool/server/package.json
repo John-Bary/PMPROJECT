@@ -28,7 +28,8 @@
     "reminders:schedule": "node jobs/reminderJob.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
-    "seed:perf": "node scripts/seedPerformanceData.js"
+    "seed:perf": "node scripts/seedPerformanceData.js",
+    "prelaunch": "node scripts/prelaunchCheck.js"
   },
   "keywords": [],
   "author": "",
