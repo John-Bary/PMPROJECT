@@ -434,26 +434,26 @@ function ListView() {
     };
   }, [activeDropdown, updatePriorityPosition]);
 
-  const handleOpenDetail = (task) => {
+  const handleOpenDetail = useCallback((task) => {
     setSelectedTaskId(task.id);
     setIsDetailModalOpen(true);
-  };
+  }, []);
 
   const handleCloseDetail = () => {
     setIsDetailModalOpen(false);
     setSelectedTaskId(null);
   };
 
-  const handleEdit = (task) => {
+  const handleEdit = useCallback((task) => {
     setDefaultCategoryId(null);
     setParentTaskForSubtask(null);
     setEditingTask(task);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDelete = (task) => {
+  const handleDelete = useCallback((task) => {
     setDeletingTask(task);
-  };
+  }, []);
 
   const confirmDelete = async () => {
     if (deletingTask) {
@@ -475,12 +475,12 @@ function ListView() {
     setActiveDropdown(null);
   };
 
-  const handleAddSubtask = (parentTask) => {
+  const handleAddSubtask = useCallback((parentTask) => {
     setDefaultCategoryId(null);
     setParentTaskForSubtask(parentTask);
     setEditingTask(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
 
   // Track active drag item for DragOverlay
@@ -574,20 +574,20 @@ function ListView() {
   };
 
   // Toggle task expansion to show/hide subtasks
-  const toggleTaskExpansion = (taskId) => {
+  const toggleTaskExpansion = useCallback((taskId) => {
     setExpandedTasks(prev => ({
       ...prev,
       [taskId]: !prev[taskId]
     }));
-  };
+  }, []);
 
   // Toggle category collapse
-  const toggleCategoryCollapse = (categoryId) => {
+  const toggleCategoryCollapse = useCallback((categoryId) => {
     setCollapsedCategories(prev => ({
       ...prev,
       [categoryId]: !prev[categoryId]
     }));
-  };
+  }, []);
 
   // Memoize getSubtasks
   const getSubtasks = useCallback((parentTaskId) => {
