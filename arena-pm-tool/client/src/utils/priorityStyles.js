@@ -13,10 +13,10 @@ export const priorityDotColors = {
 };
 
 export const priorityPillStyles = {
-  urgent: 'bg-red-50 text-red-700 border-red-200',
-  high: 'bg-orange-50 text-orange-700 border-orange-200',
-  medium: 'bg-yellow-50 text-yellow-700 border-yellow-300',
-  low: 'bg-blue-50 text-blue-700 border-blue-200',
+  urgent: 'bg-red-600 text-white',
+  high: 'bg-red-500 text-white',
+  medium: 'bg-orange-500 text-white',
+  low: 'bg-green-500 text-white',
 };
 
 export const priorityBorderColors = {

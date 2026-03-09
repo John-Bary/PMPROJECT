@@ -11,7 +11,7 @@ import { priorityPillStyles, priorityBorderColors } from '../utils/priorityStyle
 import DatePicker from './DatePicker';
 import AssigneeDropdown from './AssigneeDropdown';
 
-function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false, categories = [] }) {
+function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplete, isToggling = false, searchQuery = '', canEdit = true, noDrag = false, categories = [], isFocused = false }) {
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPriorityDropdown, setShowPriorityDropdown] = useState(false);
@@ -25,6 +25,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   const [priorityDropdownPos, setPriorityDropdownPos] = useState({ top: 0, left: 0 });
   const moveDropdownRef = useRef(null);
   const titleInputRef = useRef(null);
+  const cardRef = useRef(null);
   const { users, fetchUsers } = useUserStore();
   const { updateTask } = useTaskStore();
   const { currentWorkspaceId } = useWorkspaceStore();
@@ -71,6 +72,13 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   };
 
   const isCompleted = task.status === 'completed';
+
+  // Scroll focused card into view
+  useEffect(() => {
+    if (isFocused && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [isFocused]);
 
   // Fetch users on mount
   useEffect(() => {
@@ -285,14 +293,14 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
   return (
     <>
       <div
-        ref={setNodeRef}
+        ref={(node) => { setNodeRef(node); cardRef.current = node; }}
         style={sortableStyle}
         {...attributes}
         {...(canEdit && !noDrag ? listeners : {})}
         onClick={handleCardClick}
-        className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-0.5 hover:shadow-elevated hover:border-border/80 transition-all duration-150 cursor-pointer border-l-[3px] ${priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
+        className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-1 hover:shadow-elevated hover:border-border/80 transition-all duration-200 ease-out cursor-pointer border-l-[3px] ${isOverdue && !isCompleted ? 'border-l-red-500 bg-red-50/40 dark:bg-red-950/20' : priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
           isCompleted ? 'opacity-50' : ''
-        } ${isDragging ? 'shadow-elevated' : ''}`}
+        } ${isDragging ? 'shadow-elevated' : ''} ${isFocused ? 'ring-2 ring-primary/40 ring-offset-1 ring-offset-background' : ''}`}
       >
         {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
         {canEdit && (

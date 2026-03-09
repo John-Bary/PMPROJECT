@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
-import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye, Loader2 } from 'lucide-react';
+import { Plus, Search, X, ClipboardList, FilterX, FolderPlus, SearchX, Eye, Loader2, HelpCircle } from 'lucide-react';
 import { DndContext, DragOverlay, closestCorners } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { useDndSensors } from '../hooks/useDndSensors';
@@ -13,6 +13,8 @@ import TaskDetailModal from './TaskDetailModal';
 import CategoryModal from './CategoryModal';
 import AddCategoryButton from './AddCategoryButton';
 import FilterDropdown from './FilterDropdown';
+import BoardStats from './BoardStats';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import { InlineSpinner, TaskColumnSkeleton } from './Loader';
 import EmptyState from './EmptyState';
 import { useTaskActions } from '../hooks/useTaskActions';
@@ -69,6 +71,9 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
   const [isDraggingCategory, setIsDraggingCategory] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [selectedMobileCategory, setSelectedMobileCategory] = useState(null);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [focusedTaskIndex, setFocusedTaskIndex] = useState(-1);
+  const [focusedColumnIndex, setFocusedColumnIndex] = useState(0);
   const sensors = useDndSensors();
 
   // Handle mobile add task trigger from Dashboard top bar
@@ -106,17 +111,88 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     fetchCategories();
   }, [fetchTasks, fetchCategories]);
 
-  // Cmd/Ctrl+K keyboard shortcut to focus search
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Skip if user is typing in an input/textarea
+      const tag = e.target.tagName;
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+
+      // Cmd/Ctrl+K to focus search (works even when typing)
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         searchInputRef.current?.focus();
+        return;
+      }
+
+      // Don't handle other shortcuts while typing or when modals are open
+      if (isTyping || isModalOpen || isDetailModalOpen || isCategoryModalOpen) return;
+
+      // ? to toggle shortcuts cheat sheet
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsOpen(prev => !prev);
+        return;
+      }
+
+      // Escape to clear focus
+      if (e.key === 'Escape') {
+        setFocusedTaskIndex(-1);
+        return;
+      }
+
+      // N to create new task
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        if (userCanEdit) {
+          openCreateTask(getSuggestedCategoryId());
+        }
+        return;
+      }
+
+      const currentColumnTasks = getTasksByCategory(visibleCategories[focusedColumnIndex]?.id);
+
+      // Arrow Up/Down to navigate between tasks
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (currentColumnTasks.length > 0) {
+          setFocusedTaskIndex(prev => Math.min(prev + 1, currentColumnTasks.length - 1));
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedTaskIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+
+      // Arrow Left/Right to navigate between columns
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setFocusedColumnIndex(prev => Math.max(prev - 1, 0));
+        setFocusedTaskIndex(0);
+        return;
+      }
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setFocusedColumnIndex(prev => Math.min(prev + 1, visibleCategories.length - 1));
+        setFocusedTaskIndex(0);
+        return;
+      }
+
+      // Enter to open focused task
+      if (e.key === 'Enter' && focusedTaskIndex >= 0) {
+        e.preventDefault();
+        const task = currentColumnTasks[focusedTaskIndex];
+        if (task) handleOpenDetail(task);
+        return;
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [focusedColumnIndex, focusedTaskIndex, visibleCategories, isModalOpen, isDetailModalOpen, isCategoryModalOpen, userCanEdit, getTasksByCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
 
   const handleOpenDetail = (task) => {
@@ -371,13 +447,18 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                 <X size={18} />
               </button>
             )}
-            {!searchInput && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-gray-100 rounded-md px-1.5 py-0.5 text-[11px] font-mono text-[#94A3B8]">Cmd+K</span>}
+            {!searchInput && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground">Cmd+K</span>}
           </div>
 
           {/* Filter Dropdown */}
           <FilterDropdown filters={filters} onFiltersChange={setFilters} disabled={disableControls} />
         </div>
       </div>
+
+      {/* Quick Stats Bar */}
+      {!isLoadingData && topLevelTasks.length > 0 && (
+        <BoardStats tasks={topLevelTasks} />
+      )}
 
       {isLoadingData ? (
         <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4">
@@ -543,6 +624,7 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
                       searchQuery={searchQuery}
                       isDraggingCategory={isDraggingCategory}
                       canEdit={userCanEdit}
+                      focusedTaskIndex={focusedColumnIndex === index ? focusedTaskIndex : -1}
                     />
                   ))}
 
@@ -656,6 +738,22 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetail}
         onDelete={handleDelete}
+      />
+
+      {/* Keyboard Shortcuts Button */}
+      <button
+        onClick={() => setIsShortcutsOpen(true)}
+        className="fixed bottom-6 right-6 z-40 w-10 h-10 rounded-full bg-card border border-border shadow-elevated flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-modal transition-all duration-200 hidden md:flex"
+        title="Keyboard shortcuts (?)"
+        aria-label="Show keyboard shortcuts"
+      >
+        <HelpCircle size={18} />
+      </button>
+
+      {/* Keyboard Shortcuts Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </>
   );

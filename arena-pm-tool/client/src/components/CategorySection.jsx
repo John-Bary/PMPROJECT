@@ -23,6 +23,7 @@ function CategorySection({
   index,
   isDraggingCategory = false,
   canEdit = true,
+  focusedTaskIndex = -1,
 }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [quickAddTitle, setQuickAddTitle] = useState('');
@@ -192,6 +193,7 @@ function CategorySection({
                 isToggling={togglingTaskIds.has(task.id)}
                 searchQuery={searchQuery}
                 canEdit={canEdit}
+                isFocused={focusedTaskIndex === taskIndex}
               />
             ))
           ) : (

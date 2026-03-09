@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LayoutGrid, Calendar, List, Menu, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus, Loader2 } from 'lucide-react';
+import { LayoutGrid, Calendar, List, Menu, Settings, Users, CreditCard, LogOut, PanelLeftClose, PanelLeft, Plus, Loader2, Sun, Moon } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useAuthStore from '../store/authStore';
 import WorkspaceSwitcher from '../components/WorkspaceSwitcher';
@@ -31,6 +31,19 @@ function Dashboard() {
     return typeof window !== 'undefined' && window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches;
   });
   const [showMobileAddTask, setShowMobileAddTask] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('todoria_dark_mode') === 'true' ||
+        (!localStorage.getItem('todoria_dark_mode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    return false;
+  });
+
+  // Sync dark mode class on mount and changes
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDarkMode);
+    localStorage.setItem('todoria_dark_mode', isDarkMode.toString());
+  }, [isDarkMode]);
 
   // Auto-collapse sidebar on tablet resize (768-1024px)
   useEffect(() => {
@@ -142,6 +155,16 @@ function Dashboard() {
             {(!isSidebarCollapsed || mobile) && <span>Billing</span>}
           </Link>
         </div>
+
+        {/* Dark mode toggle */}
+        <button
+          onClick={() => setIsDarkMode(!isDarkMode)}
+          title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-11 sm:h-9 w-full rounded-lg text-sm text-muted-foreground hover:bg-background transition-all duration-150`}
+        >
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          {(!isSidebarCollapsed || mobile) && <span>{isDarkMode ? 'Light mode' : 'Dark mode'}</span>}
+        </button>
 
         {/* User row */}
         <div className={`flex items-center ${isSidebarCollapsed && !mobile ? 'justify-center' : 'gap-3 px-3'} h-10`}>
