@@ -947,7 +947,7 @@ function LandingPage() {
           </motion.div>
 
           {/* Pricing cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-[800px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-[1100px] mx-auto">
             {/* Free card */}
             <motion.div
               variants={fadeUp}
@@ -1041,7 +1041,7 @@ function LandingPage() {
                   className="font-display font-bold"
                   style={{ fontSize: '2.5rem', color: 'var(--text-primary)', lineHeight: 1 }}
                 >
-                  €3
+                  €5
                 </span>
                 <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>/seat/month</span>
               </div>
@@ -1087,6 +1087,75 @@ function LandingPage() {
                 }}
               >
                 Start free trial
+              </Link>
+            </motion.div>
+
+            {/* Lifetime card */}
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+              className="rounded-2xl p-6 sm:p-10 flex flex-col"
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <h3
+                className="font-display font-semibold"
+                style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}
+              >
+                Lifetime
+              </h3>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span
+                  className="font-display font-bold"
+                  style={{ fontSize: '2.5rem', color: 'var(--text-primary)', lineHeight: 1 }}
+                >
+                  €50
+                </span>
+                <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>one-time</span>
+              </div>
+              <p
+                className="mt-2"
+                style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}
+              >
+                Pay once, use forever
+              </p>
+              <ul className="mt-6 space-y-3 flex-1">
+                {[
+                  'Up to 50 members',
+                  'Unlimited tasks',
+                  'Unlimited workspaces',
+                  'Board + List + Calendar views',
+                  'Email reminders',
+                  'File attachments',
+                  'Priority support',
+                ].map((feature) => (
+                  <li key={feature} className="flex items-center gap-2.5">
+                    <Check size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to="/register"
+                className="mt-8 inline-block text-center font-display font-semibold rounded-full transition-all duration-200"
+                style={{
+                  padding: '12px 24px',
+                  fontSize: '0.95rem',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-primary)',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)';
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Get lifetime access
               </Link>
             </motion.div>
           </div>

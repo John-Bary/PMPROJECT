@@ -11,6 +11,11 @@ const planConfig = {
     variant: 'default',
     className: 'text-neutral-900 bg-neutral-100 border-neutral-200 font-medium',
   },
+  lifetime: {
+    label: 'Lifetime',
+    variant: 'default',
+    className: 'text-amber-700 bg-amber-50 border-amber-200 font-medium',
+  },
   business: {
     label: 'Business',
     variant: 'default',

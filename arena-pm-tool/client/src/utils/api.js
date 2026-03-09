@@ -332,8 +332,8 @@ export const billingAPI = {
   getPlans: () => safeApiCall(() => api.get('/billing/plans')),
   getSubscription: (workspaceId) =>
     safeApiCall(() => api.get(`/billing/subscription?workspace_id=${workspaceId}`)),
-  createCheckout: (workspaceId) =>
-    safeApiCall(() => api.post('/billing/checkout', { workspace_id: workspaceId })),
+  createCheckout: (workspaceId, planId = 'pro') =>
+    safeApiCall(() => api.post('/billing/checkout', { workspace_id: workspaceId, plan_id: planId })),
   createPortalSession: (workspaceId) =>
     safeApiCall(() => api.post('/billing/portal', { workspace_id: workspaceId })),
 };

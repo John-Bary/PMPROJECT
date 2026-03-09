@@ -160,11 +160,11 @@ const checkWorkspaceLimit = async (req, res, next) => {
     );
     const currentCount = parseInt(countResult.rows[0].count);
 
-    // Check if any of the user's workspaces have a pro subscription
+    // Check if any of the user's workspaces have a pro or lifetime subscription
     const proResult = await query(
       `SELECT 1 FROM subscriptions s
        JOIN workspaces w ON s.workspace_id = w.id
-       WHERE w.owner_id = $1 AND s.plan_id = 'pro' AND s.status IN ('active', 'trialing')
+       WHERE w.owner_id = $1 AND s.plan_id IN ('pro', 'lifetime') AND s.status IN ('active', 'trialing')
        LIMIT 1`,
       [userId]
     );

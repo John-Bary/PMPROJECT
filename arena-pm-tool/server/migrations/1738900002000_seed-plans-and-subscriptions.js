@@ -3,7 +3,8 @@
  *
  * Plans:
  *   - free: 1 workspace, 3 members, 50 tasks
- *   - pro:  $3/seat/month, unlimited tasks, up to 50 members
+ *   - pro:  €5/seat/month, unlimited tasks, up to 50 members
+ *   - lifetime: €50 one-time, unlimited tasks, up to 50 members
  */
 
 exports.shorthands = undefined;
@@ -14,7 +15,8 @@ exports.up = async (pgm) => {
     INSERT INTO plans (id, name, price_per_seat_cents, max_members, max_tasks_per_workspace, features, active)
     VALUES
       ('free', 'Free', 0, 3, 50, '{"email_reminders": false}'::jsonb, true),
-      ('pro', 'Pro', 300, 50, NULL, '{"email_reminders": true, "priority_support": false}'::jsonb, true)
+      ('pro', 'Pro', 500, 50, NULL, '{"email_reminders": true, "priority_support": false}'::jsonb, true),
+      ('lifetime', 'Lifetime', 5000, 50, NULL, '{"email_reminders": true, "priority_support": true}'::jsonb, true)
     ON CONFLICT (id) DO NOTHING;
   `);
 
@@ -41,6 +43,6 @@ exports.down = (pgm) => {
 
   // Remove seeded plans
   pgm.sql(`
-    DELETE FROM plans WHERE id IN ('free', 'pro');
+    DELETE FROM plans WHERE id IN ('free', 'pro', 'lifetime');
   `);
 };

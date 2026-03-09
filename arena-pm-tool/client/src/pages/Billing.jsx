@@ -82,6 +82,7 @@ function UsageBar({ label, icon: Icon, current, limit, color = 'neutral' }) {
 const DEFAULT_LIMITS = {
   free: { tasks: 50, workspaces: 1, categories: Infinity, members: 3 },
   pro: { tasks: Infinity, workspaces: Infinity, categories: Infinity, members: Infinity },
+  lifetime: { tasks: Infinity, workspaces: Infinity, categories: Infinity, members: Infinity },
 };
 
 function Billing() {
@@ -113,7 +114,7 @@ function Billing() {
   // Handle Stripe checkout success redirect
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
-      toast.success('Subscription activated! Welcome to Pro.');
+      toast.success('Plan activated! Welcome aboard.');
       fetchSubscription();
     } else if (searchParams.get('checkout') === 'cancelled') {
       toast('Checkout cancelled.', { icon: '\u21A9\uFE0F' });
@@ -197,9 +198,11 @@ function Billing() {
                   <p className="text-sm text-muted-foreground">
                     {currentPlan === 'free'
                       ? 'You are on the free plan. Upgrade to unlock more features.'
+                      : currentPlan === 'lifetime'
+                      ? 'You have lifetime access. No recurring charges.'
                       : `You are on the ${plan?.name || 'Pro'} plan.`}
                   </p>
-                  {subscription?.currentPeriodEnd && currentPlan !== 'free' && (
+                  {subscription?.currentPeriodEnd && currentPlan !== 'free' && currentPlan !== 'lifetime' && (
                     <p className="text-xs text-muted-foreground mt-1">
                       {isTrialing ? 'Trial ends' : 'Renews'}: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                     </p>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, Sparkles, Loader2 } from 'lucide-react';
+import { Check, Sparkles, Crown, Loader2 } from 'lucide-react';
 import useBillingStore from '../store/billingStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from 'components/ui/dialog';
 import { Button } from 'components/ui/button';
@@ -22,7 +22,7 @@ const plans = [
   {
     id: 'pro',
     name: 'Pro',
-    price: '\u20ac3',
+    price: '\u20ac5',
     period: '/seat/month',
     description: 'For small teams who need more',
     icon: Sparkles,
@@ -39,6 +39,25 @@ const plans = [
     popular: true,
     className: 'border-primary ring-2 ring-accent',
   },
+  {
+    id: 'lifetime',
+    name: 'Lifetime',
+    price: '\u20ac50',
+    period: ' one-time',
+    description: 'Pay once, use forever',
+    icon: Crown,
+    features: [
+      'Everything in Pro',
+      'Unlimited tasks',
+      'Unlimited workspaces',
+      'Unlimited members',
+      'All views included',
+      'Priority support',
+      'No recurring fees',
+    ],
+    cta: 'Get Lifetime Access',
+    className: 'border-border',
+  },
 ];
 
 function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
@@ -50,7 +69,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
     setLoadingPlan(planId);
     try {
-      await startCheckout();
+      await startCheckout(planId);
     } finally {
       setLoadingPlan(null);
     }
@@ -67,7 +86,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             Choose Your Plan
@@ -78,7 +97,7 @@ function UpgradeModal({ isOpen, onClose, currentPlan = 'free' }) {
         </DialogHeader>
 
         {/* Plans Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
           {plans.map((plan) => {
             const isCurrent = plan.id === currentPlan;
             const Icon = plan.icon;

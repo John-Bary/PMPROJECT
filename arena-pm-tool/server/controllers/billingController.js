@@ -123,12 +123,19 @@ const getSubscription = async (req, res) => {
 const createCheckoutSession = async (req, res) => {
   try {
     const stripe = getStripe();
-    const { workspace_id } = req.body;
+    const { workspace_id, plan_id = 'pro' } = req.body;
 
     if (!workspace_id) {
       return res.status(400).json({
         status: 'error',
         message: 'workspace_id is required',
+      });
+    }
+
+    if (!['pro', 'lifetime'].includes(plan_id)) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid plan_id. Must be "pro" or "lifetime".',
       });
     }
 
@@ -190,36 +197,65 @@ const createCheckoutSession = async (req, res) => {
       }
     }
 
-    if (!process.env.STRIPE_PRO_PRICE_ID) {
-      return res.status(500).json({
-        status: 'error',
-        message: 'Stripe price configuration is missing',
-      });
-    }
-
     const clientUrl = (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/+$/, '');
+    let session;
 
-    const session = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
-      mode: 'subscription',
-      line_items: [
-        {
-          price: process.env.STRIPE_PRO_PRICE_ID,
-          quantity: seatCount,
+    if (plan_id === 'lifetime') {
+      // One-time payment for lifetime plan
+      if (!process.env.STRIPE_LIFETIME_PRICE_ID) {
+        return res.status(500).json({
+          status: 'error',
+          message: 'Stripe lifetime price configuration is missing',
+        });
+      }
+
+      session = await stripe.checkout.sessions.create({
+        customer: stripeCustomerId,
+        mode: 'payment',
+        line_items: [
+          {
+            price: process.env.STRIPE_LIFETIME_PRICE_ID,
+            quantity: 1,
+          },
+        ],
+        success_url: `${clientUrl}/billing?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
+        cancel_url: `${clientUrl}/billing?checkout=cancelled`,
+        metadata: {
+          workspace_id,
+          plan_id: 'lifetime',
         },
-      ],
-      subscription_data: {
-        trial_period_days: 14,
+      });
+    } else {
+      // Recurring subscription for pro plan
+      if (!process.env.STRIPE_PRO_PRICE_ID) {
+        return res.status(500).json({
+          status: 'error',
+          message: 'Stripe price configuration is missing',
+        });
+      }
+
+      session = await stripe.checkout.sessions.create({
+        customer: stripeCustomerId,
+        mode: 'subscription',
+        line_items: [
+          {
+            price: process.env.STRIPE_PRO_PRICE_ID,
+            quantity: seatCount,
+          },
+        ],
+        subscription_data: {
+          trial_period_days: 14,
+          metadata: {
+            workspace_id,
+          },
+        },
+        success_url: `${clientUrl}/billing?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
+        cancel_url: `${clientUrl}/billing?checkout=cancelled`,
         metadata: {
           workspace_id,
         },
-      },
-      success_url: `${clientUrl}/billing?session_id={CHECKOUT_SESSION_ID}&checkout=success`,
-      cancel_url: `${clientUrl}/billing?checkout=cancelled`,
-      metadata: {
-        workspace_id,
-      },
-    });
+      });
+    }
 
     res.json({
       status: 'success',
@@ -328,6 +364,34 @@ const handleWebhook = async (req, res) => {
     await client.query('BEGIN');
 
     switch (event.type) {
+      // ----------------------------------------------------------------
+      // Checkout session completed (handles lifetime one-time payments)
+      // ----------------------------------------------------------------
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        const workspaceId = session.metadata?.workspace_id;
+        const planId = session.metadata?.plan_id;
+
+        // Only handle lifetime one-time payments here
+        if (planId === 'lifetime' && workspaceId && session.mode === 'payment' && session.payment_status === 'paid') {
+          await client.query(
+            `UPDATE subscriptions
+             SET plan_id = 'lifetime',
+                 stripe_customer_id = $1,
+                 stripe_subscription_id = NULL,
+                 status = 'active',
+                 trial_ends_at = NULL,
+                 current_period_start = NOW(),
+                 current_period_end = NULL,
+                 updated_at = NOW()
+             WHERE workspace_id = $2`,
+            [session.customer, workspaceId]
+          );
+          logger.info({ workspaceId }, 'Lifetime plan activated');
+        }
+        break;
+      }
+
       // ----------------------------------------------------------------
       // Subscription created or updated
       // ----------------------------------------------------------------

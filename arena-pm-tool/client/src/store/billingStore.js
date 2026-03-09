@@ -47,7 +47,7 @@ const useBillingStore = create((set, get) => ({
   },
 
   // Start checkout (redirect to Stripe)
-  startCheckout: async () => {
+  startCheckout: async (planId = 'pro') => {
     const workspaceId = getWorkspaceId();
     if (!workspaceId) {
       toast.error('No workspace selected');
@@ -55,7 +55,7 @@ const useBillingStore = create((set, get) => ({
     }
 
     try {
-      const response = await billingAPI.createCheckout(workspaceId);
+      const response = await billingAPI.createCheckout(workspaceId, planId);
       const { checkoutUrl } = response.data.data;
       window.location.href = checkoutUrl;
       return { success: true };
@@ -95,6 +95,11 @@ const useBillingStore = create((set, get) => ({
   isFree: () => {
     const { plan } = get();
     return !plan || plan.id === 'free';
+  },
+
+  isLifetime: () => {
+    const { plan } = get();
+    return plan?.id === 'lifetime';
   },
 
   // Clear billing data (used when switching workspaces)
