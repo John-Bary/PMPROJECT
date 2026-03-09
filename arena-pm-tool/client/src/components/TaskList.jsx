@@ -111,90 +111,6 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     fetchCategories();
   }, [fetchTasks, fetchCategories]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Skip if user is typing in an input/textarea
-      const tag = e.target.tagName;
-      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
-
-      // Cmd/Ctrl+K to focus search (works even when typing)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-        return;
-      }
-
-      // Don't handle other shortcuts while typing or when modals are open
-      if (isTyping || isModalOpen || isDetailModalOpen || isCategoryModalOpen) return;
-
-      // ? to toggle shortcuts cheat sheet
-      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
-        e.preventDefault();
-        setIsShortcutsOpen(prev => !prev);
-        return;
-      }
-
-      // Escape to clear focus
-      if (e.key === 'Escape') {
-        setFocusedTaskIndex(-1);
-        return;
-      }
-
-      // N to create new task
-      if (e.key === 'n' || e.key === 'N') {
-        e.preventDefault();
-        if (userCanEdit) {
-          openCreateTask(getSuggestedCategoryId());
-        }
-        return;
-      }
-
-      const currentColumnTasks = getTasksByCategory(visibleCategories[focusedColumnIndex]?.id);
-
-      // Arrow Up/Down to navigate between tasks
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (currentColumnTasks.length > 0) {
-          setFocusedTaskIndex(prev => Math.min(prev + 1, currentColumnTasks.length - 1));
-        }
-        return;
-      }
-
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setFocusedTaskIndex(prev => Math.max(prev - 1, 0));
-        return;
-      }
-
-      // Arrow Left/Right to navigate between columns
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        setFocusedColumnIndex(prev => Math.max(prev - 1, 0));
-        setFocusedTaskIndex(0);
-        return;
-      }
-
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        setFocusedColumnIndex(prev => Math.min(prev + 1, visibleCategories.length - 1));
-        setFocusedTaskIndex(0);
-        return;
-      }
-
-      // Enter to open focused task
-      if (e.key === 'Enter' && focusedTaskIndex >= 0) {
-        e.preventDefault();
-        const task = currentColumnTasks[focusedTaskIndex];
-        if (task) handleOpenDetail(task);
-        return;
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [focusedColumnIndex, focusedTaskIndex, visibleCategories, isModalOpen, isDetailModalOpen, isCategoryModalOpen, userCanEdit, getTasksByCategory]); // eslint-disable-line react-hooks/exhaustive-deps
-
-
   const handleOpenDetail = (task) => {
     setSelectedTaskId(task.id);
     setIsDetailModalOpen(true);
@@ -366,6 +282,89 @@ function TaskList({ mobileAddTask, onMobileAddTaskClose }) {
     ),
     [categories, filters.categories]
   );
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Skip if user is typing in an input/textarea
+      const tag = e.target.tagName;
+      const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+
+      // Cmd/Ctrl+K to focus search (works even when typing)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // Don't handle other shortcuts while typing or when modals are open
+      if (isTyping || isModalOpen || isDetailModalOpen || isCategoryModalOpen) return;
+
+      // ? to toggle shortcuts cheat sheet
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        e.preventDefault();
+        setIsShortcutsOpen(prev => !prev);
+        return;
+      }
+
+      // Escape to clear focus
+      if (e.key === 'Escape') {
+        setFocusedTaskIndex(-1);
+        return;
+      }
+
+      // N to create new task
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        if (userCanEdit) {
+          openCreateTask(getSuggestedCategoryId());
+        }
+        return;
+      }
+
+      const currentColumnTasks = getTasksByCategory(visibleCategories[focusedColumnIndex]?.id);
+
+      // Arrow Up/Down to navigate between tasks
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (currentColumnTasks.length > 0) {
+          setFocusedTaskIndex(prev => Math.min(prev + 1, currentColumnTasks.length - 1));
+        }
+        return;
+      }
+
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setFocusedTaskIndex(prev => Math.max(prev - 1, 0));
+        return;
+      }
+
+      // Arrow Left/Right to navigate between columns
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setFocusedColumnIndex(prev => Math.max(prev - 1, 0));
+        setFocusedTaskIndex(0);
+        return;
+      }
+
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setFocusedColumnIndex(prev => Math.min(prev + 1, visibleCategories.length - 1));
+        setFocusedTaskIndex(0);
+        return;
+      }
+
+      // Enter to open focused task
+      if (e.key === 'Enter' && focusedTaskIndex >= 0) {
+        e.preventDefault();
+        const task = currentColumnTasks[focusedTaskIndex];
+        if (task) handleOpenDetail(task);
+        return;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [focusedColumnIndex, focusedTaskIndex, visibleCategories, isModalOpen, isDetailModalOpen, isCategoryModalOpen, userCanEdit, getTasksByCategory]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Get the active dragged item for DragOverlay preview
   const activeTask = activeId && String(activeId).startsWith('task-')
