@@ -23,6 +23,7 @@ function EmptyState({
     default: 'bg-card border border-border rounded-xl',
     muted: 'bg-background border border-border rounded-xl',
     ghost: 'bg-card/70 border-2 border-dashed border-border rounded-xl',
+    minimal: 'border border-dashed border-border/60 rounded-lg',
   };
 
   const alignment = align === 'left' ? 'items-start text-left' : 'items-center text-center';

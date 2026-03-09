@@ -298,13 +298,15 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
         {...attributes}
         {...(canEdit && !noDrag ? listeners : {})}
         onClick={handleCardClick}
+        role="group"
+        aria-label={`Task: ${task.title}`}
         className={`bg-card border border-border rounded-xl p-3 space-y-2 shadow-card hover:-translate-y-1 hover:shadow-elevated hover:border-border/80 transition-all duration-200 ease-out cursor-pointer border-l-[3px] ${isOverdue && !isCompleted ? 'border-l-red-500 bg-red-50/40 dark:bg-red-950/20' : priorityBorderColors[task.priority] || ''} ${canEdit && !noDrag ? 'cursor-grab active:cursor-grabbing' : ''} group relative ${
           isCompleted ? 'opacity-50' : ''
         } ${isDragging ? 'shadow-elevated' : ''} ${isFocused ? 'ring-2 ring-primary/40 ring-offset-1 ring-offset-background' : ''}`}
       >
         {/* Action Buttons - visible on mobile, hover on desktop (hidden for viewers) */}
         {canEdit && (
-          <div className="absolute top-2 right-2 flex gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2 right-2 flex gap-2 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
             {/* Move to category - mobile only */}
             {noDrag && otherCategories.length > 0 && (
               <div className="relative" ref={moveDropdownRef}>
@@ -363,6 +365,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
             } ${isToggling || !canEdit ? 'cursor-not-allowed' : ''}`}
             disabled={isToggling || !canEdit}
             title={!canEdit ? 'View only access' : isCompleted ? 'Mark as incomplete' : 'Mark as complete'}
+            aria-label={!canEdit ? 'View only access' : isCompleted ? `Mark "${task.title}" as incomplete` : `Mark "${task.title}" as complete`}
           >
             {isCompleted && <Check size={14} className="text-primary-foreground" />}
           </button>
@@ -413,11 +416,11 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
           <div className="relative" ref={priorityDropdownRef}>
             <button
               onClick={handlePriorityClick}
-              className={`inline-flex items-center gap-1 px-2 py-1 sm:py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
+              className={`inline-flex items-center px-2 py-1 sm:py-0.5 rounded-full text-xs font-medium ${priorityPillStyles[task.priority] || priorityPillStyles.medium} hover:opacity-80 transition`}
               title="Change priority"
+              aria-label={`Priority: ${task.priority}. Click to change`}
             >
               {task.priority}
-              <ChevronDown size={10} className="opacity-60" />
             </button>
 
           </div>
@@ -432,6 +435,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
                   : 'text-muted-foreground hover:bg-accent hover:text-foreground cursor-pointer'
               }`}
               title={isOverdue ? 'Overdue - click to change due date' : 'Change due date'}
+              aria-label={isOverdue ? `Overdue: ${dueDate}. Click to change due date` : dueDate ? `Due: ${dueDate}. Click to change` : 'Set due date'}
             >
               <Calendar size={12} />
               {dueDate ? (
@@ -456,6 +460,7 @@ function TaskItem({ task, index, onOpenDetail, onEdit, onDelete, onToggleComplet
               onClick={handleAssigneeClick}
               className="flex items-center hover:bg-accent rounded-lg px-1.5 py-0.5 transition-all duration-150 cursor-pointer"
               title="Manage assignees"
+              aria-label={`Assignees: ${(task.assignees || []).length > 0 ? (task.assignees || []).map(a => a.name).join(', ') : 'none'}. Click to manage`}
             >
               {(task.assignees || []).length > 0 ? (
                 <div className="flex items-center">

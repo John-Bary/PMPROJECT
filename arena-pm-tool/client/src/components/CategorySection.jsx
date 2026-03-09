@@ -101,11 +101,11 @@ function CategorySection({
       <div className="mb-3 sm:mb-4 group">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-            {/* Drag Handle - only show for users who can edit */}
+            {/* Drag Handle - only show for users who can edit, hover-only on desktop */}
             {canEdit ? (
               <div
                 {...categoryListeners}
-                className="p-1 text-muted-foreground cursor-grab active:cursor-grabbing transition-colors duration-150 flex-shrink-0 touch-manipulation"
+                className="p-1 text-muted-foreground cursor-grab active:cursor-grabbing transition-all duration-150 flex-shrink-0 touch-manipulation sm:opacity-0 group-hover:opacity-100"
                 title="Drag to reorder category"
               >
                 <GripVertical size={16} />
@@ -114,10 +114,10 @@ function CategorySection({
               <div className="w-6" /> /* Spacer for alignment */
             )}
 
-            {/* Collapse/Expand Button */}
+            {/* Collapse/Expand Button - hover-only on desktop */}
             <button
               onClick={toggleCollapse}
-              className="text-muted-foreground hover:text-foreground transition-all duration-150 p-2 md:p-0.5 flex-shrink-0 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0"
+              className="text-muted-foreground hover:text-foreground transition-all duration-150 p-2 md:p-0.5 flex-shrink-0 touch-manipulation touch-target-44 md:min-w-0 md:min-h-0 sm:opacity-0 group-hover:opacity-100"
               title={isCollapsed ? 'Expand category' : 'Collapse category'}
               aria-label={isCollapsed ? `Expand ${category.name} category` : `Collapse ${category.name} category`}
             >
@@ -198,20 +198,19 @@ function CategorySection({
             ))
           ) : (
             <EmptyState
-              icon={Plus}
-              title="No tasks here yet"
+              icon={null}
+              title={isOver ? 'Drop here' : '+ Add a task'}
               description={
                 isOver
-                  ? 'Drop a task to move it into this category.'
+                  ? null
                   : canEdit
-                    ? 'Add a task to get this category moving.'
+                    ? null
                     : 'No tasks in this category.'
               }
-              tone="ghost"
+              tone="minimal"
               size="sm"
-              className="bg-white/80"
               primaryAction={
-                onAddTask && canEdit
+                onAddTask && canEdit && !isOver
                   ? {
                       label: 'Add task',
                       onClick: () => onAddTask(category),

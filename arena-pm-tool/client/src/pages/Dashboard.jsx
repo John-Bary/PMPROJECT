@@ -124,8 +124,17 @@ function Dashboard() {
         </nav>
       </div>
 
-      {/* Bottom Section */}
-      <div className={`mt-auto ${isSidebarCollapsed && !mobile ? 'px-1' : 'px-3'} pb-3`}>
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Workspace Section */}
+      <div className={`${isSidebarCollapsed && !mobile ? 'px-1' : 'px-3'} pb-3`}>
+        {(!isSidebarCollapsed || mobile) && (
+          <p className="text-[11px] uppercase tracking-wider font-medium text-[#94A3B8] mb-2 px-3">
+            Workspace
+          </p>
+        )}
+        {isSidebarCollapsed && !mobile && <div className="border-t border-border mb-2" />}
         <div className="flex flex-col gap-0.5 mb-3">
           <Link
             to="/user"

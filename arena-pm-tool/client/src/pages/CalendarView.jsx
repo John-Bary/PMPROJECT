@@ -4,6 +4,7 @@ import { DndContext, DragOverlay, useDraggable, useDroppable } from '@dnd-kit/co
 import useTaskStore from '../store/taskStore';
 import useHolidayStore from '../store/holidayStore';
 import TaskModal from '../components/TaskModal';
+import BoardStats from '../components/BoardStats';
 import { PageLoader } from '../components/Loader';
 import { Button } from 'components/ui/button';
 import { useDndSensors } from '../hooks/useDndSensors';
@@ -283,12 +284,12 @@ function CalendarView() {
   // Get priority color - priority-tinted card style
   const getPriorityColor = (priority) => {
     const colors = {
-      urgent: 'bg-red-50 text-red-800 border-red-200',
-      high: 'bg-orange-50 text-orange-800 border-orange-200',
-      medium: 'bg-amber-50 text-amber-800 border-amber-200',
-      low: 'bg-green-50 text-green-800 border-green-200',
+      urgent: 'bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800',
+      high: 'bg-orange-50 dark:bg-orange-950/40 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+      medium: 'bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+      low: 'bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
     };
-    return colors[priority] || 'bg-gray-50 text-gray-800 border-gray-200';
+    return colors[priority] || 'bg-muted text-foreground border-border';
   };
 
   // Get priority left-border color for task card indicator
@@ -498,6 +499,11 @@ function CalendarView() {
         </div>
       </div>
 
+      {/* Quick Stats Bar */}
+      {tasks.filter(t => !t.parentTaskId).length > 0 && (
+        <BoardStats tasks={tasks.filter(t => !t.parentTaskId)} />
+      )}
+
       <DndContext sensors={sensors} onDragStart={handleCalendarDragStart} onDragEnd={handleCalendarDragEnd}>
       {/* Desktop Calendar Grid - Month View */}
       {viewMode === 'month' && (
@@ -538,14 +544,21 @@ function CalendarView() {
                   >
                     <div className="h-full flex flex-col">
                       <div className="flex items-center justify-between mb-2">
-                        <div
-                          className={`text-sm font-medium ${
-                            isToday(day)
-                              ? 'flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground rounded-full'
-                              : 'text-foreground'
-                          }`}
-                        >
-                          {day}
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className={`text-sm font-medium ${
+                              isToday(day)
+                                ? 'flex items-center justify-center w-7 h-7 bg-primary text-primary-foreground rounded-full'
+                                : 'text-foreground'
+                            }`}
+                          >
+                            {day}
+                          </div>
+                          {getTasksForDay(day).length > 0 && (
+                            <span className="text-[10px] font-medium text-muted-foreground bg-muted rounded-full px-1.5 py-0.5 leading-none">
+                              {getTasksForDay(day).length}
+                            </span>
+                          )}
                         </div>
                         <button
                           onClick={(e) => {

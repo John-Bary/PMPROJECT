@@ -316,9 +316,8 @@ const TaskModal = ({
 
               <Separator />
 
-              {/* Properties group: Assignee, Due Date, Priority */}
+              {/* Priority & Due Date */}
               <div>
-                <h4 className="text-sm font-medium text-foreground mb-2">Properties</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Priority */}
                   <div className="space-y-1.5">
@@ -378,11 +377,17 @@ const TaskModal = ({
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={String(category.id)}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
+                      {categories.length > 0 ? (
+                        categories.map((category) => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <div className="px-3 py-2 text-sm text-muted-foreground">
+                          No categories yet — create one from the board view.
+                        </div>
+                      )}
                     </SelectContent>
                   </Select>
                   {errors.categoryId && (

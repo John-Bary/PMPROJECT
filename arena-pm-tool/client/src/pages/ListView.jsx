@@ -29,6 +29,7 @@ import DatePicker from '../components/DatePicker';
 import AssigneeDropdown from '../components/AssigneeDropdown';
 import { InlineSpinner, TaskRowSkeleton } from '../components/Loader';
 import EmptyState from '../components/EmptyState';
+import BoardStats from '../components/BoardStats';
 import { toLocalDate, toUTCISOString, formatDueDate, isOverdue } from '../utils/dateUtils';
 import { priorityPillStyles, priorityDotColors } from '../utils/priorityStyles';
 import { useTaskActions } from '../hooks/useTaskActions';
@@ -348,6 +349,7 @@ function ListView() {
   const [activeId, setActiveId] = useState(null);
   const dropdownRefs = useRef({});
   const priorityPortalRef = useRef(null);
+  const searchInputRef = useRef(null);
   const sensors = useDndSensors();
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -383,6 +385,18 @@ function ListView() {
       fetchUsers(currentWorkspaceId);
     }
   }, [fetchTasks, fetchCategories, fetchUsers, currentWorkspaceId]);
+
+  // Cmd+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Close open dropdown when clicking outside the active trigger/dropdown
   // Note: For 'assignee' type, the AssigneeDropdown component handles its own click-outside via portal
@@ -824,10 +838,11 @@ function ListView() {
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
             <Input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search tasks..."
+              placeholder="Search tasks... (Cmd+K)"
               className="pl-9 sm:pl-10 pr-9 sm:pr-10"
               disabled={disableControls}
             />
@@ -842,12 +857,18 @@ function ListView() {
                 <X size={18} />
               </button>
             )}
+            {!searchQuery && <span className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:inline-flex items-center gap-0.5 bg-muted rounded-md px-1.5 py-0.5 text-[11px] font-mono text-muted-foreground">Cmd+K</span>}
           </div>
 
           {/* Filter Dropdown */}
           <FilterDropdown filters={filters} onFiltersChange={setFilters} disabled={disableControls} />
         </div>
       </div>
+
+      {/* Quick Stats Bar */}
+      {!isLoadingData && parentTasks.length > 0 && (
+        <BoardStats tasks={tasks.filter(t => !t.parentTaskId)} />
+      )}
 
       {/* Task List Table */}
       {isLoadingData ? (
